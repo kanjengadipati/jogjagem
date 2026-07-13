@@ -1,0 +1,6 @@
+{
+  "name": "Explore Jogja",
+  "description": "An AI-powered Tourism Discovery & Ecosystem Platform for Yogyakarta, designed to inspire travel and coordinate trips.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
