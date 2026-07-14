@@ -13,7 +13,7 @@ tsconfig.tsbuildinfo
 out/
 
 # Nested projects (not part of this repo)
-explore-jogja-admin-next/
+# explore-jogja-admin-next/
 
 # Generated/temporary files
 assets/
