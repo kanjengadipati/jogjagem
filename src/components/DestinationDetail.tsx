@@ -355,7 +355,7 @@ export default function DestinationDetail({
             className="w-full h-full object-cover opacity-85 transition-all duration-700 transform scale-102 filter brightness-[0.78]"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#fcfbfa] via-[#0f100c]/40 to-[#0f100c]/85" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f100c]/90 via-[#0f100c]/20 to-transparent" />
         </div>
 
         {/* Floating Badges Stack & Overlay Description */}
