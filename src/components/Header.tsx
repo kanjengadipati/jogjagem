@@ -49,7 +49,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 import Image from 'next/image';
 ...
             <div className="text-gold-400 transition-transform duration-300 group-hover:scale-105 mr-3">
-              <Image src="/logo-gold.png" alt="Jogjagem Logo" width={40} height={40} className="object-contain" />
+              <Image src="/logo-gold-new.png" alt="Jogjagem Logo" width={40} height={40} className="object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="font-manrope text-[17px] font-bold tracking-widest text-white">Jogjagem</span>
