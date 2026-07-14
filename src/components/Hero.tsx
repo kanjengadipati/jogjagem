@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Compass, Heart, Search, ChevronLeft, ChevronRight, Mic, MicOff, Camera, Loader2 } from 'lucide-react';
-import { DESTINATIONS } from '../data';
+import { DESTINATIONS, getPhotoCredit } from '../data';
 import { Destination } from '../types';
 import { ai } from '../lib/api';
 
@@ -17,31 +17,31 @@ const HERO_SLIDES = [
     id: 'prambanan',
     name: 'Prambanan Temple',
     tagline: 'Witness the majestic 9th-century Hindu spires rising against the golden sky.',
-    image: 'https://images.unsplash.com/photo-1584810359583-96fc3448beaa?q=80&w=1600'
+    image: 'https://images.unsplash.com/photo-1578469550956-0e16b69c6a3d?auto=format&fit=crop&w=1600&q=80'
   },
   {
     id: 'parangtritis',
     name: 'Parangtritis Beach',
     tagline: 'Where the black volcanic sand acts as a mirror for the mystical Southern Ocean sunset.',
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1600'
+    image: 'https://images.unsplash.com/photo-1602137704924-9a038cfb5253?auto=format&fit=crop&w=1600&q=80'
   },
   {
     id: 'merapi',
     name: 'Mount Merapi',
     tagline: 'Feel the thrill of riding vintage 4x4 Willys jeeps through fresh volcanic ash paths.',
-    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1600'
+    image: 'https://images.unsplash.com/photo-1556375403-b96342fc0ee2?auto=format&fit=crop&w=1600&q=80'
   },
   {
     id: 'tamansari',
     name: 'Taman Sari Water Castle',
     tagline: 'Explore hidden underground tunnels and secret bath pools of the ancient Sultans.',
-    image: 'https://images.unsplash.com/photo-1581456495146-65a71b2c8e52?q=80&w=1600'
+    image: 'https://images.unsplash.com/photo-1625506276715-76ad63823181?auto=format&fit=crop&w=1600&q=80'
   },
   {
     id: 'goajomblang',
     name: 'Goa Jomblang Cave',
     tagline: 'Descend into a vertical primeval forest to catch the blinding column of heavenly light.',
-    image: 'https://images.unsplash.com/photo-1604999333679-b86d54738315?q=80&w=1600'
+    image: 'https://images.unsplash.com/photo-1628047563315-d1e8b8d222b9?auto=format&fit=crop&w=1600&q=80'
   }
 ];
 
@@ -224,7 +224,6 @@ export default function Hero({ onSearchSubmit, onImageSearchSubmit, onExploreDes
                 onSubmit={handleSearchSubmit} 
                 className="relative flex items-center rounded-full border border-white/20 bg-black/35 hover:bg-black/45 backdrop-blur-md p-1 shadow-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400"
               >
-                {/* Simple Search Bar */}
                 <Search className="ml-4 h-5 w-5 text-white/70 shrink-0" />
                 
                 <input
@@ -232,15 +231,50 @@ export default function Hero({ onSearchSubmit, onImageSearchSubmit, onExploreDes
                   placeholder="Where would you like to explore today?"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent py-3 pl-3 pr-14 text-sm text-white placeholder-white/60 focus:outline-none font-sans"
+                  className="w-full bg-transparent py-3 pl-3 pr-36 sm:pr-14 text-sm text-white placeholder-white/60 focus:outline-none font-sans"
                 />
-                
-                <button
-                  type="submit"
-                  className="absolute right-1 flex h-9 w-9 items-center justify-center rounded-full bg-gold-500 hover:bg-gold-600 active:scale-95 text-white transition-all shadow-md shrink-0"
-                >
-                  <Search className="h-4 w-4" />
-                </button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                <div className="absolute right-1 flex items-center space-x-1">
+                  <button
+                    type="button"
+                    onClick={handleImageButtonClick}
+                    disabled={isUploadingImage}
+                    className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-all shrink-0 disabled:opacity-50"
+                    title="Search by image"
+                  >
+                    {isUploadingImage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Camera className="h-4 w-4" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleVoiceSearch}
+                    className={`flex h-9 w-9 items-center justify-center rounded-full transition-all shrink-0 ${
+                      isListening
+                        ? 'bg-red-500/20 text-red-400 animate-pulse'
+                        : 'hover:bg-white/10 text-white/70 hover:text-white'
+                    }`}
+                    title="Search by voice"
+                  >
+                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-gold-500 hover:bg-gold-600 active:scale-95 text-white transition-all shadow-md shrink-0"
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
+                </div>
               </form>
               
               {/* Search Suggestions Pills exactly like mockup */}
@@ -339,6 +373,11 @@ export default function Hero({ onSearchSubmit, onImageSearchSubmit, onExploreDes
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
+            </div>
+
+            {/* Photo Credit */}
+            <div className="text-[10px] font-mono text-white/40 mt-1">
+              Photo: {getPhotoCredit(HERO_SLIDES[currentSlide].image)} / Unsplash
             </div>
 
           </div>

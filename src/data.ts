@@ -1,5 +1,52 @@
 import { Destination, Festival, EcosystemPartner } from './types';
 
+export const PHOTO_CREDITS: Record<string, string> = {
+  '1578469550956-0e16b69c6a3d': 'Eugenia Clara',
+  '1621869606578-1561708a7e09': 'Wendy Winarno',
+  '1566559631133-969041fc5583': 'Unsplash',
+  '1543874768-af0b9c4090d5': 'Agto Nugroho',
+  '1617591387509-2fcba0c80c42': 'Unsplash',
+  '1602137704924-9a038cfb5253': 'Unsplash',
+  '1586319826484-b7f386bf3e72': 'Camille Bismonte',
+  '1646806512881-1c169782a970': 'Unsplash',
+  '1625506276715-76ad63823181': 'Gading Ihsan',
+  '1628047563315-d1e8b8d222b9': 'Unsplash',
+  '1571607023618-c93917452ed3': 'Unsplash',
+  '1596402184320-417e7178b2cd': 'Unsplash',
+  '1782392487647-7fee9715d1f5': 'Unsplash',
+  '1595323264810-3dd19b1be56f': 'RINZI WE',
+  '1524445361389-3d2c21109015': 'Unsplash',
+  '1550075099-dcd6d1513b87': 'Aaron Roth',
+  '1654739595101-594699f889d4': 'Unsplash',
+  '1507525428034-b723cf961d3e': 'Sean Oulashin',
+  '1519046904884-53103b34b206': 'Elizeu Dias',
+  '1511497584788-876760111969': 'Sergei A',
+  '1581456495146-65a71b2c8e52': 'Colton Sturgeon',
+  '1584810359583-96fc3448beaa': 'Unsplash',
+  '1441974231531-c6227db76b6e': 'Lukasz Szmigiel',
+  '1470071459604-3b5ec3a7fe05': 'v2osk',
+  '1506905925346-21bda4d32df4': 'Sam Ferrara',
+  '1501785888041-af3ef285b470': 'Unsplash',
+  '1467489904517-075c242c2b4f': 'Unsplash',
+  '1566073771259-6a8506099945': 'Bilderboken',
+  '1517248135467-4c7edcad34c4': 'Jason Leung',
+  '1551882547-ff40c63fe5fa': 'Valeriia Bugaiova',
+  '1504674900247-0877df9cc836': 'Unsplash',
+  '1571896349842-33c89424de2d': 'Unsplash',
+  '1501339847302-ac426a4a7cbb': 'Unsplash',
+  '1544717297-fa95b6ee9643': 'Icons8 Team',
+  '1504280390367-361c6d9f38f4': 'Scott Goodwill',
+  '1516450360452-9312f5e86fc7': 'Unsplash',
+  '1520038410233-7141be7e6f97': 'Unsplash',
+};
+
+export function getPhotoCredit(imageUrl: string): string {
+  const match = imageUrl.match(/photo-([a-f0-9-]+)/);
+  if (!match) return 'Unsplash';
+  const id = match[1];
+  return PHOTO_CREDITS[id] || 'Unsplash';
+}
+
 export const CATEGORIES = [
   { id: 'hidden-gem', name: 'Hidden Gems', icon: 'Sparkles', description: 'Unexplored, pristine secret wonders' },
   { id: 'nature', name: 'Nature Escapes', icon: 'Leaf', description: 'Verdant forests, mountains, and parks' },
@@ -56,9 +103,9 @@ export const DESTINATIONS: Destination[] = [
     location: 'Sleman, Yogyakarta',
     subRegion: 'Sleman',
     images: [
-      'https://images.unsplash.com/photo-1584810359583-96fc3448beaa?q=80&w=1200',
-      'https://images.unsplash.com/photo-1626847037657-fd3622613ce3?q=80&w=1200',
-      'https://images.unsplash.com/photo-1601999109332-542b18dbec57?q=80&w=1200'
+      'https://images.unsplash.com/photo-1578469550956-0e16b69c6a3d?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1621869606578-1561708a7e09?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1566559631133-969041fc5583?auto=format&fit=crop&w=1200&q=80'
     ],
     rating: 4.8,
     reviewCount: 3840,
@@ -165,9 +212,9 @@ export const DESTINATIONS: Destination[] = [
     location: 'Yogyakarta City',
     subRegion: 'Yogyakarta',
     images: [
-      'https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1200',
-      'https://images.unsplash.com/photo-1581456495146-65a71b2c8e52?q=80&w=1200',
-      'https://images.unsplash.com/photo-1596402184320-417e7178b2cd?q=80&w=1200'
+      'https://images.unsplash.com/photo-1543874768-af0b9c4090d5?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1617591387509-2fcba0c80c42?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1581456495146-65a71b2c8e52?auto=format&fit=crop&w=1200&q=80',
     ],
     rating: 4.6,
     reviewCount: 9280,
@@ -260,9 +307,9 @@ export const DESTINATIONS: Destination[] = [
     location: 'Bantul, Yogyakarta',
     subRegion: 'Bantul',
     images: [
-      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1200',
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200',
-      'https://images.unsplash.com/photo-1519046904884-53103b34b206?q=80&w=1200'
+      'https://images.unsplash.com/photo-1602137704924-9a038cfb5253?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80',
     ],
     rating: 4.7,
     reviewCount: 4230,
@@ -342,9 +389,9 @@ export const DESTINATIONS: Destination[] = [
     location: 'Sleman, Yogyakarta',
     subRegion: 'Sleman',
     images: [
-      'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1200',
-      'https://images.unsplash.com/photo-1604999333679-b86d54738315?q=80&w=1200',
-      'https://images.unsplash.com/photo-1511497584788-876760111969?q=80&w=1200'
+      'https://images.unsplash.com/photo-1550075099-dcd6d1513b87?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1200&q=80',
     ],
     rating: 4.8,
     reviewCount: 5120,
@@ -400,7 +447,7 @@ export const DESTINATIONS: Destination[] = [
         id: 'me-p3',
         name: 'Merapi Jeep Adventure Group 88',
         category: 'rental',
-        image: 'https://images.unsplash.com/photo-1533513780520-9c19d4551250?q=80&w=600',
+        image: 'https://images.unsplash.com/photo-1467489904517-075c242c2b4f?auto=format&fit=crop&w=600&q=80',
         rating: 4.9,
         price: 'IDR 400,000 / Jeep Package',
         distance: 'On-Site',
@@ -424,9 +471,9 @@ export const DESTINATIONS: Destination[] = [
     location: 'Yogyakarta City',
     subRegion: 'Yogyakarta',
     images: [
-      'https://images.unsplash.com/photo-1581456495146-65a71b2c8e52?q=80&w=1200',
-      'https://images.unsplash.com/photo-1596402184320-417e7178b2cd?q=80&w=1200',
-      'https://images.unsplash.com/photo-1584810359583-96fc3448beaa?q=80&w=1200'
+      'https://images.unsplash.com/photo-1625506276715-76ad63823181?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1596402184320-417e7178b2cd?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1584810359583-96fc3448beaa?auto=format&fit=crop&w=1200&q=80',
     ],
     rating: 4.6,
     reviewCount: 3120,
@@ -506,9 +553,9 @@ export const DESTINATIONS: Destination[] = [
     location: 'Gunungkidul, Yogyakarta',
     subRegion: 'Gunungkidul',
     images: [
-      'https://images.unsplash.com/photo-1604999333679-b86d54738315?q=80&w=1200',
-      'https://images.unsplash.com/photo-1511497584788-876760111969?q=80&w=1200',
-      'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1200'
+      'https://images.unsplash.com/photo-1628047563315-d1e8b8d222b9?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1571607023618-c93917452ed3?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80',
     ],
     rating: 4.9,
     reviewCount: 1840,
@@ -612,7 +659,325 @@ export const DESTINATIONS: Destination[] = [
       }
     ],
     faqs: [
-      { q: 'Is it safe to climb the platforms?', a: 'Yes. Every platform is equipped with standard safety harnesses and monitored by experienced local site rangers.' }
+      { q: 'Is it safe to climb the platforms?', a: 'Yes. Every platform is equipped with professional safety harnesses.' }
+    ]
+  },
+  {
+    id: 'keraton',
+    name: 'Keraton Yogyakarta',
+    tagline: 'The Living Heart of the Sultanate',
+    category: 'heritage',
+    location: 'Yogyakarta City',
+    subRegion: 'Yogyakarta',
+    images: [
+      'https://images.unsplash.com/photo-1571607023618-c93917452ed3?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80',
+    ],
+    rating: 4.7,
+    reviewCount: 4500,
+    description: 'Keraton Ngayogyakarta Hadiningrat is the official palace of the Sultan of Yogyakarta and a living museum of Javanese royal culture. Built in 1755 by Sultan Hamengkubuwono I, the palace complex features stunning Javanese architecture, sacred gamelan instruments, royal artifacts, and the Sultan\'s personal guard (Abdi Dalem).',
+    story: 'The Kraton was built on the Philosophical Axis of Yogyakarta — the spiritual line connecting Mount Merapi, the Kraton, and the South Sea. According to Javanese cosmology, this axis represents the connection between the divine realm, the human world, and the spirit sea. The palace is still actively used by the Sultan and his court.',
+    ticketPrice: 'IDR 15,000 / person (additional IDR 5,000 for camera)',
+    openingHours: '08:30 AM - 02:00 PM Tuesday-Sunday',
+    facilities: ['Royal Museum', 'Gamelan Performance Hall', 'Sultan\'s Personal Guard', 'Traditional Javanese Architecture', 'Royal Gardens', 'Gift Shop', 'Clean Restrooms'],
+    travelTips: [
+      'Visit during the gamelan performance (usually 10:00 AM and 12:00 PM).',
+      'Wear modest clothing — this is still an active royal palace.',
+      'Hire a guide to understand the deep symbolism of each room.',
+      'Don\'t miss the Bangsal Kencana (Golden Pavilion).'
+    ],
+    bestTime: 'Tuesday to Sunday mornings for gamelan performances',
+    weather: {
+      temp: '28°C',
+      condition: 'Partly Cloudy',
+      status: 'Perfect weather for exploring the royal palace.'
+    },
+    latitude: -7.8054,
+    longitude: 110.3642,
+    reviews: MOCK_REVIEWS,
+    partners: [
+      {
+        id: 'k-p1',
+        name: 'Royal Ambarrukmo Hotel',
+        category: 'hotel',
+        image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=600',
+        rating: 4.8,
+        price: 'IDR 1,200,000 / night',
+        distance: '3.5 km from Kraton',
+        description: 'Heritage luxury hotel once used by visiting royalty.',
+        address: 'Jl. Babarsari No.53, Yogyakarta',
+        coordinates: { lat: -7.7828, lng: 110.3671 }
+      }
+    ],
+    faqs: [
+      { q: 'Is the palace still inhabited?', a: 'Yes. The Sultan\'s family still uses part of the complex.' },
+      { q: 'What days is it open?', a: 'Tuesday through Sunday, 08:30 AM - 02:00 PM. Closed on Monday.' }
+    ]
+  },
+  {
+    id: 'ratuboko',
+    name: 'Ratu Boko Palace',
+    tagline: 'The Lost Kingdom on the Hilltop',
+    category: 'heritage',
+    location: 'Sleman, Yogyakarta',
+    subRegion: 'Sleman',
+    images: [
+      'https://images.unsplash.com/photo-1596402184320-417e7178b2cd?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1581456495146-65a71b2c8e52?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1584810359583-96fc3448beaa?auto=format&fit=crop&w=1200&q=80',
+    ],
+    rating: 4.7,
+    reviewCount: 3200,
+    description: 'Ratu Boko is an archaeological palace complex perched on a plateau 3 km south of Prambanan. Unlike other Javanese sites which are temples, Ratu Boko displays attributes of a fortified royal settlement — complete with defensive walls, dry moats, bathing pools, and meditation chambers. It is most famous for its breathtaking sunset views.',
+    story: 'The original name remains unclear, but local inhabitants named the site after King Boko, the legendary king from the Roro Jonggrang folklore. Archaeologists believe it was a palace complex of the Sailendra or Mataram Kingdom. The site covers 16 hectares across two hamlets and offers one of the most dramatic sunset viewpoints in all of Java.',
+    ticketPrice: 'IDR 40,000 (Adult) / IDR 20,000 (Child) / IDR 10,000 (Parking)',
+    openingHours: '06:00 AM - 05:00 PM Daily (Sunset package available)',
+    facilities: ['Shuttle Bus from Prambanan', 'Sunset Viewpoint Platform', 'Ancient Stone Gate (Gapura)', 'Bathing Pools Ruins', 'Meditation Caves', 'Restaurant & Cafe', 'Parking Area', 'Gift Shop'],
+    travelTips: [
+      'Arrive 2 hours before sunset to explore and secure the best spot.',
+      'Buy the Prambanan + Ratu Boko combo ticket with included shuttle.',
+      'Bring a picnic mat to relax on the grass while waiting for sunset.',
+      'Comfortable walking shoes are essential — the complex is large.'
+    ],
+    bestTime: 'Late afternoon for sunset; dry season (May-September) for clearest skies',
+    weather: {
+      temp: '27°C',
+      condition: 'Clear',
+      status: 'Perfect conditions for a spectacular sunset at Ratu Boko.'
+    },
+    latitude: -7.7700,
+    longitude: 110.4830,
+    reviews: MOCK_REVIEWS,
+    partners: [
+      {
+        id: 'rb-p1',
+        name: 'Boko Sunset Resto',
+        category: 'restaurant',
+        image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=600',
+        rating: 4.4,
+        price: 'IDR 80,000 - 200,000 / person',
+        distance: 'On-Site',
+        description: 'Dine with panoramic views of the sunset over the Prambanan plain.',
+        address: 'Jl. Ratu Boko, Bokoharjo, Prambanan',
+        coordinates: { lat: -7.7700, lng: 110.4830 }
+      }
+    ],
+    faqs: [
+      { q: 'Is it a temple?', a: 'No. Ratu Boko is an ancient palace complex, not a temple.' },
+      { q: 'Can I visit for sunset?', a: 'Yes! Sunset packages are available. Arrive 2 hours before sunset.' }
+    ]
+  },
+  {
+    id: 'timang',
+    name: 'Timang Beach',
+    tagline: 'The Thrilling Rope Bridge Over Wild Waves',
+    category: 'adventure',
+    location: 'Gunungkidul, Yogyakarta',
+    subRegion: 'Gunungkidul',
+    images: [
+      'https://images.unsplash.com/photo-1595323264810-3dd19b1be56f?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80',
+    ],
+    rating: 4.8,
+    reviewCount: 2800,
+    description: 'Timang Beach is a dramatic limestone cliff beach famous for its traditional wooden rope bridge (Jembatan Timang) that spans across crashing Indian Ocean waves. Originally built by lobster fishermen, the bridge has become one of Yogyakarta\'s most thrilling adventure attractions.',
+    story: 'For generations, local fishermen built and rebuilt this precarious rope bridge to reach the lobster-rich rocks on the other side of the cove. The bridge is made entirely from wooden planks and nylon ropes, hand-pulled by local volunteers. The tradition of lobster fishing here dates back centuries, and the bridge has been featured on the Japanese TV show "Legends of the Hidden Temple."',
+    ticketPrice: 'IDR 100,000 - 200,000 / person (rope bridge crossing)',
+    openingHours: '07:00 AM - 05:00 PM Daily',
+    facilities: ['Rope Bridge Crossing', 'Traditional Lobster Dining', 'Cliffside Viewpoints', 'Local Guide Services', 'Parking Area', 'Warung (Food Stalls)', 'ATV Rental (nearby)'],
+    travelTips: [
+      'The rope bridge crossing is not for the faint of heart — hold on tight!',
+      'Wear closed-toe shoes with good grip.',
+      'Try the fresh grilled lobster — it\'s the specialty here.',
+      'Visit on a weekday to avoid long queues for the bridge.'
+    ],
+    bestTime: 'May to September for calmer seas; morning for best light',
+    weather: {
+      temp: '28°C',
+      condition: 'Sunny',
+      status: 'Clear skies — perfect for the rope bridge adventure!'
+    },
+    latitude: -8.1350,
+    longitude: 110.6580,
+    reviews: MOCK_REVIEWS,
+    partners: [
+      {
+        id: 't-p1',
+        name: 'Timang Lobster Warung',
+        category: 'restaurant',
+        image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600',
+        rating: 4.7,
+        price: 'IDR 100,000 - 250,000 / person',
+        distance: 'On-Site',
+        description: 'Fresh grilled lobster caught daily by local fishermen.',
+        address: 'Timang Beach, Tepus, Gunungkidul',
+        coordinates: { lat: -8.1350, lng: 110.6580 }
+      }
+    ],
+    faqs: [
+      { q: 'Is the rope bridge safe?', a: 'Yes. It is inspected and maintained daily by local fishermen.' },
+      { q: 'Can children cross the bridge?', a: 'Children under 12 are not recommended to cross.' }
+    ]
+  },
+  {
+    id: 'tebingbreksi',
+    name: 'Tebing Breksi',
+    tagline: 'The Dramatic Limestone Cliff of Yogyakarta',
+    category: 'nature',
+    location: 'Sleman, Yogyakarta',
+    subRegion: 'Sleman',
+    images: [
+      'https://images.unsplash.com/photo-1524445361389-3d2c21109015?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80',
+    ],
+    rating: 4.6,
+    reviewCount: 1900,
+    description: 'Tebing Breksi is a former limestone quarry transformed into one of Yogyakarta\'s most spectacular viewpoints. The dramatic carved cliffs feature layered geological formations dating back millions of years. At the summit, you can see panoramic views stretching from Prambanan to the ocean.',
+    story: 'Originally an active limestone quarry, Tebing Breksi was closed by the government in 2014 to preserve the geological heritage. Local communities then developed it into a tourist attraction with carved pathways, amphitheater, and viewing platforms. The cliff face reveals geological layers formed over millions of years, making it both a scenic and scientific site.',
+    ticketPrice: 'IDR 10,000 / person',
+    openingHours: '06:00 AM - 06:00 PM Daily',
+    facilities: ['Carved Stone Pathways', 'Summit Viewing Platform', 'Open-Air Amphitheater', 'Sunrise & Sunset Spots', 'Food Stalls', 'Parking Area', 'Restrooms'],
+    travelTips: [
+      'Visit at sunrise (05:30 AM) for golden light over Prambanan.',
+      'The amphitheater sometimes hosts evening cultural performances.',
+      'Combine with a visit to nearby Candi Ijo for a full day trip.',
+      'Wear sturdy shoes — the stone paths can be slippery.'
+    ],
+    bestTime: 'Sunrise (05:30 AM) or sunset (05:00 PM) for dramatic lighting',
+    weather: {
+      temp: '26°C',
+      condition: 'Clear',
+      status: 'Perfect visibility for panoramic views from the cliff summit.'
+    },
+    latitude: -7.7710,
+    longitude: 110.4750,
+    reviews: MOCK_REVIEWS,
+    partners: [
+      {
+        id: 'tb-p1',
+        name: 'Candi Ijo Restaurant',
+        category: 'restaurant',
+        image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=600',
+        rating: 4.5,
+        price: 'IDR 30,000 - 80,000 / person',
+        distance: '2 km',
+        description: 'Traditional Javanese restaurant near Candi Ijo with hilltop views.',
+        address: 'Sambirejo, Prambanan, Sleman',
+        coordinates: { lat: -7.7710, lng: 110.4750 }
+      }
+    ],
+    faqs: [
+      { q: 'Is it safe to climb?', a: 'Yes. Carved pathways and safety railings are installed.' },
+      { q: 'Is there an entrance fee?', a: 'Yes, IDR 10,000 per person. Parking IDR 5,000.' }
+    ]
+  },
+  {
+    id: 'pindul',
+    name: 'Pindul Cave Tubing',
+    tagline: 'Glide Through Underground Rivers in Ancient Caves',
+    category: 'adventure',
+    location: 'Gunungkidul, Yogyakarta',
+    subRegion: 'Gunungkidul',
+    images: [
+      'https://images.unsplash.com/photo-1586319826484-b7f386bf3e72?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1646806512881-1c169782a970?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=80',
+    ],
+    rating: 4.7,
+    reviewCount: 2400,
+    description: 'Pindul Cave tubing is an underground river tubing adventure through a 350-meter limestone cave. You float on inner tubes through crystal-clear underground water, passing by stunning stalactites and stalagmites illuminated by guide-held lights. The experience takes about 45 minutes.',
+    story: 'Pindul Cave was discovered by local explorers in 2008. The underground river was found to be deep enough (5-12 meters) and calm enough for safe tubing. The cave ceiling is adorned with ancient stalactites formed over millions of years, some reaching down to nearly touch the water surface.',
+    ticketPrice: 'IDR 100,000 / person (includes tube, guide, and life jacket)',
+    openingHours: '08:00 AM - 04:00 PM Daily',
+    facilities: ['Full Tubing Equipment', 'Certified Cave Guides', 'Life Jackets', 'Underwater Flashlights', 'Changing Rooms', 'Freshwater Showers', 'Parking Area', 'Warung (Food Stalls)'],
+    travelTips: [
+      'Wear swimwear under your clothes — you will get wet!',
+      'Waterproof cameras or phone cases are essential.',
+      'Combine with a visit to nearby Bejiharjo Village.',
+      'Book in advance during school holidays.'
+    ],
+    bestTime: 'Year-round (cave temperature is constant at 25°C)',
+    weather: {
+      temp: '25°C',
+      condition: 'Cave Interior',
+      status: 'Constant comfortable temperature inside the cave.'
+    },
+    latitude: -8.0120,
+    longitude: 110.6100,
+    reviews: MOCK_REVIEWS,
+    partners: [
+      {
+        id: 'pindul-p1',
+        name: 'Pindul Adventure Tours',
+        category: 'guide',
+        image: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?q=80&w=600',
+        rating: 4.8,
+        price: 'IDR 100,000 / person',
+        distance: 'On-Site',
+        description: 'Professional cave tubing operators with 15+ years of experience.',
+        address: 'Bejiharjo, Karangmojo, Gunungkidul',
+        coordinates: { lat: -8.0120, lng: 110.6100 }
+      }
+    ],
+    faqs: [
+      { q: 'Do I need to know how to swim?', a: 'No. Life jackets are provided and the water is calm.' },
+      { q: 'Is it safe?', a: 'Yes. Guides accompany every group and equipment is inspected daily.' }
+    ]
+  },
+  {
+    id: 'pinusmangunan',
+    name: 'Hutan Pinus Mangunan',
+    tagline: 'The Enchanted Pine Forest Above the Clouds',
+    category: 'nature',
+    location: 'Bantul, Yogyakarta',
+    subRegion: 'Bantul',
+    images: [
+      'https://images.unsplash.com/photo-1654739595101-594699f889d4?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
+    ],
+    rating: 4.6,
+    reviewCount: 3100,
+    description: 'Hutan Pinus Mangunan is a vast pine forest perched on the hills of Mangunan, Bantul. Famous for its Instagram-worthy wooden platforms, swing seats, and the magical atmosphere created by tall pine trees stretching endlessly into the mist. On clear mornings, you can see the Indian Ocean from the viewpoints.',
+    story: 'The pine forest was originally a government reforestation project in the 1980s. Local residents later transformed it into an eco-tourism destination, building creative photo spots among the trees. It became a viral sensation on social media, attracting hundreds of thousands of visitors annually and boosting the local economy significantly.',
+    ticketPrice: 'IDR 10,000 / person',
+    openingHours: '06:00 AM - 05:00 PM Daily',
+    facilities: ['Pine Forest Walking Trails', 'Instagram Photo Platforms', 'Swing Seats', 'Hilltop Viewpoint', 'Cafes & Food Stalls', 'Parking Area', 'Restrooms', 'Camping Area'],
+    travelTips: [
+      'Arrive before 07:00 AM for misty, ethereal photos.',
+      'The hilltop viewpoint offers stunning sunrise views over the southern coast.',
+      'Wear comfortable walking shoes for the forest trails.',
+      'Combine with a visit to Becici Peak nearby.'
+    ],
+    bestTime: 'Early morning (06:00-08:00 AM) for misty forest atmosphere',
+    weather: {
+      temp: '25°C',
+      condition: 'Misty Morning',
+      status: 'Perfect conditions for atmospheric pine forest photos.'
+    },
+    latitude: -7.9520,
+    longitude: 110.3890,
+    reviews: MOCK_REVIEWS,
+    partners: [
+      {
+        id: 'pm-p1',
+        name: 'Mangunan Pine Forest Cafe',
+        category: 'cafe',
+        image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600',
+        rating: 4.5,
+        price: 'IDR 15,000 - 35,000 / person',
+        distance: 'On-Site',
+        description: 'Rustic forest cafe serving traditional drinks and snacks.',
+        address: 'Mangunan, Dlingo, Bantul',
+        coordinates: { lat: -7.9520, lng: 110.3890 }
+      }
+    ],
+    faqs: [
+      { q: 'Is there an entrance fee?', a: 'Yes, IDR 10,000 per person. Parking IDR 5,000.' },
+      { q: 'Can I camp overnight?', a: 'Yes. Designated camping areas are available.' }
     ]
   }
 ];

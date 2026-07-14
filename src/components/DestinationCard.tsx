@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, Heart } from 'lucide-react';
 import { Destination } from '../types';
+import { getPhotoCredit } from '../data';
 
 interface DestinationCardProps {
   key?: string | number;
@@ -110,6 +111,13 @@ export default function DestinationCard({ destination, onExplore, onToggleSave, 
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </div>
+        </div>
+
+        {/* Photo Credit */}
+        <div className="mt-1.5">
+          <span className="text-[9px] text-white/40 font-mono">
+            Photo: {getPhotoCredit(destination.images[0])} / Unsplash
+          </span>
         </div>
       </div>
     </div>

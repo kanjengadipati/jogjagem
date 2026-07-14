@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, User, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 
@@ -11,6 +12,7 @@ interface HeaderProps {
 }
 
 export default function Header({ activeTab, setActiveTab, savedCount, isOverHero = false }: HeaderProps) {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
@@ -113,12 +115,27 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             {/* Auth Section */}
             {isAuthenticated ? (
               <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10">
+                {(user?.role === 'admin' || user?.role === 'superadmin') && (
+                  <a
+                    href="http://localhost:3005"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-gold-600 to-gold-500 text-white hover:from-gold-500 hover:to-gold-400 transition-all text-xs font-bold shadow-lg shadow-gold-600/20"
+                    title="Buka Admin Panel"
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    <span>Admin Panel</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => router.push('/profile')}
+                  className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer"
+                >
                   <User className="h-4 w-4 text-gold-400" />
                   <span className="text-xs font-medium text-white/90 max-w-[100px] truncate">
                     {user?.name || 'User'}
                   </span>
-                </div>
+                </button>
                 <button
                   onClick={logout}
                   className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-white/70 hover:text-white"
@@ -219,6 +236,21 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                   </button>
                 );
               })}
+
+              {/* Mobile Admin Panel */}
+              {isAuthenticated && (user?.role === 'admin' || user?.role === 'superadmin') && (
+                <a
+                  href="http://localhost:3005"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between rounded-xl px-4 py-3 text-base font-medium bg-gradient-to-r from-gold-600 to-gold-500 text-white mt-2"
+                >
+                  <div className="flex items-center space-x-3">
+                    <ShieldCheck className="h-5 w-5" />
+                    <span>Admin Panel</span>
+                  </div>
+                </a>
+              )}
 
               {/* Mobile Auth */}
               {!isAuthenticated && (

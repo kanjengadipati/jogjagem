@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import CategoryLinks from './components/CategoryLinks';
@@ -10,9 +11,11 @@ import InteractiveMap from './components/InteractiveMap';
 
 import { DESTINATIONS, FESTIVALS, JOGJA_QUOTES } from './data';
 import { Destination } from './types';
+import { destinations } from './lib/api'; // Import api client
 import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset } from 'lucide-react';
 
 export default function App() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>('discover');
   const [selectedDestination, setSelectedDestination] = useState<Destination | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -22,29 +25,46 @@ export default function App() {
     reply: string;
     matchedDestinationIds: string[];
   } | null>(null);
+  
+  // Use state to hold fetched destinations
+  const [allDestinations, setAllDestinations] = useState<Destination[]>(DESTINATIONS);
+
+  useEffect(() => {
+    // Fetch destinations from API
+    destinations.getAll().then(res => {
+      if (res.status === 'success' && res.data) {
+        setAllDestinations(res.data as Destination[]);
+      }
+    });
+  }, []);
 
   // Persistent local favorites storage
-  const [savedDestinations, setSavedDestinations] = useState<Destination[]>(() => {
+  const [savedDestinations, setSavedDestinations] = useState<Destination[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+      // Hydrate from localStorage after mount (avoids SSR/client mismatch)
+  useEffect(() => {
     try {
       const saved = localStorage.getItem('explore_jogja_saved_v1');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Map back to current full destination data structure to prevent stale cache bugs
-        return parsed.map((item: any) => DESTINATIONS.find(d => d.id === item.id)).filter(Boolean);
+        setSavedDestinations(parsed.map((item: any) => allDestinations.find(d => d.id === item.id)).filter(Boolean));
       }
     } catch (e) {
       console.error("Local storage read failed:", e);
     }
-    return [];
-  });
+    setHydrated(true);
+  }, [allDestinations]);
+
 
   useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem('explore_jogja_saved_v1', JSON.stringify(savedDestinations));
     } catch (e) {
       console.error("Local storage write failed:", e);
     }
-  }, [savedDestinations]);
+  }, [savedDestinations, hydrated]);
 
   const handleToggleSave = (dest: Destination) => {
     setSavedDestinations((prev) => {
@@ -86,15 +106,15 @@ export default function App() {
   }, [activeTab]);
 
   const filteredDestinations = selectedCategory
-    ? DESTINATIONS.filter(d => d.category === selectedCategory)
-    : DESTINATIONS;
+    ? allDestinations.filter(d => d.category === selectedCategory)
+    : allDestinations;
 
-  const defaultSortedIds = ['prambanan', 'parangtritis', 'malioboro', 'tamansari', 'merapi', 'kalibiru'];
+  const defaultSortedIds = ['prambanan', 'parangtritis', 'malioboro', 'tamansari', 'merapi', 'kalibiru', 'keraton', 'ratuboko', 'timang', 'tebingbreksi', 'pindul', 'pinusmangunan', 'goajomblang'];
 
   const displayDestinations = selectedCategory
     ? filteredDestinations
     : defaultSortedIds
-        .map(id => DESTINATIONS.find(d => d.id === id))
+        .map(id => allDestinations.find(d => d.id === id))
         .filter((d): d is Destination => d !== undefined);
 
   return (
@@ -189,7 +209,7 @@ export default function App() {
                       </h2>
                     </div>
                     <button 
-                      onClick={() => setSelectedCategory(null)}
+                      onClick={() => router.push('/destinations')}
                       className="text-xs sm:text-sm font-semibold text-royal-700/80 hover:text-gold-600 transition-colors flex items-center space-x-0.5 border-b border-royal-700/10 hover:border-gold-600 pb-0.5 cursor-pointer"
                     >
                       <span>See all</span>
@@ -230,7 +250,10 @@ export default function App() {
                           </h2>
                           <p className="text-xs text-stone-500/80 mt-0.5">Don't miss what's happening</p>
                         </div>
-                        <button className="text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 cursor-pointer">
+                        <button
+                          onClick={() => router.push('/destinations')}
+                          className="text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 cursor-pointer"
+                        >
                           <span>See all</span>
                           <span>→</span>
                         </button>
@@ -299,7 +322,10 @@ export default function App() {
                           </h2>
                           <p className="text-xs text-stone-500/80 mt-0.5">Personalized for today's vibes</p>
                         </div>
-                        <button className="text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 cursor-pointer">
+                        <button
+                          onClick={() => router.push('/destinations')}
+                          className="text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 cursor-pointer"
+                        >
                           <span>See all</span>
                           <span>→</span>
                         </button>
@@ -308,7 +334,7 @@ export default function App() {
                       <div className="grid grid-cols-2 gap-4 h-full">
                         {/* Card 1: Merapi Sunrise Jeep Tour */}
                         {(() => {
-                          const dest = DESTINATIONS.find(d => d.id === 'merapi') || DESTINATIONS[0];
+                          const dest = allDestinations.find(d => d.id === 'merapi') || allDestinations[0];
                           return (
                             <div
                               onClick={() => handleExploreDestination(dest)}
@@ -355,7 +381,7 @@ export default function App() {
 
                         {/* Card 2: Jomblang Cave */}
                         {(() => {
-                          const dest = DESTINATIONS.find(d => d.id === 'goajomblang') || DESTINATIONS[1];
+                          const dest = allDestinations.find(d => d.id === 'goajomblang') || allDestinations[1];
                           return (
                             <div
                               onClick={() => handleExploreDestination(dest)}
@@ -428,7 +454,7 @@ export default function App() {
                     
                     {/* Step 1: Morning (Prambanan Temple) */}
                     {(() => {
-                      const dest = DESTINATIONS.find(d => d.id === 'prambanan') || DESTINATIONS[0];
+                      const dest = allDestinations.find(d => d.id === 'prambanan') || allDestinations[0];
                       return (
                         <div 
                           onClick={() => handleExploreDestination(dest)}
@@ -477,7 +503,7 @@ export default function App() {
 
                     {/* Step 3: Afternoon (Taman Sari) */}
                     {(() => {
-                      const dest = DESTINATIONS.find(d => d.id === 'tamansari') || DESTINATIONS[3];
+                      const dest = allDestinations.find(d => d.id === 'tamansari') || allDestinations[3];
                       return (
                         <div 
                           onClick={() => handleExploreDestination(dest)}
@@ -503,7 +529,7 @@ export default function App() {
 
                     {/* Step 4: Sunset (Parangtritis Beach) */}
                     {(() => {
-                      const dest = DESTINATIONS.find(d => d.id === 'parangtritis') || DESTINATIONS[1];
+                      const dest = allDestinations.find(d => d.id === 'parangtritis') || allDestinations[1];
                       return (
                         <div 
                           onClick={() => handleExploreDestination(dest)}

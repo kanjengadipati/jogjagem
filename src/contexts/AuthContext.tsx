@@ -18,8 +18,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({
-    isAuthenticated: auth.isLoggedIn(),
-    isLoading: auth.isLoggedIn(),
+    isAuthenticated: false,
+    isLoading: true,
     user: null,
   });
 
@@ -49,6 +49,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await auth.login(email, password);
       if (res.status === 'success') {
         await refreshProfile();
+        // Get fresh profile to check role
+        const profileRes = await auth.getProfile();
+        const role = profileRes?.data?.role;
+        if (role === 'admin' || role === 'superadmin') {
+          const token = auth.getAccessToken();
+          if (token) {
+            window.open(`http://localhost:3005/login?token=${token}`, '_blank');
+            return { success: true };
+          }
+        }
         return { success: true };
       }
       return { success: false, error: res.message || 'Login failed' };

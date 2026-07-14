@@ -25,6 +25,7 @@ interface ProfileResponse {
   id: number;
   name: string;
   email: string;
+  phone?: string;
   role: string;
   permissions: string[];
 }
@@ -121,10 +122,17 @@ export const auth = {
     return request<ProfileResponse>('/auth/profile');
   },
 
-  async updateProfile(name: string) {
+  async updateProfile(name: string, phoneNumber?: string) {
     return request<User>('/auth/profile', {
       method: 'PATCH',
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, phone_number: phoneNumber }),
+    });
+  },
+
+  async changePassword(currentPassword: string, newPassword: string) {
+    return request('/auth/change-password', {
+      method: 'PATCH',
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
     });
   },
 
