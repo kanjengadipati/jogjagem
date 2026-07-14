@@ -11,7 +11,7 @@ import {
   MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle
 } from 'lucide-react';
 import { Destination, EcosystemPartner, Review } from '@/types';
-import { getPhotoCredit } from '@/data';
+import { getPhotoCredit } from '@/lib/photo';
 import { destinations } from '@/lib/api';
 import AIFloatingAssistant from '@/components/AIFloatingAssistant';
 
@@ -265,9 +265,9 @@ export default function DestinationDetail({
 
   const getTravelerStories = () => {
     return [
-      { id: 'st1', user: 'Sophia Laurent', location: 'France', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150', tag: 'Couple Traveler', text: 'Watching the dawn break over these ancient volcanic stone pillars was a sacred experience. I have traveled across 40 countries, but the hospitality of Yogyakarta is unmatched.', img: destination.images[0] },
-      { id: 'st2', user: 'Yuki Tanaka', location: 'Japan', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150', tag: 'Photography Enthusiast', text: 'My best advice: hire one of the elder guides waiting at the gate. Pak Joko translated ancient carved stone reliefs for us that described royal folklore from 1,200 years ago.', img: destination.images[1] || destination.images[0] },
-      { id: 'st3', user: 'Budi Santoso', location: 'Indonesia', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150', tag: 'Solo Explorer', text: 'Don’t forget to explore the back zone where the lesser-known temples sit quietly away from tourist groups. It feels like real Indiana Jones archaeological ruins.', img: destination.images[2] || destination.images[0] }
+      { id: 'st1', user: 'Sophia Laurent', location: 'France', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150', tag: 'Couple Traveler', text: 'Watching the dawn break over these ancient volcanic stone pillars was a sacred experience. I have traveled across 40 countries, but the hospitality of Yogyakarta is unmatched.', img: destination.images[0]?.url || '' },
+      { id: 'st2', user: 'Yuki Tanaka', location: 'Japan', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150', tag: 'Photography Enthusiast', text: 'My best advice: hire one of the elder guides waiting at the gate. Pak Joko translated ancient carved stone reliefs for us that described royal folklore from 1,200 years ago.', img: destination.images[1]?.url || destination.images[0]?.url || '' },
+      { id: 'st3', user: 'Budi Santoso', location: 'Indonesia', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150', tag: 'Solo Explorer', text: 'Don’t forget to explore the back zone where the lesser-known temples sit quietly away from tourist groups. It feels like real Indiana Jones archaeological ruins.', img: destination.images[2]?.url || destination.images[0]?.url || '' }
     ];
   };
 
@@ -377,7 +377,7 @@ export default function DestinationDetail({
         {/* Parallax Main Image Slider */}
         <div className="absolute inset-0">
           <img 
-            src={destination.images[activeImageIdx]} 
+            src={destination.images[activeImageIdx]?.url || ''} 
             alt={destination.name} 
             className="w-full h-full object-cover opacity-85 transition-all duration-700 transform scale-102 filter brightness-[0.78]"
             referrerPolicy="no-referrer"
@@ -518,7 +518,7 @@ export default function DestinationDetail({
                       : 'border-white/20 opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} className="w-full h-full object-cover" />
+                  <img src={img?.url || ''} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -526,7 +526,7 @@ export default function DestinationDetail({
             {/* Photo Credit */}
             <div className="absolute bottom-3 right-4 z-10">
               <span className="bg-black/50 backdrop-blur-sm text-white/70 text-[10px] font-mono px-2 py-0.5 rounded">
-                Photo: {getPhotoCredit(destination.images[activeImageIdx])} / Unsplash
+                Photo: {destination.images[activeImageIdx]?.credit || 'Unsplash'} / Unsplash
               </span>
             </div>
           </div>
@@ -627,7 +627,7 @@ export default function DestinationDetail({
                 <div className="md:col-span-5">
                   <div className="relative rounded-2xl overflow-hidden border border-gold-200/30 shadow-md group aspect-[4/3] bg-royal-950">
                     <img 
-                      src={destination.images[1] || destination.images[0]} 
+                      src={destination.images[1]?.url || destination.images[0]?.url || ''} 
                       alt="Stone Carvings Relief" 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
                     />
@@ -1357,7 +1357,7 @@ export default function DestinationDetail({
                     }}
                     className="group flex items-center space-x-3 cursor-pointer text-left"
                   >
-                    <img src={similar.images[0]} className="h-12 w-16 rounded-xl object-cover shrink-0 bg-stone-100" />
+                    <img src={similar.images[0]?.url || ''} className="h-12 w-16 rounded-xl object-cover shrink-0 bg-stone-100" />
                     <div className="flex-1 min-w-0">
                       <h4 className="font-manrope text-xs font-bold text-stone-900 group-hover:text-gold-600 transition-all truncate leading-tight">{similar.name}</h4>
                       <p className="text-[9px] text-stone-500 font-light truncate mt-0.5">{similar.tagline}</p>

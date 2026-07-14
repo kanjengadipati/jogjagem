@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Compass, Heart, Search, ChevronLeft, ChevronRight, Mic, MicOff, Camera, Loader2 } from 'lucide-react';
-import { getPhotoCredit } from '../data';
+import { getPhotoCredit } from '../lib/photo';
 import { Destination } from '../types';
 import { ai } from '../lib/api';
 

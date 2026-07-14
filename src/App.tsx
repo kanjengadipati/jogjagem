@@ -360,7 +360,7 @@ export default function App() {
                               className="group relative h-full min-h-[220px] lg:min-h-0 w-full overflow-hidden rounded-[24px] bg-royal-950 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer border border-stone-200/10"
                             >
                               <img 
-                                src={dest.images[0]} 
+                                src={dest.images[0]?.url || ''} 
                                 alt={dest.name} 
                                 className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-108" 
                               />
@@ -407,7 +407,7 @@ export default function App() {
                               className="group relative h-full min-h-[220px] lg:min-h-0 w-full overflow-hidden rounded-[24px] bg-royal-950 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer border border-stone-200/10"
                             >
                               <img 
-                                src={dest.images[0]} 
+                                src={dest.images[0]?.url || ''} 
                                 alt={dest.name} 
                                 className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-108" 
                               />
@@ -487,7 +487,7 @@ export default function App() {
                             <span className="text-[9px] sm:text-[10px] font-mono font-bold text-[#B18A5E] mt-1 tracking-wide leading-none block">07.00 AM</span>
                           </div>
                           <div className="relative h-[80px] sm:h-[96px] w-[130px] sm:w-[155px] lg:w-[130px] xl:w-[160px] rounded-[16px] overflow-hidden flex-shrink-0 bg-stone-100">
-                            <img src={dest.images[0]} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            <img src={dest.images[0]?.url || ''} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-2 text-left">
                               <span className="text-[9px] sm:text-[10px] font-bold text-white block truncate leading-none">Prambanan Temple</span>
                             </div>
@@ -537,7 +537,7 @@ export default function App() {
                             <span className="text-[9px] sm:text-[10px] text-stone-500 font-medium truncate mt-1 max-w-[85px] sm:max-w-[95px] leading-tight block">Taman Sari</span>
                           </div>
                           <div className="relative h-[80px] sm:h-[96px] w-[130px] sm:w-[155px] lg:w-[130px] xl:w-[160px] rounded-[16px] overflow-hidden flex-shrink-0 bg-stone-100">
-                            <img src={dest.images[0]} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            <img src={dest.images[0]?.url || ''} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           </div>
                         </div>
                       );
@@ -563,7 +563,7 @@ export default function App() {
                             <span className="text-[9px] sm:text-[10px] text-stone-500 font-medium truncate mt-1 max-w-[85px] sm:max-w-[95px] leading-tight block">Parangtritis Beach</span>
                           </div>
                           <div className="relative h-[80px] sm:h-[96px] w-[130px] sm:w-[155px] lg:w-[130px] xl:w-[160px] rounded-[16px] overflow-hidden flex-shrink-0 bg-stone-100">
-                            <img src={dest.images[0]} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            <img src={dest.images[0]?.url || ''} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           </div>
                         </div>
                       );

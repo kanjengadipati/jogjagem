@@ -1,7 +1,7 @@
 import React from 'react';
 import { Star, Heart } from 'lucide-react';
 import { Destination } from '../types';
-import { getPhotoCredit } from '../data';
+import { getPhotoCredit } from '../lib/photo';
 
 interface DestinationCardProps {
   key?: string | number;
@@ -50,7 +50,7 @@ export default function DestinationCard({ destination, onExplore, onToggleSave, 
     >
       {/* Immersive Destination Thumbnail */}
       <img
-        src={destination.images[0]}
+        src={destination.images[0]?.url || ''}
         alt={destination.name}
         className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-108"
         referrerPolicy="no-referrer"
@@ -116,7 +116,7 @@ export default function DestinationCard({ destination, onExplore, onToggleSave, 
         {/* Photo Credit */}
         <div className="mt-1.5">
           <span className="text-[9px] text-white/40 font-mono">
-            Photo: {getPhotoCredit(destination.images[0])} / Unsplash
+            Photo: {destination.images[0]?.credit || 'Unsplash'} / Unsplash
           </span>
         </div>
       </div>

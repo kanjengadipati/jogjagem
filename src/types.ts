@@ -40,7 +40,7 @@ export interface Destination {
   category: string; // 'nature' | 'heritage' | 'beach' | 'adventure' | 'culinary' | 'family' | 'hidden-gem'
   location: string;
   subRegion: string; // Sleman, Bantul, Yogyakarta, Kulon Progo, Gunungkidul
-  images: string[];
+  images: { url: string; credit: string }[];
   rating: number;
   reviewCount: number;
   description: string;
