@@ -10,7 +10,7 @@ import InteractiveMap from './components/InteractiveMap';
 
 import { Destination, Festival } from './types';
 import { destinations, events, config } from './lib/api';
-import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, RefreshCw } from 'lucide-react';
+import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, RefreshCw, AlertCircle } from 'lucide-react';
 
 export default function App() {
   const router = useRouter();
@@ -23,10 +23,11 @@ export default function App() {
     matchedDestinationIds: string[];
   } | null>(null);
   
-  const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
+   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
   const [allEvents, setAllEvents] = useState<Festival[]>([]);
   const [allQuotes, setAllQuotes] = useState<{ text: string; author: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -55,6 +56,7 @@ export default function App() {
       }
     }).catch(err => {
       console.error('Failed to load data:', err);
+      setApiError(true);
     }).finally(() => {
       setIsLoading(false);
     });
@@ -197,6 +199,61 @@ export default function App() {
             {/* Active Tab: Discover (Homepage) */}
             {activeTab === 'discover' && (
               <div className="space-y-4 animate-fade-in">
+                {apiError && (
+                  <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+                    <div className="rounded-3xl bg-amber-50 border border-amber-200/60 p-5 text-amber-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm">
+                      <div className="flex items-start space-x-3.5">
+                        <AlertCircle className="h-5.5 w-5.5 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <h4 className="text-sm font-semibold text-amber-950">Connection Issue Detected</h4>
+                          <p className="text-xs text-amber-700/90 mt-1 leading-relaxed">
+                            Could not connect to the backend server. If you are developing locally, please ensure the backend Go API server is running on port 8081. If you've deployed, verify your API base URL configuration.
+                          </p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => {
+                          setIsLoading(true);
+                          setApiError(false);
+                          Promise.all([
+                            destinations.getAll(),
+                            events.getAll(),
+                            config.getQuotes(),
+                          ]).then(([destRes, eventRes, quoteRes]) => {
+                            if (destRes.status === 'success' && destRes.data) {
+                              setAllDestinations(destRes.data as Destination[]);
+                            }
+                            if (eventRes.status === 'success' && eventRes.data) {
+                              const mapped = (eventRes.data as any[]).map(raw => ({
+                                id: raw.id || raw.ExternalID || '',
+                                name: raw.title || raw.Name || '',
+                                date: raw.start_date ? `${raw.start_date} - ${raw.end_date || ''}` : (raw.date || ''),
+                                location: raw.location || '',
+                                image: raw.image_url || raw.image || '',
+                                description: raw.description || '',
+                                highlights: Array.isArray(raw.highlights) ? raw.highlights : [],
+                                category: raw.category || '',
+                              }));
+                              setAllEvents(mapped);
+                            }
+                            if (quoteRes.status === 'success' && quoteRes.data) {
+                              setAllQuotes(quoteRes.data);
+                            }
+                          }).catch(err => {
+                            console.error('Failed to load data on retry:', err);
+                            setApiError(true);
+                          }).finally(() => {
+                            setIsLoading(false);
+                          });
+                        }}
+                        className="text-xs font-semibold text-amber-950 bg-amber-100 hover:bg-amber-200/80 px-4 py-2 rounded-xl border border-amber-300/60 transition-all cursor-pointer shrink-0 w-fit"
+                      >
+                        Retry Connection
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Visual Fullscreen Hero Section */}
                 <Hero
                   destinations={allDestinations}
@@ -354,6 +411,7 @@ export default function App() {
                         {/* Card 1: Merapi Sunrise Jeep Tour */}
                         {(() => {
                           const dest = allDestinations.find(d => d.id === 'merapi') || allDestinations[0];
+                          if (!dest) return null;
                           return (
                             <div
                               onClick={() => handleExploreDestination(dest)}
@@ -370,12 +428,12 @@ export default function App() {
                               <div className="absolute top-3.5 left-3.5 bg-amber-500 border border-amber-400/10 px-2.5 py-0.5 rounded-full text-[9px] font-sans font-semibold text-white uppercase tracking-[0.08em]">
                                 AI Pick Today
                               </div>
-
+ 
                               {/* Heart button */}
                               <button className="absolute top-3.5 right-3.5 flex h-7.5 w-7.5 items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white backdrop-blur-sm border border-white/10">
                                 <Heart className="h-3.5 w-3.5 text-white" />
                               </button>
-
+ 
                               {/* Text Overlay Details */}
                               <div className="absolute bottom-0 inset-x-0 p-4 flex flex-col justify-end text-left">
                                 <h3 className="font-manrope text-sm font-bold tracking-tight text-white leading-tight mb-2.5 group-hover:text-gold-300 transition-colors">
@@ -397,10 +455,11 @@ export default function App() {
                             </div>
                           );
                         })()}
-
+ 
                         {/* Card 2: Jomblang Cave */}
                         {(() => {
                           const dest = allDestinations.find(d => d.id === 'goajomblang') || allDestinations[1];
+                          if (!dest) return null;
                           return (
                             <div
                               onClick={() => handleExploreDestination(dest)}
@@ -417,12 +476,12 @@ export default function App() {
                               <div className="absolute top-3.5 left-3.5 bg-emerald-600 border border-emerald-500/10 px-2.5 py-0.5 rounded-full text-[9px] font-sans font-semibold text-white uppercase tracking-[0.08em]">
                                 Hidden Gem
                               </div>
-
+ 
                               {/* Heart button */}
                               <button className="absolute top-3.5 right-3.5 flex h-7.5 w-7.5 items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white backdrop-blur-sm border border-white/10">
                                 <Heart className="h-3.5 w-3.5 text-white" />
                               </button>
-
+ 
                               {/* Text Overlay Details */}
                               <div className="absolute bottom-0 inset-x-0 p-4 flex flex-col justify-end text-left">
                                 <h3 className="font-manrope text-sm font-bold tracking-tight text-white leading-tight mb-2.5 group-hover:text-gold-300 transition-colors">
@@ -474,6 +533,7 @@ export default function App() {
                     {/* Step 1: Morning (Prambanan Temple) */}
                     {(() => {
                       const dest = allDestinations.find(d => d.id === 'prambanan') || allDestinations[0];
+                      if (!dest) return null;
                       return (
                         <div 
                           onClick={() => handleExploreDestination(dest)}
@@ -523,6 +583,7 @@ export default function App() {
                     {/* Step 3: Afternoon (Taman Sari) */}
                     {(() => {
                       const dest = allDestinations.find(d => d.id === 'tamansari') || allDestinations[3];
+                      if (!dest) return null;
                       return (
                         <div 
                           onClick={() => handleExploreDestination(dest)}
@@ -549,6 +610,7 @@ export default function App() {
                     {/* Step 4: Sunset (Parangtritis Beach) */}
                     {(() => {
                       const dest = allDestinations.find(d => d.id === 'parangtritis') || allDestinations[1];
+                      if (!dest) return null;
                       return (
                         <div 
                           onClick={() => handleExploreDestination(dest)}
@@ -573,17 +635,19 @@ export default function App() {
                 </section>
 
                 {/* Editorial Literary Quote (Anti-AI-Slop humbleness and high craft) */}
-                <section id="literary-quote-section" className="mx-auto max-w-4xl px-4 py-8 text-center">
-                  <div className="relative p-8 rounded-3xl bg-gold-50/30 border border-gold-100/40 shadow-inner flex flex-col items-center">
-                    <Quote className="h-8 w-8 text-gold-400 opacity-60 mb-4" />
-                    <p className="font-display text-lg italic text-royal-950/90 leading-relaxed max-w-xl">
-                      "{allQuotes[quoteIdx]?.text}"
-                    </p>
-                    <span className="block mt-3 text-xs uppercase tracking-wider font-mono font-bold text-gold-700">
-                      — {allQuotes[quoteIdx]?.author}
-                    </span>
-                  </div>
-                </section>
+                {allQuotes.length > 0 && (
+                  <section id="literary-quote-section" className="mx-auto max-w-4xl px-4 py-8 text-center">
+                    <div className="relative p-8 rounded-3xl bg-gold-50/30 border border-gold-100/40 shadow-inner flex flex-col items-center">
+                      <Quote className="h-8 w-8 text-gold-400 opacity-60 mb-4" />
+                      <p className="font-display text-lg italic text-royal-950/90 leading-relaxed max-w-xl">
+                        "{allQuotes[quoteIdx]?.text}"
+                      </p>
+                      <span className="block mt-3 text-xs uppercase tracking-wider font-mono font-bold text-gold-700">
+                        — {allQuotes[quoteIdx]?.author}
+                      </span>
+                    </div>
+                  </section>
+                )}
               </div>
             )}
 
