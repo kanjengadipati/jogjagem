@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8081';
+const API_BASE = process.env.BACKEND_URL || 'http://localhost:8081';
 
 interface APIResponse<T = unknown> {
   status: 'success' | 'error';
