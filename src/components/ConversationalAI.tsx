@@ -86,7 +86,10 @@ export default function ConversationalAI({
         };
 
         const matchedDests: Destination[] = [];
-        for (const id of initialImageResult.matchedDestinationIds) {
+        const imageIds = Array.isArray(initialImageResult.matchedDestinationIds)
+          ? initialImageResult.matchedDestinationIds
+          : [];
+        for (const id of imageIds) {
           try {
             const res = await destinationApi.getById(id);
             if (res.status === 'success' && res.data) {
@@ -155,11 +158,12 @@ export default function ConversationalAI({
       const responseData = await ai.query(textToSend, history);
       
       if (responseData.status === 'success' && responseData.data) {
-        const { reply, matchedDestinationIds = [] } = responseData.data;
+        const { reply, matchedDestinationIds } = responseData.data;
+        const safeIds = Array.isArray(matchedDestinationIds) ? matchedDestinationIds : [];
 
         // Fetch matched destinations from API
         const matchedDests: Destination[] = [];
-        for (const id of matchedDestinationIds) {
+        for (const id of safeIds) {
           try {
             const res = await destinationApi.getById(id);
             if (res.status === 'success' && res.data) {

@@ -90,8 +90,9 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
 
       const responseData = await ai.imageSearch(base64Data, file.type);
       if (responseData.status === 'success' && responseData.data) {
-        const { reply, matchedDestinationIds = [] } = responseData.data;
-        onImageSearchSubmit(previewUrl, reply, matchedDestinationIds);
+        const { reply, matchedDestinationIds } = responseData.data;
+        const safeIds = Array.isArray(matchedDestinationIds) ? matchedDestinationIds : [];
+        onImageSearchSubmit(previewUrl, reply, safeIds);
       } else {
         throw new Error(responseData.message || "Failed to analyze image");
       }
