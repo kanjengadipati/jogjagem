@@ -1403,52 +1403,73 @@ export default function DestinationDetail({
 
             {/* 12. EXCLUSIVE OFFERS / PROMOTIONS */}
             <div id="exclusive-vouchers" className="bg-[#FAF7F2] border border-gold-200/50 rounded-3xl p-5 shadow-sm text-left scroll-mt-20">
-              <div className="flex items-center space-x-2 border-b border-gold-100 pb-3 mb-4">
-                <Tag className="h-4.5 w-4.5 text-gold-600 animate-pulse" />
-                <h3 className="font-manrope text-xs uppercase tracking-[0.15em] text-gold-800 font-extrabold">
-                  Exclusive Offers Around Here
-                </h3>
+              <div className="flex items-center justify-between border-b border-gold-100 pb-3 mb-4">
+                <div className="flex items-center space-x-2">
+                  <Tag className="h-4.5 w-4.5 text-gold-600 animate-pulse" />
+                  <h3 className="font-manrope text-xs uppercase tracking-[0.15em] text-gold-800 font-extrabold">
+                    Exclusive Offers Around Here
+                  </h3>
+                </div>
+                <span className="text-[8px] font-mono text-gold-600 bg-gold-50 border border-gold-200 px-2 py-0.5 rounded-full font-bold uppercase">
+                  {destination.partners.filter(p => p.promotion).length} Offers
+                </span>
               </div>
 
               <div className="space-y-3.5">
-                {[
-                  { id: 'off1', title: '10% Off Royal Spa Therapy', partner: 'The Phoenix Hotel', code: 'PHOENIXROYAL10', detail: 'Valid on royal herbal massage packages' },
-                  { id: 'off2', title: 'Free Traditional Dessert', partner: 'Abhayagiri Fine Dining', code: 'ABHAYAGIRIDESSERT', detail: 'Complimentary Wedang Rondhe hot ginger tea bowl' },
-                  { id: 'off3', title: 'Free GoPro 4K Recording', partner: 'Merapi Jeep Guild 88', code: 'MERAPIJEEP4K', detail: 'Valid with private sunrise jeep package bookings' }
-                ].map(offer => {
-                  const isClaimed = claimedOffers.has(offer.id);
-                  return (
-                    <div key={offer.id} className="border border-gold-200 bg-white p-3.5 rounded-2xl relative overflow-hidden flex flex-col justify-between">
-                      {/* Decorative punch holes */}
-                      <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF7F2] border-r border-gold-200" />
-                      <span className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF7F2] border-l border-gold-200" />
+                {destination.partners.filter(p => p.promotion).length === 0 ? (
+                  <p className="text-xs text-stone-500 italic py-4 text-center">No active promotions at the moment.</p>
+                ) : (
+                  destination.partners
+                    .filter(p => p.promotion)
+                    .map(partner => {
+                      const offerId = `offer-${partner.id}`;
+                      const isClaimed = claimedOffers.has(offerId);
+                      // Auto-generate a promo code from partner name
+                      const promoCode = partner.name
+                        .toUpperCase()
+                        .replace(/[^A-Z0-9]/g, '')
+                        .slice(0, 12);
+                      return (
+                        <div key={offerId} className="border border-gold-200 bg-white p-3.5 rounded-2xl relative overflow-hidden flex flex-col justify-between">
+                          {/* Decorative punch holes */}
+                          <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF7F2] border-r border-gold-200" />
+                          <span className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF7F2] border-l border-gold-200" />
 
-                      <div className="text-left px-1.5">
-                        <span className="text-[8px] font-mono text-stone-500 block uppercase leading-none">{offer.partner}</span>
-                        <h4 className="font-manrope text-xs font-extrabold text-stone-900 mt-1 leading-tight">{offer.title}</h4>
-                        <p className="text-[9.5px] text-stone-500 font-light leading-snug mt-1">{offer.detail}</p>
-                      </div>
+                          <div className="flex items-start gap-2.5 px-1.5">
+                            {partner.image && (
+                              <img
+                                src={partner.image}
+                                alt={partner.name}
+                                className="h-10 w-10 rounded-lg object-cover shrink-0 border border-gold-100"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <span className="text-[8px] font-mono text-stone-500 block uppercase leading-none">{partner.name}</span>
+                              <h4 className="font-manrope text-xs font-extrabold text-stone-900 mt-1 leading-tight">{partner.promotion}</h4>
+                              <p className="text-[9.5px] text-stone-500 font-light leading-snug mt-0.5">{partner.price}</p>
+                            </div>
+                          </div>
 
-                      <div className="mt-4 pt-2.5 border-t border-dashed border-stone-200 flex items-center justify-between px-1.5">
-                        <span className="text-[9px] font-mono text-gold-700 bg-gold-50 border border-gold-100 px-2 py-0.5 rounded uppercase font-bold tracking-wide">
-                          {offer.code}
-                        </span>
-                        
-                        <button 
-                          onClick={() => handleClaimOffer(offer.id)}
-                          disabled={isClaimed}
-                          className={`text-[9px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border transition-all ${
-                            isClaimed 
-                              ? 'bg-emerald-600 text-white border-transparent' 
-                              : 'bg-gold-400 hover:bg-gold-500 text-royal-950 border-gold-400'
-                          }`}
-                        >
-                          {isClaimed ? 'CLAIMED ✓' : 'CLAIM'}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                          <div className="mt-3.5 pt-2.5 border-t border-dashed border-stone-200 flex items-center justify-between px-1.5">
+                            <span className="text-[9px] font-mono text-gold-700 bg-gold-50 border border-gold-100 px-2 py-0.5 rounded uppercase font-bold tracking-wide">
+                              {promoCode}
+                            </span>
+                            <button 
+                              onClick={() => handleClaimOffer(offerId)}
+                              disabled={isClaimed}
+                              className={`text-[9px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border transition-all ${
+                                isClaimed 
+                                  ? 'bg-emerald-600 text-white border-transparent' 
+                                  : 'bg-gold-400 hover:bg-gold-500 text-royal-950 border-gold-400'
+                              }`}
+                            >
+                              {isClaimed ? 'CLAIMED ✓' : 'CLAIM'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                )}
               </div>
             </div>
 
