@@ -29,7 +29,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
   ];
 
   const headerClass = isOverHero
-    ? "absolute top-0 left-0 right-0 z-50 w-full transition-all duration-300 bg-transparent border-transparent text-white"
+    ? "absolute top-0 left-0 right-0 z-50 w-full transition-all duration-300 bg-gradient-to-b from-black/60 via-black/20 to-transparent border-transparent text-white"
     : "sticky top-0 z-50 w-full transition-all duration-300 bg-royal-950 border-b border-royal-900 text-white shadow-md";
 
   const openLogin = () => { setAuthModalMode('login'); setAuthModalOpen(true); };
