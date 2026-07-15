@@ -67,10 +67,34 @@ function DestinationDetailPageInner({ params }: { params: Promise<{ slug: string
           }
           setDestination(dest);
         } else {
-          setError('Destination not found');
+          throw new Error('not found by id');
         }
       } catch {
-        setError('Failed to load destination');
+        // Fallback: fetch all destinations and find by slug
+        try {
+          const allRes = await destinations.getAll();
+          if (allRes.status === 'success' && Array.isArray(allRes.data)) {
+            const slugStr = slug.join('/');
+            const found = allRes.data.find((d: any) => {
+              const name = d.name || d.Name || '';
+              return toSlug(name) === slugStr || (d.id || d.ExternalID) === slugStr;
+            });
+            if (found) {
+              const dest = mapApiToDestination(found);
+              const expectedSlug = toSlug(dest.name);
+              const currentSlug = slug.join('/');
+              if (expectedSlug && currentSlug !== expectedSlug && currentSlug !== dest.id) {
+                router.replace(`/destinations/${expectedSlug}`, { scroll: false });
+              }
+              setDestination(dest);
+              setLoading(false);
+              return;
+            }
+          }
+          setError('Destination not found');
+        } catch {
+          setError('Failed to load destination');
+        }
       } finally {
         setLoading(false);
       }
