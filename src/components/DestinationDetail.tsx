@@ -290,11 +290,22 @@ export default function DestinationDetail({
     return true;
   });
 
-  // Calculate ticket pricing
+  // Calculate ticket pricing from destination data
+  const parseTicketPrice = () => {
+    const raw = destination.ticketPrice || '';
+    const match = raw.replace(/[^0-9]/g, '');
+    const domestic = parseInt(match, 10) || 50000;
+    return { domestic, foreign: domestic * 7.5 };
+  };
+
   const calculatePrice = () => {
-    const rate = ticketCategory === 'domestic' ? 50000 : 375000;
+    const { domestic, foreign } = parseTicketPrice();
+    const rate = ticketCategory === 'domestic' ? domestic : foreign;
     return (rate * ticketQuantity).toLocaleString('id-ID');
   };
+
+  const domesticTicketPrice = parseTicketPrice().domestic.toLocaleString('id-ID');
+  const foreignTicketPrice = parseTicketPrice().foreign.toLocaleString('id-ID');
 
   return (
     <div id={`tourism-hub-page-${destination.id}`} className="bg-[#fcfbfa] min-h-screen text-[#1b1c16] font-sans">
@@ -556,12 +567,12 @@ export default function DestinationDetail({
 
               <div className="border-t border-gold-200/40 pt-6 grid grid-cols-2 sm:grid-cols-3 gap-5">
                 {[
-                  { label: "Optimal Visit Hour", value: destination.id === 'prambanan' ? "03:30 PM - 05:15 PM" : "09:00 AM - 11:30 AM", detail: "Golden hour light", icon: Clock },
-                  { label: "Estimated Duration", value: "2.5 Hours", detail: "Slow paced walks", icon: Footprints },
+                  { label: "Optimal Visit Hour", value: destination.bestTime || "09:00 AM - 11:30 AM", detail: "Golden hour light", icon: Clock },
+                  { label: "Opening Hours", value: destination.openingHours || "08:00 - 17:00", detail: "Daily access", icon: Ticket },
                   { label: "Visiting Season", value: "Dry Months (May-Oct)", detail: "Cloudless sunsets", icon: CloudSun },
-                  { label: "Terrain Level", value: "Flat Stone Pathway", detail: "Minimal stairs", icon: Landmark },
-                  { label: "Accessibility Status", value: "Wheelchair Friendly", detail: "Ramps & flat paved", icon: CheckCircle },
-                  { label: "Climate Comfort", value: `Live ${destination.weather.temp} • Sunny`, detail: "Mild volcanic wind", icon: Thermometer }
+                  { label: "Terrain & Access", value: destination.facilities?.[0] || "Flat Pathway", detail: destination.facilities?.[1] || "Easy walking", icon: Landmark },
+                  { label: "Ticket Price", value: `IDR ${domesticTicketPrice}`, detail: `Foreign: IDR ${foreignTicketPrice}`, icon: Ticket },
+                  { label: "Climate", value: `Live ${destination.weather.temp || '27°C'} • ${destination.weather.condition || 'Sunny'}`, detail: destination.weather.status || "Mild climate", icon: Thermometer }
                 ].map((item, i) => {
                   const Icon = item.icon;
                   return (
@@ -594,7 +605,7 @@ export default function DestinationDetail({
                 {/* Story description text with expandable transition */}
                 <div className="md:col-span-7 space-y-4">
                   <h3 className="font-display text-2.5xl text-royal-950 leading-snug">
-                    Where ancient mythology meets volcanic limestone stone mastery.
+                    {destination.tagline || 'Discover the heritage and beauty of this destination.'}
                   </h3>
                   
                   {/* Dropcap paragraph */}
@@ -608,9 +619,17 @@ export default function DestinationDetail({
                         "{destination.story}"
                       </p>
                     </div>
-                    <p className="text-royal-700 text-sm leading-relaxed font-light">
-                      Constructed to rival the Borobudur temple, the majestic structure was built with massive local volcanic rock materials without using any adhesive compounds, holding together solely through interlocking grooves.
-                    </p>
+                    {destination.travelTips && destination.travelTips.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <span className="text-[9px] font-mono font-bold text-gold-700 uppercase tracking-widest">TRAVELER PRO TIPS</span>
+                        {destination.travelTips.map((tip, i) => (
+                          <div key={i} className="flex items-start space-x-2 text-xs text-stone-700">
+                            <CheckCircle className="h-3.5 w-3.5 text-gold-500 shrink-0 mt-0.5" />
+                            <span className="font-light leading-relaxed">{tip}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <button 
@@ -1481,7 +1500,7 @@ export default function DestinationDetail({
                       }`}
                     >
                       <span className="text-[8px] font-mono tracking-widest text-stone-500 uppercase">Domestic</span>
-                      <span className="mt-2 text-stone-900 font-bold">IDR 50,000</span>
+                      <span className="mt-2 text-stone-900 font-bold">IDR {domesticTicketPrice}</span>
                     </button>
                     <button
                       onClick={() => setTicketCategory('foreign')}
@@ -1492,7 +1511,7 @@ export default function DestinationDetail({
                       }`}
                     >
                       <span className="text-[8px] font-mono tracking-widest text-stone-500 uppercase">International</span>
-                      <span className="mt-2 text-stone-900 font-bold">IDR 375,000</span>
+                      <span className="mt-2 text-stone-900 font-bold">IDR {foreignTicketPrice}</span>
                     </button>
                   </div>
                 </div>
