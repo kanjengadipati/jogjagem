@@ -128,7 +128,11 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                   onClick={() => router.push('/profile')}
                   className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer"
                 >
-                  <User className="h-4 w-4 text-gold-400" />
+                  <img
+                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || 'User')}`}
+                    className="h-5 w-5 rounded-full bg-stone-200"
+                    alt={user?.name || 'User'}
+                  />
                   <span className="text-xs font-medium text-white/90 max-w-[100px] truncate">
                     {user?.name || 'User'}
                   </span>

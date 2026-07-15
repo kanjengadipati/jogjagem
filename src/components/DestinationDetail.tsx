@@ -376,7 +376,7 @@ export default function DestinationDetail({
         const newReview = {
           id: `local-${Date.now()}`,
           userName,
-          userAvatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userName)}`,
+          userAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userName)}`,
           rating: newReviewRating,
           date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
           comment: newReviewText.trim(),
@@ -1346,7 +1346,7 @@ export default function DestinationDetail({
                           {/* User row */}
                           <div className="flex items-center gap-3 mb-3">
                             <img
-                              src={review.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(review.userName)}`}
+                              src={review.userAvatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(review.userName)}`}
                               className="h-10 w-10 rounded-full object-cover bg-stone-100 border-2 border-white shadow-sm shrink-0"
                               onError={(e) => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${review.userName}`; }}
                             />
