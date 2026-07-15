@@ -951,7 +951,11 @@ export default function DestinationDetail({
                 {/* Selected Partner Details Floating Card */}
                 {selectedMapPartner && (
                   <div className="absolute bottom-4 left-4 right-4 z-20 bg-royal-950/95 backdrop-blur-md border border-white/10 text-white p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl animate-fade-in">
-                    <div className="flex items-center space-x-3 text-left w-full sm:w-auto">
+                    <div
+                      onClick={() => setSelectedPartner(selectedMapPartner)}
+                      className="flex items-center space-x-3 text-left w-full sm:w-auto cursor-pointer hover:opacity-90 transition-opacity"
+                      title="View Partner Details"
+                    >
                       <img src={selectedMapPartner.image} className="h-14 w-14 rounded-xl object-cover border border-white/10 shrink-0" />
                       <div>
                         <div className="flex items-center space-x-1.5">
