@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Map, MapPin, Eye, Info, Layers, RefreshCw, Car, Flame, Compass, Navigation, Bus, Star } from 'lucide-react';
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Map as MapIcon, MapPin, Eye, Info, Layers, RefreshCw, Car, Flame, Compass, Navigation, Bus, Star, ExternalLink, ShieldAlert } from 'lucide-react';
 import { Destination, EcosystemPartner } from '../types';
 import { destinations as destinationApi } from '../lib/api';
 
@@ -7,6 +9,18 @@ interface InteractiveMapProps {
   onExploreDestination: (dest: Destination) => void;
   selectedDestination?: Destination | null;
 }
+
+const TRANSPORTATION_HUBS = [
+  { id: 't-tugu', name: 'Yogyakarta Tugu Railway Station', type: 'rail', lat: -7.7891, lng: 110.3634 },
+  { id: 't-lempuyangan', name: 'Lempuyangan Railway Station', type: 'rail', lat: -7.7900, lng: 110.3750 },
+  { id: 't-giwangan', name: 'Giwangan Central Bus Terminal', type: 'bus', lat: -7.8341, lng: 110.3925 }
+];
+
+const PARKING_LOTS = [
+  { id: 'pk-malioboro', name: 'Abu Bakar Ali Parking Ground', capacity: '150 cars, 500 motorbikes', lat: -7.7885, lng: 110.3658 },
+  { id: 'pk-prambanan', name: 'Prambanan Main Temple Park', capacity: '300 cars, 100 buses', lat: -7.7525, lng: 110.4905 },
+  { id: 'pk-depok', name: 'Parangtritis Marine Center Lot', capacity: '200 cars', lat: -7.0200, lng: 110.3200 }
+];
 
 const toRad = (deg: number) => (deg * Math.PI) / 180;
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -21,26 +35,27 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 };
 
-const TRANSPORTATION_HUBS = [
-  { id: 't-tugu', name: 'Yogyakarta Tugu Railway Station', type: 'rail', lat: -7.7891, lng: 110.3634, coords: { x: 42, y: 55 } },
-  { id: 't-lempuyangan', name: 'Lempuyangan Railway Station', type: 'rail', lat: -7.7900, lng: 110.3750, coords: { x: 50, y: 56 } },
-  { id: 't-giwangan', name: 'Giwangan Central Bus Terminal', type: 'bus', lat: -7.8341, lng: 110.3925, coords: { x: 56, y: 68 } }
-];
-
-const PARKING_LOTS = [
-  { id: 'pk-malioboro', name: 'Abu Bakar Ali Parking Ground', capacity: '150 cars, 500 motorbikes', coords: { x: 42, y: 53 } },
-  { id: 'pk-prambanan', name: 'Prambanan Main Temple Park', capacity: '300 cars, 100 buses', coords: { x: 74, y: 48 } },
-  { id: 'pk-depok', name: 'Parangtritis Marine Center Lot', capacity: '200 cars', coords: { x: 34, y: 92 } }
-];
-
 export default function InteractiveMap({ onExploreDestination, selectedDestination }: InteractiveMapProps) {
   const [destinations, setDestinations] = useState<Destination[]>([]);
   const [activeLayer, setActiveLayer] = useState<'all' | 'destinations' | 'partners' | 'transport'>('all');
   const [showTraffic, setShowTraffic] = useState(false);
   const [showParking, setShowParking] = useState(false);
-  const [showWalkingRoutes, setShowWalkingRoutes] = useState(true);
+  
   const [selectedPin, setSelectedPin] = useState<{ id: string; name: string; type: string; desc: string; data?: any } | null>(null);
+  
+  // Routing States
+  const [routeTargetId, setRouteTargetId] = useState<string>('');
+  const [routeInfo, setRouteInfo] = useState<{ distanceKm: number; durationMin: number; isRushHour: boolean } | null>(null);
+  const [routingLoading, setRoutingLoading] = useState(false);
 
+  // Leaflet Refs
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const leafletModuleRef = useRef<any>(null);
+  const markerGroupRef = useRef<any>(null);
+  const routePolylineRef = useRef<any>(null);
+
+  // Fetch Destinations
   useEffect(() => {
     const fetchDestinations = async () => {
       try {
@@ -54,35 +69,276 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
     fetchDestinations();
   }, []);
 
-  // Geographic positioning conversion inside our SVG canvas:
-  // Sleman (Merapi) is in the North (Top: Y=15-35)
-  // City (Malioboro, Taman Sari) is in the Center (Y=50-65)
-  // Bantul (Parangtritis) is in the South (Bottom: Y=80-95)
-  // We specify custom SVG x,y coordinate overrides for each destination:
-  const getDestMapCoords = (id: string) => {
-    switch(id) {
-      case 'merapi': return { x: 58, y: 15 };
-      case 'prambanan': return { x: 75, y: 45 };
-      case 'malioboro': return { x: 41, y: 57 };
-      case 'tamansari': return { x: 38, y: 63 };
-      case 'parangtritis': return { x: 35, y: 92 };
-      case 'goajomblang': return { x: 80, y: 78 };
-      default: return { x: 50, y: 50 };
+  // Initialize Leaflet Map Client-Side
+  useEffect(() => {
+    if (typeof window === 'undefined' || !mapContainerRef.current) return;
+
+    // Load leaflet dynamically to prevent SSR failure
+    import('leaflet').then((L) => {
+      leafletModuleRef.current = L;
+
+      const container = mapContainerRef.current;
+      if (!container) return;
+
+      // Create map instance
+      const map = L.map(container, {
+        center: [-7.7956, 110.3695], // Jogja City Center
+        zoom: 11,
+        scrollWheelZoom: true,
+      });
+
+      // CartoDB Voyager map tiles (premium-looking clean light style)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CartoDB',
+        subdomains: 'abcd',
+        maxZoom: 20
+      }).addTo(map);
+
+      // Layer groups for markers
+      const markerGroup = L.layerGroup().addTo(map);
+      markerGroupRef.current = markerGroup;
+      mapInstanceRef.current = map;
+
+      // Trigger redraw when layers change
+      renderMarkers();
+    });
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [destinations, activeLayer, showParking]);
+
+  // Handle selected destination prop updates
+  useEffect(() => {
+    if (selectedDestination && mapInstanceRef.current) {
+      mapInstanceRef.current.setView([selectedDestination.latitude, selectedDestination.longitude], 13);
+      setSelectedPin({
+        id: selectedDestination.id,
+        name: selectedDestination.name,
+        type: 'destination',
+        desc: selectedDestination.tagline,
+        data: selectedDestination
+      });
+    }
+  }, [selectedDestination]);
+
+  // Clean or draw route when route target changes
+  useEffect(() => {
+    if (!routeTargetId || !selectedPin || selectedPin.type !== 'destination') {
+      clearRoute();
+      return;
+    }
+    drawRoute();
+  }, [routeTargetId, selectedPin]);
+
+  const clearRoute = () => {
+    if (routePolylineRef.current && mapInstanceRef.current) {
+      mapInstanceRef.current.removeLayer(routePolylineRef.current);
+      routePolylineRef.current = null;
+    }
+    setRouteInfo(null);
+  };
+
+  // Draw OSRM route on map
+  const drawRoute = async () => {
+    if (!selectedPin || !routeTargetId || !mapInstanceRef.current || !leafletModuleRef.current) return;
+    const fromDest = selectedPin.data;
+    const toDest = destinations.find(d => d.id === routeTargetId);
+
+    if (!fromDest || !toDest) return;
+
+    setRoutingLoading(true);
+    clearRoute();
+
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${fromDest.longitude},${fromDest.latitude};${toDest.longitude},${toDest.latitude}?overview=full&geometries=geojson`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+        const distanceKm = route.distance / 1000;
+        let durationMin = route.duration / 60;
+
+        // Peak hour traffic simulation (+15 mins during 07:00-09:00 or 16:30-19:00 local time)
+        const localHour = new Date().getHours();
+        const localMin = new Date().getMinutes();
+        const decHour = localHour + localMin / 60;
+        const isRushHour = (decHour >= 7 && decHour <= 9) || (decHour >= 16.5 && decHour <= 19);
+
+        if (isRushHour) {
+          durationMin += 15;
+        }
+
+        setRouteInfo({ distanceKm, durationMin, isRushHour });
+
+        // Draw geojson line on map
+        const L = leafletModuleRef.current;
+        const polyline = L.geoJSON(route.geometry, {
+          style: {
+            color: '#cb8527', // Gold brand color
+            weight: 5,
+            opacity: 0.85
+          }
+        }).addTo(mapInstanceRef.current);
+
+        routePolylineRef.current = polyline;
+
+        // Auto pan map to show the whole route
+        mapInstanceRef.current.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+      }
+    } catch (e) {
+      console.error("OSRM Routing failed:", e);
+    } finally {
+      setRoutingLoading(false);
     }
   };
 
-  const handlePinClick = (pin: any) => {
-    setSelectedPin(pin);
+  // Render Markers
+  const renderMarkers = () => {
+    const L = leafletModuleRef.current;
+    const markerGroup = markerGroupRef.current;
+    const map = mapInstanceRef.current;
+    if (!L || !markerGroup || !map) return;
+
+    markerGroup.clearLayers();
+
+    // 1. Render Destinations
+    if (activeLayer === 'all' || activeLayer === 'destinations') {
+      destinations.forEach(dest => {
+        const isSelected = selectedPin?.id === dest.id;
+        const destIcon = L.divIcon({
+          className: 'custom-leaflet-marker',
+          html: `
+            <div class="flex flex-col items-center">
+              <div class="flex h-9 w-9 items-center justify-center rounded-full shadow-md border transition-transform duration-300 ${
+                isSelected 
+                  ? 'bg-gold-600 text-gold-50 border-gold-300 scale-110' 
+                  : 'bg-royal-950 text-gold-300 border-gold-500/20'
+              }">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <span class="mt-0.5 font-manrope font-bold text-[8.5px] text-royal-950 bg-white/95 backdrop-blur-sm border border-gold-200 px-1.5 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+                ${dest.name}
+              </span>
+            </div>
+          `,
+          iconSize: [40, 50],
+          iconAnchor: [20, 45]
+        });
+
+        const marker = L.marker([dest.latitude, dest.longitude], { icon: destIcon });
+        marker.on('click', () => {
+          setSelectedPin({
+            id: dest.id,
+            name: dest.name,
+            type: 'destination',
+            desc: dest.tagline,
+            data: dest
+          });
+          map.setView([dest.latitude, dest.longitude], 13);
+        });
+        marker.addTo(markerGroup);
+      });
+    }
+
+    // 2. Render Ecosystem Partners
+    if (activeLayer === 'all' || activeLayer === 'partners') {
+      destinations.flatMap(d => d.partners || []).forEach(partner => {
+        if (!partner.coordinates?.lat || !partner.coordinates?.lng) return;
+
+        const partnerIcon = L.divIcon({
+          className: 'custom-leaflet-partner-marker',
+          html: `
+            <div class="flex h-5 w-5 items-center justify-center rounded-full bg-gold-400 text-royal-950 border border-gold-600 shadow-sm hover:scale-110 transition-transform">
+              <span class="text-[8px] font-extrabold font-mono">P</span>
+            </div>
+          `,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+
+        const marker = L.marker([partner.coordinates.lat, partner.coordinates.lng], { icon: partnerIcon });
+        marker.on('click', () => {
+          setSelectedPin({
+            id: partner.id,
+            name: partner.name,
+            type: 'partner',
+            desc: partner.description,
+            data: partner
+          });
+        });
+        marker.addTo(markerGroup);
+      });
+    }
+
+    // 3. Render Transport Hubs
+    if (activeLayer === 'all' || activeLayer === 'transport') {
+      TRANSPORTATION_HUBS.forEach(hub => {
+        const transportIcon = L.divIcon({
+          className: 'custom-leaflet-transport-marker',
+          html: `
+            <div class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-white border border-slate-600 shadow-md hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bus"><path d="M8 6v6"/><path d="M16 6v6"/><path d="M4 18V9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9"/><path d="M14 18H10"/><circle cx="6.5" cy="18" r="1.5"/><circle cx="17.5" cy="18" r="1.5"/></svg>
+            </div>
+          `,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+
+        const marker = L.marker([hub.lat, hub.lng], { icon: transportIcon });
+        marker.on('click', () => {
+          setSelectedPin({
+            id: hub.id,
+            name: hub.name,
+            type: 'transport',
+            desc: `Central transport node connecting Yogyakarta tourism hubs.`
+          });
+        });
+        marker.addTo(markerGroup);
+      });
+    }
+
+    // 4. Render Parking Lots
+    if (showParking) {
+      PARKING_LOTS.forEach(pk => {
+        const parkingIcon = L.divIcon({
+          className: 'custom-leaflet-parking-marker',
+          html: `
+            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white border border-blue-400 shadow-md">
+              <span class="text-[9px] font-bold font-mono">P</span>
+            </div>
+          `,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker([pk.lat, pk.lng], { icon: parkingIcon });
+        marker.on('click', () => {
+          setSelectedPin({
+            id: pk.id,
+            name: pk.name,
+            type: 'parking',
+            desc: `Public authorized vehicle parking lot. Space: ${pk.capacity}.`
+          });
+        });
+        marker.addTo(markerGroup);
+      });
+    }
   };
 
   return (
-    <div id="interactive-tourism-map" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 animate-fade-in">
+    <div id="interactive-tourism-map" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 animate-fade-in scroll-mt-20">
       <div className="flex flex-col lg:flex-row gap-6">
         
-        {/* Left Column: Interactive Map Canvas */}
+        {/* Left Column: Leaflet Map */}
         <div className="flex-1 rounded-3xl border border-gold-100 bg-gold-50/20 overflow-hidden relative shadow-lg flex flex-col h-[70vh] min-h-[500px]">
+          
           {/* Layer and Traffic Overlay controls on map */}
-          <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
+          <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2 pointer-events-auto">
             <button
               onClick={() => setShowTraffic(!showTraffic)}
               className={`rounded-full px-3 py-1.5 text-[10px] font-mono font-semibold tracking-wider uppercase transition-colors flex items-center space-x-1 border shadow-sm ${
@@ -106,25 +362,13 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
               <Car className="h-3 w-3" />
               <span>{showParking ? 'Parking Pins' : 'Parking Off'}</span>
             </button>
-
-            <button
-              onClick={() => setShowWalkingRoutes(!showWalkingRoutes)}
-              className={`rounded-full px-3 py-1.5 text-[10px] font-mono font-semibold tracking-wider uppercase transition-colors flex items-center space-x-1 border shadow-sm ${
-                showWalkingRoutes 
-                  ? 'bg-green-700 text-white border-green-700' 
-                  : 'bg-white text-royal-950 border-gold-100 hover:bg-gold-50'
-              }`}
-            >
-              <Navigation className="h-3 w-3" />
-              <span>{showWalkingRoutes ? 'Walking Routes' : 'Routes Off'}</span>
-            </button>
           </div>
 
-          <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2 bg-white/90 backdrop-blur-md p-2.5 rounded-2xl border border-gold-100 shadow-md">
+          <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2 bg-white/90 backdrop-blur-md p-2.5 rounded-2xl border border-gold-100 shadow-md pointer-events-auto">
             <span className="text-[9px] font-mono font-bold text-royal-700 uppercase tracking-wider mb-1 block text-center">Layers</span>
             {[
               { id: 'all', label: 'All Items' },
-              { id: 'destinations', label: 'Destinations Only' },
+              { id: 'destinations', label: 'Destinations' },
               { id: 'transport', label: 'Transports' }
             ].map(l => (
               <button
@@ -139,199 +383,20 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
             ))}
           </div>
 
-          {/* SVG Visual Vector Map Canvas */}
-          <div className="flex-1 relative w-full h-full overflow-hidden bg-gradient-to-b from-blue-50/40 via-gold-50/20 to-blue-100/50">
-            {/* Visual background vector guidelines representing mountains and beaches */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-              {/* Northern Merapi Highlands representation */}
-              <path d="M 150 150 L 580 50 L 950 150" fill="none" stroke="#ecd7a4" strokeWidth="2" strokeDasharray="4,4" opacity="0.3" />
-              <text x="58%" y="9%" fill="#cb8527" className="font-mono text-[9px] font-bold uppercase tracking-widest opacity-60">Merapi Volcanic Zone</text>
-
-              {/* Southern Coast Ocean representation */}
-              <rect x="0" y="85%" width="100%" height="15%" fill="#cb8527" opacity="0.05" />
-              <path d="M 0 85% Q 500 83% 1000 85%" fill="none" stroke="#cb8527" strokeWidth="1.5" strokeDasharray="3,3" opacity="0.4" />
-              <text x="35%" y="98%" fill="#7b4019" className="font-mono text-[9px] font-bold uppercase tracking-widest opacity-60">Indian Ocean Coastlines</text>
-
-              {/* Walking routes / Distance connections */}
-              {showWalkingRoutes && (
-                <>
-                  {selectedPin?.type === 'destination' && selectedPin.data ? (
-                    destinations
-                      .filter(d => d.id !== selectedPin.id)
-                      .map(d => {
-                        const from = getDestMapCoords(selectedPin.id);
-                        const to = getDestMapCoords(d.id);
-                        const dist = calculateDistance(
-                          selectedPin.data.latitude,
-                          selectedPin.data.longitude,
-                          d.latitude,
-                          d.longitude
-                        );
-                        // Intermediate points for drawing curve or mid-line label
-                        const midX = (from.x + to.x) / 2;
-                        const midY = (from.y + to.y) / 2;
-                        return (
-                          <g key={`route-${d.id}`} className="animate-fade-in">
-                            <line
-                              x1={`${from.x}%`}
-                              y1={`${from.y}%`}
-                              x2={`${to.x}%`}
-                              y2={`${to.y}%`}
-                              stroke="#cb8527"
-                              strokeWidth="2"
-                              strokeDasharray="4,4"
-                              opacity="0.6"
-                            />
-                            <circle cx={`${midX}%`} cy={`${midY}%`} r="10" fill="#0f100c" />
-                            <text
-                              x={`${midX}%`}
-                              y={`${midY + 1}%`}
-                              textAnchor="middle"
-                              fill="#ecd7a4"
-                              className="font-mono text-[7px] font-bold"
-                            >
-                              {dist.toFixed(0)}k
-                            </text>
-                          </g>
-                        );
-                      })
-                  ) : (
-                    <>
-                      {/* Route 1: Prambanan to City */}
-                      <path d="M 41% 57% Q 58% 51% 75% 45%" fill="none" stroke="#d6a147" strokeWidth="2.5" strokeDasharray="5,5" className="animate-pulse" opacity="0.6" />
-                      {/* Route 2: City to Jomblang */}
-                      <path d="M 41% 57% Q 60% 67% 80% 78%" fill="none" stroke="#d6a147" strokeWidth="2.5" strokeDasharray="5,5" opacity="0.5" />
-                      {/* Route 3: Merapi to City */}
-                      <path d="M 58% 15% Q 49.5% 36% 41% 57%" fill="none" stroke="#d6a147" strokeWidth="2.5" strokeDasharray="5,5" opacity="0.5" />
-                    </>
-                  )}
-                </>
-              )}
-
-              {/* Traffic Overlay - simulated highway lines */}
-              {showTraffic && (
-                <>
-                  <path d="M 10% 50% L 90% 50%" fill="none" stroke="#ef4444" strokeWidth="5" opacity="0.4" />
-                  <path d="M 41% 30% L 41% 90%" fill="none" stroke="#22c55e" strokeWidth="4" opacity="0.4" />
-                  <text x="75%" y="54%" fill="#ef4444" className="font-mono text-[8px] font-bold uppercase">Heavy Traffic (Solo Rd)</text>
-                </>
-              )}
-            </svg>
-
-            {/* Destination Pin Nodes */}
-            {(activeLayer === 'all' || activeLayer === 'destinations') && destinations.map(dest => {
-              const coords = getDestMapCoords(dest.id);
-              const isSelected = selectedDestination?.id === dest.id;
-
-              return (
-                <button
-                  key={dest.id}
-                  onClick={() => handlePinClick({
-                    id: dest.id,
-                    name: dest.name,
-                    type: 'destination',
-                    desc: dest.tagline,
-                    data: dest
-                  })}
-                  className="absolute group z-20 cursor-pointer transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
-                  style={{ left: `${coords.x}%`, top: `${coords.y}%` }}
-                >
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-transform duration-300 group-hover:scale-110 ${
-                    isSelected 
-                      ? 'bg-gold-700 text-gold-200 border-2 border-gold-400' 
-                      : 'bg-royal-950 text-gold-300 border border-gold-500/30'
-                  }`}>
-                    <MapPin className="h-5 w-5 animate-bounce" />
-                  </div>
-                  
-                  {/* Floating tooltip labels */}
-                  <span className="mt-1 font-manrope font-bold text-[10px] text-royal-950 bg-white/95 backdrop-blur-sm border border-gold-200 px-2 py-0.5 rounded-full shadow-sm">
-                    {dest.name}
-                  </span>
-                </button>
-              );
-            })}
-
-            {/* Ecosystem Partners Pin Nodes */}
-            {activeLayer === 'all' && destinations.flatMap(d => d.partners || []).map((partner, idx) => {
-              // Distribute partner pins slightly surrounding their home destination coordinate
-              const destCoords = getDestMapCoords(partner.id.startsWith('p-p') ? 'prambanan' : partner.id.startsWith('m-p') ? 'malioboro' : partner.id.startsWith('pt-p') ? 'parangtritis' : partner.id.startsWith('me-p') ? 'merapi' : partner.id.startsWith('ts-p') ? 'tamansari' : 'goajomblang');
-              const offsetAngle = (idx * 45) * (Math.PI / 180);
-              const radius = 5.5; // Offset distance percentages
-              const px = destCoords.x + Math.cos(offsetAngle) * radius;
-              const py = destCoords.y + Math.sin(offsetAngle) * radius;
-
-              return (
-                <button
-                  key={partner.id}
-                  onClick={() => handlePinClick({
-                    id: partner.id,
-                    name: partner.name,
-                    type: 'partner',
-                    desc: partner.description,
-                    data: partner
-                  })}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10"
-                  style={{ left: `${px}%`, top: `${py}%` }}
-                >
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gold-400 text-royal-950 border border-gold-600 shadow-sm hover:scale-110 transition-transform">
-                    <span className="text-[9px] font-bold">P</span>
-                  </div>
-                </button>
-              );
-            })}
-
-            {/* Transport Stations Pins */}
-            {(activeLayer === 'all' || activeLayer === 'transport') && TRANSPORTATION_HUBS.map(hub => (
-              <button
-                key={hub.id}
-                onClick={() => handlePinClick({
-                  id: hub.id,
-                  name: hub.name,
-                  type: 'transport',
-                  desc: `Central transport node connecting Yogyakarta ecosystems.`
-                })}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10"
-                style={{ left: `${hub.coords.x}%`, top: `${hub.coords.y}%` }}
-              >
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-white border border-slate-600 shadow-md hover:scale-110 transition-transform">
-                  <Bus className="h-4.5 w-4.5" />
-                </div>
-                <span className="text-[7px] font-mono font-semibold text-slate-800 bg-white/80 px-1 rounded">Hub</span>
-              </button>
-            ))}
-
-            {/* Parking Lots Pins */}
-            {showParking && PARKING_LOTS.map(pk => (
-              <button
-                key={pk.id}
-                onClick={() => handlePinClick({
-                  id: pk.id,
-                  name: pk.name,
-                  type: 'parking',
-                  desc: `Public authorized vehicle parking lot. Space: ${pk.capacity}.`
-                })}
-                className="absolute transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10"
-                style={{ left: `${pk.coords.x}%`, top: `${pk.coords.y}%` }}
-              >
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white border border-blue-400 shadow-md">
-                  <span className="text-[10px] font-bold">P</span>
-                </div>
-              </button>
-            ))}
-          </div>
+          {/* Leaflet DOM Node */}
+          <div ref={mapContainerRef} className="w-full h-full z-0 bg-stone-100" />
         </div>
 
         {/* Right Column: Selected Node Sidebar Panel */}
         <div className="w-full lg:w-96 rounded-3xl border border-gold-100 bg-white p-5 flex flex-col justify-between shadow-md space-y-4">
           <div>
             <div className="flex items-center space-x-2 border-b border-gold-100 pb-3">
-              <Map className="h-5 w-5 text-gold-600 animate-pulse" />
+              <MapIcon className="h-5 w-5 text-gold-600 animate-pulse" />
               <h3 className="font-manrope text-base font-bold text-royal-950">Map Exploration Panel</h3>
             </div>
             
             <p className="text-xs text-royal-700/70 font-light mt-2">
-              Select any pin on the vector map to coordinate travel routes, check parking, or find nearby hospitality partners.
+              Select any pin on the map to coordinate travel routes, check parking, or find nearby hospitality partners.
             </p>
 
             {/* Dynamic pin metadata display */}
@@ -349,31 +414,90 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                   {selectedPin.desc}
                 </p>
 
-                {/* Specific layouts based on pin type */}
+                {/* Routing Tool (Available for Destinations) */}
                 {selectedPin.type === 'destination' && selectedPin.data && (
                   <div className="space-y-3.5 border-t border-gold-50 pt-3.5">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-royal-700/60 font-mono">Admission Fee:</span>
-                      <span className="font-bold text-royal-950">{selectedPin.data.ticketPrice}</span>
+                    
+                    {/* Destination statistics */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex justify-between items-center bg-stone-50 p-2 rounded-lg border border-stone-100">
+                        <span className="text-stone-500 font-mono text-[10px]">Price:</span>
+                        <span className="font-bold text-stone-900">{selectedPin.data.ticketPrice}</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-stone-50 p-2 rounded-lg border border-stone-100">
+                        <span className="text-stone-500 font-mono text-[10px]">Rating:</span>
+                        <span className="font-bold text-stone-900 flex items-center gap-0.5">
+                          <Star className="h-3 w-3 fill-gold-400 text-gold-400" />
+                          {selectedPin.data.rating.toFixed(1)}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-royal-700/60 font-mono">Opening hours:</span>
-                      <span className="font-bold text-royal-950">{selectedPin.data.openingHours}</span>
+                    {/* Routing selector */}
+                    <div className="bg-gold-50/30 border border-gold-100/50 rounded-2xl p-3.5 space-y-2.5">
+                      <label className="block text-[10px] font-mono font-bold text-stone-600 uppercase tracking-wider">
+                        🚙 Get Directions / Route To:
+                      </label>
+                      <select
+                        value={routeTargetId}
+                        onChange={e => setRouteTargetId(e.target.value)}
+                        className="w-full text-xs bg-white border border-stone-200 p-2 rounded-xl focus:outline-none focus:border-gold-500 font-manrope font-medium"
+                      >
+                        <option value="">-- Choose Target Destination --</option>
+                        {destinations
+                          .filter(d => d.id !== selectedPin.id)
+                          .map(d => (
+                            <option key={d.id} value={d.id}>{d.name}</option>
+                          ))
+                        }
+                      </select>
+
+                      {routingLoading && (
+                        <div className="text-[10px] text-stone-500 font-mono flex items-center justify-center gap-1 py-1">
+                          <RefreshCw className="h-3 w-3 animate-spin text-gold-600" />
+                          <span>Generating OSRM Driving Route...</span>
+                        </div>
+                      )}
+
+                      {/* Route metrics display */}
+                      {routeInfo && (
+                        <div className="space-y-2 animate-fade-in">
+                          <div className="flex justify-between items-center text-xs font-mono border-b border-stone-100 pb-1.5 mt-1">
+                            <span className="text-stone-500">Driving Distance:</span>
+                            <span className="font-bold text-stone-900">{routeInfo.distanceKm.toFixed(1)} km</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-xs font-mono border-b border-stone-100 pb-1.5">
+                            <span className="text-stone-500">Est. Duration:</span>
+                            <span className="font-bold text-stone-900">{Math.round(routeInfo.durationMin)} mins</span>
+                          </div>
+
+                          {routeInfo.isRushHour && (
+                            <div className="bg-red-50 border border-red-200 text-red-700 p-2 rounded-xl text-[10px] leading-relaxed flex items-start gap-1.5">
+                              <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                              <span>
+                                <strong>Rush Hour Peak Detected!</strong> Gamping-Malioboro or Solo road traffic expected (+15m delay estimated).
+                              </span>
+                            </div>
+                          )}
+
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&origin=${selectedPin.data.latitude},${selectedPin.data.longitude}&destination=${destinations.find(d => d.id === routeTargetId)?.latitude},${destinations.find(d => d.id === routeTargetId)?.longitude}&travelmode=driving`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-royal-950 text-white hover:bg-royal-900 text-[10px] font-bold tracking-wide transition-colors mt-2"
+                          >
+                            <span>Open Navigation Live on GMaps</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-royal-700/60 font-mono">Rating:</span>
-                      <span className="font-bold text-royal-950 flex items-center space-x-0.5 font-mono">
-                        <Star className="h-3 w-3 fill-gold-400 text-gold-400" />
-                        <span>{selectedPin.data.rating.toFixed(1)}</span>
-                      </span>
-                    </div>
-
-                    {/* Real-world distance connections matrix */}
-                    <div className="border-t border-stone-100 pt-3 space-y-2">
-                      <span className="block text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider">Jarak ke Destinasi Lain:</span>
-                      <div className="max-h-36 overflow-y-auto space-y-1.5 scrollbar-none pr-1">
+                    {/* Jarak ke Destinasi Lain matrix */}
+                    <div className="border-t border-stone-100 pt-3.5 space-y-2">
+                      <span className="block text-[10px] font-mono font-bold text-stone-500 uppercase tracking-wider"> Jarak Geografis Lainnya:</span>
+                      <div className="max-h-28 overflow-y-auto space-y-1.5 scrollbar-none pr-1">
                         {destinations
                           .filter(d => d.id !== selectedPin.id)
                           .map(d => {
@@ -384,10 +508,14 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                               d.longitude
                             );
                             return (
-                              <div key={d.id} className="flex justify-between items-center text-[10.5px] bg-stone-50 p-2 rounded-lg border border-stone-200/40">
-                                <span className="text-stone-700 truncate max-w-[150px]">{d.name}</span>
+                              <button
+                                key={d.id}
+                                onClick={() => setRouteTargetId(d.id)}
+                                className="w-full flex justify-between items-center text-[10px] bg-stone-50 p-2 rounded-lg border border-stone-200/40 hover:border-gold-300 hover:bg-stone-100/50 transition-colors text-left"
+                              >
+                                <span className="text-stone-700 truncate max-w-[150px] font-medium">{d.name}</span>
                                 <span className="font-mono font-bold text-gold-700 shrink-0">{dist.toFixed(1)} km</span>
-                              </div>
+                              </button>
                             );
                           })}
                       </div>
@@ -415,7 +543,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                     </div>
                     {selectedPin.data.promotion && (
                       <div className="bg-gold-500/10 border border-gold-300 rounded-xl p-2.5 text-[10px] font-mono text-gold-800 font-bold">
-                        Exclusive Deal: {selectedPin.data.promotion}
+                        🎁 Exclusive Offer: {selectedPin.data.promotion}
                       </div>
                     )}
                   </div>
@@ -426,16 +554,16 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                 <Info className="h-8 w-8 text-gold-500 mx-auto mb-2" />
                 <span className="block text-xs font-medium text-royal-950">No Pin Selected</span>
                 <span className="block text-[10px] text-royal-700/60 font-light mt-1">
-                  Click on any of the destination, partner or transport pins on the map to display instant spatial information.
+                  Click on any of the destination, partner or transport pins on the map to display instant spatial information and generate routes.
                 </span>
               </div>
             )}
           </div>
 
-          <div className="bg-gold-50 border border-gold-100 rounded-2xl p-4.5 text-xs text-royal-700 font-light space-y-2">
+          <div className="bg-gold-50 border border-gold-100 rounded-2xl p-4 text-xs text-royal-700 font-light space-y-1.5">
             <h4 className="font-manrope font-bold text-xs text-royal-950">Grounded Tourist GPS Note</h4>
-            <p className="leading-relaxed text-[11px]">
-              Yogyakarta's core attractions are separated in natural subregions. Always plan transport paths early! Giwangan and Tugu Station offer seamless connections.
+            <p className="leading-relaxed text-[10.5px]">
+              Yogyakarta's core attractions are separated in natural subregions. GMaps redirect option displays active local street jams.
             </p>
           </div>
         </div>
