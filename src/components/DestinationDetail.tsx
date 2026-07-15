@@ -6,12 +6,12 @@ import {
   MapPin, ShieldAlert, CheckCircle, HelpCircle, Thermometer,
   CloudSun, Phone, Tag, Hotel, Coffee, Utensils, Compass, 
   Footprints, MessageSquare, Map, Camera, Video, Eye, Award, 
-  ChevronRight, Calendar, Users, Send, AlertTriangle, Play,
+  ChevronRight, Calendar, Users, AlertTriangle, Play,
   ShoppingBag, Landmark, ArrowRight, Check, HeartHandshake,
-  MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle
+  MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle, Pencil
 } from 'lucide-react';
 import { Destination, EcosystemPartner, Review } from '@/types';
-import { events as eventsApi } from '@/lib/api';
+import { events as eventsApi, reviews as reviewsApi, destinations as destinationsApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import AIFloatingAssistant from '@/components/AIFloatingAssistant';
 
@@ -45,12 +45,16 @@ export default function DestinationDetail({
   const [activeEcosystemTab, setActiveEcosystemTab] = useState<'stay' | 'eat' | 'experience' | 'shop' | 'move' | 'guide'>('stay');
   const [copied, setCopied] = useState(false);
   
-  // Custom Reviews state to support comments/reactions
+  // Reviews state
   const [communityReviews, setCommunityReviews] = useState<Review[]>(destination.reviews);
   const [reviewFilter, setReviewFilter] = useState<'all' | 'Solo' | 'Couple' | 'Family' | 'Friends'>('all');
-  const [newCommentText, setNewCommentText] = useState<{[reviewId: string]: string}>({});
-  const [reviewComments, setReviewComments] = useState<{[reviewId: string]: {user: string, avatar: string, text: string}[]}>({
-  });
+  const [newReviewText, setNewReviewText] = useState('');
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+
+  const { isAuthenticated } = useAuth();
 
   // Ticket booking modal state
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -159,28 +163,31 @@ export default function DestinationDetail({
     setClaimedOffers(newClaimed);
   };
 
-  const handleAddComment = (reviewId: string) => {
-    const text = newCommentText[reviewId];
-    if (!text || !text.trim()) return;
-
-    const currentComments = reviewComments[reviewId] || [];
-    const updated = [
-      ...currentComments,
-      {
-        user: user?.name || 'Traveler',
-        avatar: '',
-        text: text.trim()
+  const handleSubmitReview = async () => {
+    if (!newReviewText.trim() || submittingReview) return;
+    setSubmittingReview(true);
+    setReviewError('');
+    try {
+      const res = await reviewsApi.create(destination.id, newReviewRating, newReviewText.trim());
+      if (res.status === 'success') {
+        const fresh = await destinationsApi.getById(destination.id);
+        if (fresh.status === 'success' && fresh.data) {
+          const raw = fresh.data as any;
+          const updatedReviews = raw.reviews || raw.Reviews || [];
+          setCommunityReviews(updatedReviews);
+        }
+        setNewReviewText('');
+        setNewReviewRating(5);
+        setReviewSubmitted(true);
+        setTimeout(() => setReviewSubmitted(false), 3000);
+      } else {
+        setReviewError(res.message || 'Failed to submit review');
       }
-    ];
-
-    setReviewComments({
-      ...reviewComments,
-      [reviewId]: updated
-    });
-    setNewCommentText({
-      ...newCommentText,
-      [reviewId]: ''
-    });
+    } catch {
+      setReviewError('Network error. Please try again.');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   // Mocked specific details based on current destination to keep it 100% immersive
@@ -1016,7 +1023,6 @@ export default function DestinationDetail({
               {/* Feed List */}
               <div className="space-y-6">
                 {filteredReviews.map(review => {
-                  const commentsList = reviewComments[review.id] || [];
                   const isLiked = likedReviewIds.has(review.id);
                   return (
                     <div key={review.id} className="bg-white border border-stone-200/50 p-5 rounded-2xl space-y-4 shadow-sm text-left">
@@ -1061,7 +1067,7 @@ export default function DestinationDetail({
                         </div>
                       </div>
 
-                      {/* Interaction Row (React, save tip, comment) */}
+                      {/* Interaction Row */}
                       <div className="border-t border-stone-100 pt-3.5 flex flex-wrap items-center justify-between gap-4 text-xs font-mono tracking-wider text-stone-500">
                         <div className="flex items-center space-x-4">
                           <button 
@@ -1071,11 +1077,6 @@ export default function DestinationDetail({
                             <Heart className={`h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                             <span>{isLiked ? 'Helpful (16)' : 'Helpful (15)'}</span>
                           </button>
-                          
-                          <button className="flex items-center space-x-1 hover:text-gold-700">
-                            <MessageSquare className="h-4 w-4" />
-                            <span>Comments ({commentsList.length})</span>
-                          </button>
                         </div>
 
                         <button className="text-[9px] font-mono text-gold-700 bg-gold-50/70 border border-gold-200/50 px-2.5 py-1 rounded-lg hover:bg-gold-100 transition-colors">
@@ -1083,41 +1084,59 @@ export default function DestinationDetail({
                         </button>
                       </div>
 
-                      {/* Expandable comments drawer */}
-                      {commentsList.length > 0 && (
-                        <div className="bg-stone-50/80 p-3 rounded-xl border border-stone-100 space-y-3.5">
-                          {commentsList.map((comm, cIdx) => (
-                            <div key={cIdx} className="flex space-x-2.5 items-start text-xs border-b border-stone-100 last:border-0 pb-2 last:pb-0">
-                              <img src={comm.avatar} className="h-6 w-6 rounded-full object-cover" />
-                              <div className="flex-1 text-left">
-                                <span className="font-bold text-[#1c1a17] text-[10px]">{comm.user}</span>
-                                <p className="text-stone-600 font-light text-[10px] leading-relaxed mt-0.5">{comm.text}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Add comment input */}
-                      <div className="flex items-center space-x-2 pt-2">
-                        <input
-                          type="text"
-                          placeholder="Add comment to travel story..."
-                          value={newCommentText[review.id] || ''}
-                          onChange={(e) => setNewCommentText({ ...newCommentText, [review.id]: e.target.value })}
-                          className="w-full bg-stone-50 border border-stone-200 text-[10.5px] px-3.5 py-2 rounded-xl focus:outline-none focus:ring-1 focus:ring-gold-500"
-                        />
-                        <button 
-                          onClick={() => handleAddComment(review.id)}
-                          className="p-2 bg-royal-950 text-white rounded-xl hover:bg-gold-500 transition-colors"
-                        >
-                          <Send className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-
                     </div>
                   );
                 })}
+
+                {/* Write a Review Form */}
+                <div className="bg-white border border-stone-200/50 p-5 rounded-2xl space-y-4 shadow-sm text-left">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <Pencil className="h-4 w-4 text-gold-700" />
+                    <span className="text-xs font-mono font-bold text-gold-700 uppercase tracking-widest">Write a Review</span>
+                  </div>
+
+                  {!isAuthenticated ? (
+                    <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 text-center">
+                      <p className="text-xs text-stone-500 mb-2">Sign in to share your travel experience</p>
+                      <a href="/login" className="text-[10px] font-mono font-bold text-gold-700 underline">LOGIN TO REVIEW</a>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Star Rating */}
+                      <div className="flex items-center space-x-1">
+                        {[1,2,3,4,5].map(star => (
+                          <button key={star} onClick={() => setNewReviewRating(star)} className="focus:outline-none">
+                            <Star className={`h-5 w-5 ${star <= newReviewRating ? 'fill-amber-400 text-amber-400' : 'text-stone-300'}`} />
+                          </button>
+                        ))}
+                        <span className="text-[10px] font-mono text-stone-500 ml-2">{newReviewRating}/5</span>
+                      </div>
+
+                      <textarea
+                        placeholder="Share your experience at this destination..."
+                        value={newReviewText}
+                        onChange={(e) => setNewReviewText(e.target.value)}
+                        rows={3}
+                        className="w-full bg-stone-50 border border-stone-200 text-[10.5px] px-3.5 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-gold-500 resize-none"
+                      />
+
+                      {reviewError && (
+                        <p className="text-[10px] text-red-500 font-mono">{reviewError}</p>
+                      )}
+                      {reviewSubmitted && (
+                        <p className="text-[10px] text-green-600 font-mono">Review submitted successfully!</p>
+                      )}
+
+                      <button
+                        onClick={handleSubmitReview}
+                        disabled={!newReviewText.trim() || submittingReview}
+                        className="px-4 py-2 bg-royal-950 text-white text-[10px] font-mono font-bold rounded-xl hover:bg-gold-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {submittingReview ? 'SUBMITTING...' : 'SUBMIT REVIEW'}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 

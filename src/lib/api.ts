@@ -201,6 +201,15 @@ export const events = {
   },
 };
 
+export const reviews = {
+  async create(destinationId: string, rating: number, comment: string) {
+    return request('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({ destination_id: destinationId, rating, comment }),
+    });
+  },
+};
+
 export const config = {
   async getCategories() {
     return request<{ id: string; name: string; icon: string; description: string }[]>('/config/categories');
