@@ -398,83 +398,95 @@ export default function DestinationDetail({
     }
   };
 
-  // Mocked specific details based on current destination to keep it 100% immersive
+  // Dynamic recommendations based on destination data
   const getAIRecommendations = () => {
-    switch (destination.id) {
-      case 'prambanan':
-        return [
-          { text: "Walk to the Shiva Temple first (less crowded)", time: "09:20 AM" },
-          { text: "Best photography spot is on the north gate archway", time: "10:30 AM" },
-          { text: "Golden Hour starts at 5:18 PM tonight", time: "05:18 PM" },
-          { text: "Ramayana Ballet open stage starts at 7:30 PM", time: "07:30 PM" },
-          { text: "Abhayagiri Scenic Resto is 3.2 km away and perfect for sunset dinner", time: "05:45 PM" }
-        ];
-      case 'malioboro':
-        return [
-          { text: "Explore southern pedestrian walk first before shops open", time: "08:30 AM" },
-          { text: "Visit Beringharjo Market second floor for pure royal batik roll", time: "10:00 AM" },
-          { text: "Lesehan food stall seating gets filled up by 6:30 PM", time: "06:30 PM" },
-          { text: "Live gamelan music starting near Tugu monument at 7:00 PM", time: "07:00 PM" }
-        ];
-      case 'parangtritis':
-        return [
-          { text: "Head to Gumuk Pasir Dunes first before sand gets extremely hot", time: "09:00 AM" },
-          { text: "Hire an ATV to explore the dark volcanic tide pools on the east", time: "03:30 PM" },
-          { text: "Reflective mirror photography is best exactly at 5:30 PM", time: "05:30 PM" },
-          { text: "Grab fresh grilled sea prawns at Depok Beach", time: "01:00 PM" }
-        ];
-      case 'merapi':
-        return [
-          { text: "Lava tour jeeps are best booked before peak 10:00 AM heat", time: "07:30 AM" },
-          { text: "Visit Underground Kaliadem Bunker (temperature drops inside)", time: "11:00 AM" },
-          { text: "Try a warm cup of robusta roasted over volcanic soil at Kopi Merapi", time: "01:30 PM" },
-          { text: "Heavy afternoon mountain mist starts rolling in around 3 PM", time: "03:00 PM" }
-        ];
-      case 'tamansari':
-        return [
-          { text: "Take the secret passage into the central Bathing Pools", time: "09:15 AM" },
-          { text: "Sumur Gumuling underground staircase light beam peaks at noon", time: "11:45 AM" },
-          { text: "Stroll around the pastel corridors of Cyber Village", time: "02:00 PM" },
-          { text: "Cool down at the local boutique Water Castle Cafe", time: "03:00 PM" }
-        ];
-      default:
-        return [
-          { text: "Arrive immediately to secure local guide entry", time: "08:30 AM" },
-          { text: "Peak sunlight creates stunning light play across the structures", time: "11:30 AM" },
-          { text: "Check with local information center for evening festivals", time: "04:30 PM" }
-        ];
+    const name = destination.name;
+    const bestTime = destination.bestTime || '09:00 AM - 11:30 AM';
+    const desc = (destination.description || '').toLowerCase();
+    const tips = destination.travelTips || [];
+    const facilities = destination.facilities || [];
+    const recs: { text: string; time: string }[] = [];
+
+    // Best time recommendation
+    recs.push({ text: `Visit during optimal hours (${bestTime}) for the best experience`, time: bestTime.split(' - ')[0] || '09:00 AM' });
+
+    // Facility-based
+    if (facilities.length > 0) {
+      recs.push({ text: `Use ${facilities[0]} for a smoother visit`, time: '10:00 AM' });
     }
+
+    // Description-based contextual tips
+    if (desc.includes('sunrise') || desc.includes('dawn')) {
+      recs.push({ text: 'Arrive before dawn for the best sunrise views', time: '05:30 AM' });
+    } else if (desc.includes('sunset') || desc.includes('evening')) {
+      recs.push({ text: 'Stay until evening for golden hour photography', time: '05:00 PM' });
+    } else if (desc.includes('market') || desc.includes('shop') || desc.includes('batik')) {
+      recs.push({ text: 'Visit early before crowds arrive for the best selections', time: '08:30 AM' });
+    } else if (desc.includes('cave') || desc.includes('adventure') || desc.includes('raft')) {
+      recs.push({ text: 'Book guided activity slots in advance to secure your spot', time: '09:00 AM' });
+    } else {
+      recs.push({ text: 'Peak sunlight creates stunning photography opportunities', time: '11:00 AM' });
+    }
+
+    // Travel tip-based
+    if (tips.length > 0) {
+      recs.push({ text: tips[0], time: '12:00 PM' });
+    }
+
+    // Food recommendation based on location
+    if (destination.subRegion) {
+      recs.push({ text: `Explore local culinary spots in ${destination.subRegion} after your visit`, time: '01:00 PM' });
+    }
+
+    return recs.slice(0, 5);
   };
 
+  // Dynamic timeline based on destination data and nearby events
   const getSuggestedTimeline = () => {
-    switch (destination.id) {
-      case 'prambanan':
-        return [
-          { time: "08:00", title: "Prambanan Morning Exploration", desc: "Beat the crowds and witness the golden spires before the sun gets too high." },
-          { time: "10:30", title: "Ratu Boko Temple Ruins", desc: "Head 10 minutes south to explore the beautiful scenic gateway on the hills." },
-          { time: "12:00", title: "Gudeg Yu Djum Lunch", desc: "Savor the absolute culinary crown of slow-stewed sweet jackfruit." },
-          { time: "14:00", title: "Taman Sari Secret Water Castle", desc: "Walk through subterranean passages and turquoise bathing pools." },
-          { time: "17:30", title: "Parangtritis Beach Sunset", desc: "Gaze at the vast southern sea as the waves reflect the burning sky." },
-          { time: "19:00", title: "Ramayana Ballet Spectacular", desc: "Conclude with world-class traditional ballet with Prambanan as a back-drop." }
-        ];
-      case 'malioboro':
-        return [
-          { time: "09:00", title: "Beringharjo Batik Discovery", desc: "Immerse yourself in Yogyakarta's oldest traditional textile hub." },
-          { time: "11:30", title: "Sultan's Palace (Kraton)", desc: "Witness real royal Javanese court guards and heritage collections." },
-          { time: "13:00", title: "Lesehan Traditional Lunch", desc: "Sit on cozy bamboo mats and try warm local delicacies." },
-          { time: "15:00", title: "Taman Sari Water Castle", desc: "Explore the bathing chambers of the princesses." },
-          { time: "17:30", title: "Fort Vredeburg Museum Garden", desc: "Enjoy the cool air as colonial architectural monuments light up." },
-          { time: "19:00", title: "Malioboro Evening Live Music", desc: "Sip local charcoal coffee (Kopi Joss) to the tunes of street gamelans." }
-        ];
-      default:
-        return [
-          { time: "08:00", title: "Scenic Morning Trek", desc: "Explore the surrounding natural beauty with local guides." },
-          { time: "11:30", title: "Traditional Handcraft Class", desc: "Learn to carve silver or draw hand-drawn batik patterns." },
-          { time: "13:00", title: "Volcanic Soil Organic Lunch", desc: "Feast on farm-to-table Javanese vegetables." },
-          { time: "15:00", title: "Hidden Waterfall Plunge", desc: "Cool off in crystal-clear freshwater pools." },
-          { time: "17:30", title: "Hilltop Sunset Viewpoint", desc: "Witness panoramic vistas stretching across the Indian Ocean." }
-        ];
+    const name = destination.name;
+    const bestTime = destination.bestTime || '09:00 AM - 11:30 AM';
+    const desc = (destination.description || '').toLowerCase();
+    const category = (destination.category || '').toLowerCase();
+    const steps: { time: string; title: string; desc: string }[] = [];
+
+    // Morning arrival
+    steps.push({ time: '08:00', title: `${name} Morning Exploration`, desc: `Start your day early to experience ${name} with fewer crowds and better light.` });
+
+    // Mid-morning highlight based on category
+    if (category.includes('heritage') || category.includes('temple')) {
+      steps.push({ time: '10:30', title: 'Heritage Deep Dive', desc: 'Explore the intricate architectural details and historical significance with a local guide.' });
+    } else if (category.includes('beach') || category.includes('coast')) {
+      steps.push({ time: '10:30', title: 'Coastal Discovery', desc: 'Walk along the shoreline and discover hidden spots away from the main area.' });
+    } else if (category.includes('mountain') || category.includes('adventure')) {
+      steps.push({ time: '10:30', title: 'Adventure Activity', desc: 'Try the main adventure activity while energy levels are highest.' });
+    } else {
+      steps.push({ time: '10:30', title: 'Explore the Surroundings', desc: 'Wander through the area and discover what makes this destination unique.' });
     }
+
+    // Lunch
+    steps.push({ time: '12:00', title: 'Local Culinary Break', desc: destination.subRegion ? `Savor authentic cuisine at a recommended spot in ${destination.subRegion}.` : 'Enjoy a traditional meal at a nearby local restaurant.' });
+
+    // Afternoon
+    if (desc.includes('museum') || desc.includes('gallery') || desc.includes('art')) {
+      steps.push({ time: '14:00', title: 'Cultural Immersion', desc: 'Dive deeper into the artistic and cultural exhibits at your own pace.' });
+    } else {
+      steps.push({ time: '14:00', title: 'Afternoon Leisure', desc: 'Take your time revisiting favorite spots or discovering hidden corners.' });
+    }
+
+    // Sunset/evening
+    if (desc.includes('sunset') || desc.includes('beach') || desc.includes('coast')) {
+      steps.push({ time: '17:00', title: 'Sunset Spectacle', desc: 'Find the perfect vantage point to watch the sun dip below the horizon.' });
+    } else {
+      steps.push({ time: '17:30', title: 'Golden Hour Views', desc: 'The late afternoon light transforms the scenery — perfect for photography.' });
+    }
+
+    // Add first nearby event if exists
+    if (nearbyEvents.length > 0) {
+      const evt = nearbyEvents[0];
+      steps.push({ time: '19:00', title: evt.title, desc: `${evt.location} — ${evt.start_date}` });
+    }
+
+    return steps;
   };
 
   const getTravelerStories = () => {
@@ -689,7 +701,7 @@ export default function DestinationDetail({
               <span>{destination.category === 'heritage' ? 'UNESCO WORLD HERITAGE' : 'CURATED HIGHLANDS'}</span>
             </span>
             <span className="bg-white/10 backdrop-blur-md border border-white/15 text-gold-200 text-[9px] md:text-[10px] font-mono tracking-widest uppercase px-3.5 py-1 rounded-full shadow-md">
-              Sultanate Core Zone
+              {destination.category === 'heritage' ? 'Sultanate Core Zone' : destination.category === 'beach' ? 'Southern Coast Zone' : destination.category === 'mountain' ? 'Highland Adventure Zone' : destination.subRegion ? `${destination.subRegion} Division` : 'Yogyakarta Region'}
             </span>
             <span className="bg-emerald-600/90 backdrop-blur-md text-white text-[9px] md:text-[10px] font-mono tracking-widest uppercase px-3.5 py-1 rounded-full font-bold">
               ● OPEN TODAY
@@ -729,13 +741,13 @@ export default function DestinationDetail({
             <div className="lg:col-span-4 flex flex-col items-start lg:items-end space-y-4">
               <div className="bg-black/45 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center space-x-3 text-left w-full sm:w-auto shadow-2xl">
                 <div className="flex -space-x-2.5">
-                  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150" className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
-                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150" className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
-                  <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150" className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
+                  <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.name)}&backgroundColor=d6a147`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
+                  <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.location)}&backgroundColor=4d3c1e`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
+                  <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.subRegion || 'jogja')}&backgroundColor=1c1a17`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-gold-300 font-mono tracking-wider font-bold uppercase">LIVE FEED</span>
-                  <span className="text-xs text-white/95 font-semibold">1,240 travelers exploring now</span>
+                  <span className="text-[10px] text-gold-300 font-mono tracking-wider font-bold uppercase">COMMUNITY</span>
+                  <span className="text-xs text-white/95 font-semibold">{destination.reviewCount.toLocaleString()} travelers reviewed</span>
                 </div>
               </div>
 
@@ -1268,13 +1280,12 @@ export default function DestinationDetail({
                           <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-700">
                             <span className="text-emerald-500 mt-0.5 shrink-0">●</span>{pro}
                           </li>
-                        )) || [
-                          'Stunning scenery',
-                          'Friendly guides',
-                          'Unique experience',
-                        ].map((pro, i) => (
+                        )) || (destination.travelTips.length > 0
+                          ? destination.travelTips.slice(0, 3)
+                          : [destination.description?.slice(0, 50) || 'Unique destination', 'Beautiful scenery', 'Rich cultural heritage']
+                        ).map((tip: string, i: number) => (
                           <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-700">
-                            <span className="text-emerald-500 mt-0.5 shrink-0">●</span>{pro}
+                            <span className="text-emerald-500 mt-0.5 shrink-0">●</span>{tip}
                           </li>
                         ))}
                       </ul>
@@ -1286,10 +1297,16 @@ export default function DestinationDetail({
                           <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-500">
                             <span className="text-stone-400 mt-0.5 shrink-0">●</span>{con}
                           </li>
-                        )) || [
-                          'Can get crowded',
-                          'Limited parking',
-                        ].map((con, i) => (
+                        )) || (() => {
+                          const reviewText = communityReviews.map(r => r.comment?.toLowerCase() || ' ').join(' ');
+                          const cons: string[] = [];
+                          if (reviewText.includes('crowd') || reviewText.includes('busy')) cons.push('Can get crowded during peak hours');
+                          if (reviewText.includes('parking') || reviewText.includes('walk')) cons.push('Some walking required');
+                          if (reviewText.includes('hot') || reviewText.includes('sun')) cons.push('Bring sun protection');
+                          if (cons.length === 0) cons.push('Peak hours can be busy');
+                          if (cons.length < 2) cons.push('Check opening hours before visiting');
+                          return cons.slice(0, 2);
+                        })().map((con: string, i: number) => (
                           <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-500">
                             <span className="text-stone-400 mt-0.5 shrink-0">●</span>{con}
                           </li>
@@ -1488,36 +1505,73 @@ export default function DestinationDetail({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                 
-                {/* Visitors Love */}
+                {/* Visitors Love — derived from travelTips */}
                 <div className="space-y-3">
                   <span className="text-[10px] font-mono tracking-widest text-emerald-700 uppercase font-bold">Visitors Love (PROS)</span>
                   <div className="space-y-2.5">
-                    {[
-                      { topic: "Sunrise Backdrop & Light", rating: 4.9, pct: "98%" },
-                      { topic: "Ancient Relic Craftsmanship", rating: 4.8, pct: "94%" },
-                      { topic: "Site Cleanliness & Toilet", rating: 4.7, pct: "89%" }
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs">
-                        <div className="flex flex-col text-left">
-                          <span className="font-bold text-[#1c1a17]">{item.topic}</span>
-                          <span className="text-[9px] text-stone-500 font-mono">Satisfied rating • {item.rating}</span>
+                    {(destination.travelTips.length > 0
+                      ? destination.travelTips.slice(0, 3)
+                      : [destination.description?.slice(0, 60) || 'Unique experience', 'Beautiful scenery', 'Well-maintained site']
+                    ).map((tip, i) => {
+                      const avgRating = communityReviews.length > 0
+                        ? (communityReviews.reduce((sum, r) => sum + r.rating, 0) / communityReviews.length).toFixed(1)
+                        : '4.7';
+                      const pct = communityReviews.length > 0
+                        ? `${Math.round((communityReviews.filter(r => r.rating >= 4).length / communityReviews.length) * 100)}%`
+                        : '90%';
+                      return (
+                        <div key={i} className="flex items-center justify-between text-xs">
+                          <div className="flex flex-col text-left">
+                            <span className="font-bold text-[#1c1a17]">{tip.length > 40 ? tip.slice(0, 40) + '…' : tip}</span>
+                            <span className="text-[9px] text-stone-500 font-mono">Satisfied rating • {avgRating}</span>
+                          </div>
+                          <span className="bg-emerald-50 text-emerald-800 font-mono font-bold text-[10px] px-2 py-0.5 rounded-full">{pct}</span>
                         </div>
-                        <span className="bg-emerald-50 text-emerald-800 font-mono font-bold text-[10px] px-2 py-0.5 rounded-full">{item.pct}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Visitors Mention */}
+                {/* Visitors Mention — derived from reviews or generic fallback */}
                 <div className="space-y-3">
                   <span className="text-[10px] font-mono tracking-widest text-amber-700 uppercase font-bold">Visitors Mention (CONS)</span>
                   <div className="space-y-2.5">
-                    {[
-                      { topic: "Parking lot distance to gate", issue: "Requires short tram walk", color: "border-amber-200 bg-amber-50" },
-                      { topic: "Ticket queue line at noon", issue: "Recommend booking online", color: "border-amber-200 bg-amber-50" },
-                      { topic: "Hot afternoon temperature", issue: "Bring hat & custom umbrella", color: "border-amber-200 bg-amber-50" }
-                    ].map((item, i) => (
-                      <div key={i} className={`flex items-start justify-between text-xs p-2 border rounded-xl ${item.color}`}>
+                    {(() => {
+                      const cons: { topic: string; issue: string }[] = [];
+                      // Check review comments for common complaints
+                      const reviewText = communityReviews.map(r => r.comment?.toLowerCase() || ' ').join(' ');
+                      if (reviewText.includes('crowd') || reviewText.includes('busy') || reviewText.includes('queue')) {
+                        cons.push({ topic: 'Can get crowded', issue: 'Visit early morning for fewer people' });
+                      }
+                      if (reviewText.includes('parking') || reviewText.includes('far') || reviewText.includes('walk')) {
+                        cons.push({ topic: 'Parking distance', issue: 'Comfortable walking shoes recommended' });
+                      }
+                      if (reviewText.includes('hot') || reviewText.includes('sun') || reviewText.includes('heat')) {
+                        cons.push({ topic: 'Afternoon heat', issue: 'Bring sunscreen and stay hydrated' });
+                      }
+                      if (reviewText.includes('ticket') || reviewText.includes('price') || reviewText.includes('expensive')) {
+                        cons.push({ topic: 'Ticket pricing', issue: 'Book online to skip the queue' });
+                      }
+                      // Fill remaining slots with category-based suggestions
+                      if (cons.length < 3) {
+                        const category = (destination.category || '').toLowerCase();
+                        if (category.includes('heritage') || category.includes('temple')) {
+                          cons.push({ topic: 'Limited shade areas', issue: 'Wear a hat and bring water' });
+                        }
+                        if (category.includes('beach')) {
+                          cons.push({ topic: 'Strong waves', issue: 'Follow local safety guidelines' });
+                        }
+                        if (category.includes('mountain') || category.includes('adventure')) {
+                          cons.push({ topic: 'Altitude changes', issue: 'Acclimatize gradually if needed' });
+                        }
+                      }
+                      // Final fallback
+                      while (cons.length < 3) {
+                        cons.push({ topic: 'Peak hours can be busy', issue: 'Plan your visit during off-peak times' });
+                      }
+                      return cons.slice(0, 3);
+                    })().map((item, i) => (
+                      <div key={i} className="flex items-start justify-between text-xs p-2 border rounded-xl border-amber-200 bg-amber-50">
                         <div className="flex flex-col text-left">
                           <span className="font-bold text-stone-900">{item.topic}</span>
                           <span className="text-[9px] text-stone-600 mt-0.5">{item.issue}</span>
