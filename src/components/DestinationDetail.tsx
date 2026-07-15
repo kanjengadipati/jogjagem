@@ -504,6 +504,47 @@ export default function DestinationDetail({
     return true;
   });
 
+  // Dynamic curator quote based on destination data
+  const getCuratorQuote = () => {
+    const name = destination.name;
+    const tagline = destination.tagline || '';
+    const category = destination.category || '';
+    const desc = destination.description || '';
+    const allText = `${tagline} ${desc}`.toLowerCase();
+
+    const keywords: string[] = [];
+    if (allText.includes('temple') || allText.includes('candi') || allText.includes('heritage')) keywords.push('Heritage Explorers');
+    if (allText.includes('sunrise') || allText.includes('dawn')) keywords.push('Sunrise Chasers');
+    if (allText.includes('culture') || allText.includes('tradition') || allText.includes('history')) keywords.push('Culture Seekers');
+    if (allText.includes('photo') || allText.includes('view') || allText.includes('panoram')) keywords.push('Panoramic Photographers');
+    if (allText.includes('family') || allText.includes('children')) keywords.push('Family Travelers');
+    if (allText.includes('cave') || allText.includes('adventure') || allText.includes('hike')) keywords.push('Adventure Enthusiasts');
+    if (allText.includes('nature') || allText.includes('forest') || allText.includes('mountain')) keywords.push('Nature Lovers');
+    if (allText.includes('art') || allText.includes('craft') || allText.includes('batik')) keywords.push('Art & Craft Enthusiasts');
+
+    if (keywords.length === 0) keywords.push('Curious Travelers', 'Culture Seekers', 'Photography Enthusiasts');
+
+    const audience = keywords.length <= 2 ? keywords.join(' and ') : `${keywords.slice(0, -1).join(', ')} and ${keywords[keywords.length - 1]}`;
+    return `A perfect pick for ${audience} — ${name} is a destination worth planning your Yogyakarta journey around.`;
+  };
+
+  // Dynamic visiting season based on category
+  const getVisitingSeason = () => {
+    const cat = (destination.category || '').toLowerCase();
+    if (cat.includes('temple') || cat.includes('candi') || cat.includes('heritage')) return 'Year-round (Peak: May–Sep)';
+    if (cat.includes('beach') || cat.includes('coast')) return 'Dry Season (Apr–Oct)';
+    if (cat.includes('mountain') || cat.includes('adventure')) return 'Dry Months (May–Oct)';
+    return 'Year-round (Best: May–Oct)';
+  };
+
+  const getSeasonDetail = () => {
+    const cat = (destination.category || '').toLowerCase();
+    if (cat.includes('temple') || cat.includes('candi') || cat.includes('heritage')) return 'Open-air & sheltered sites';
+    if (cat.includes('beach') || cat.includes('coast')) return 'Calm seas, clear skies';
+    if (cat.includes('mountain') || cat.includes('adventure')) return 'Clear views, safe trails';
+    return 'Balanced weather';
+  };
+
   // Calculate ticket pricing from destination data
   const parseTicketPrice = () => {
     const raw = destination.ticketPrice || '';
@@ -762,24 +803,24 @@ export default function DestinationDetail({
           {/* LEFT 8-COLUMN MAIN BODY PANELS */}
           <div className="lg:col-span-8 space-y-12 text-left">
             
-            {/* 3. AI SMART SUMMARY BLOCK */}
+            {/* 3. CURATOR SUMMARY BLOCK */}
             <div className="bg-[#f5edd6]/50 border border-gold-200/55 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
               <div className="flex items-center space-x-2">
                 <Sparkles className="h-5 w-5 text-gold-600 animate-pulse" />
                 <h3 className="font-manrope text-xs uppercase tracking-[0.15em] text-gold-700 font-extrabold">
-                  AI Smart Curator Analysis
+                  Curator's Pick
                 </h3>
               </div>
               
               <p className="font-display text-xl sm:text-2xl text-royal-950 font-medium leading-normal italic">
-                "This majestic sight is highly recommended for Sunrise Enthusiasts, Cultural Collectors, Architectural Photographers and Multi-generational Families."
+                "{getCuratorQuote()}"
               </p>
 
               <div className="border-t border-gold-200/40 pt-6 grid grid-cols-2 sm:grid-cols-3 gap-5">
                 {[
                   { label: "Optimal Visit Hour", value: destination.bestTime || "09:00 AM - 11:30 AM", detail: "Golden hour light", icon: Clock },
                   { label: "Opening Hours", value: destination.openingHours || "08:00 - 17:00", detail: "Daily access", icon: Ticket },
-                  { label: "Visiting Season", value: "Dry Months (May-Oct)", detail: "Cloudless sunsets", icon: CloudSun },
+                  { label: "Visiting Season", value: getVisitingSeason(), detail: getSeasonDetail(), icon: CloudSun },
                   { label: "Terrain & Access", value: destination.facilities?.[0] || "Flat Pathway", detail: destination.facilities?.[1] || "Easy walking", icon: Landmark },
                   { label: "Ticket Price", value: `IDR ${domesticTicketPrice}`, detail: `Foreign: IDR ${foreignTicketPrice}`, icon: Ticket },
                   { label: "Climate", value: `Live ${destination.weather.temp || '27°C'} • ${destination.weather.condition || 'Sunny'}`, detail: destination.weather.status || "Mild climate", icon: Thermometer }
