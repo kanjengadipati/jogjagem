@@ -36,7 +36,16 @@ export default function App() {
       config.getQuotes(),
     ]).then(([destRes, eventRes, quoteRes]) => {
       if (destRes.status === 'success' && destRes.data) {
-        setAllDestinations(destRes.data as Destination[]);
+        const mapped = (destRes.data as any[]).map(raw => ({
+          ...raw,
+          subRegion: raw.sub_region || raw.SubRegion || raw.subRegion || '',
+          ticketPrice: raw.ticket_price || raw.TicketPrice || raw.ticketPrice || '',
+          openingHours: raw.opening_hours || raw.OpeningHours || raw.openingHours || '',
+          reviewCount: raw.review_count || raw.ReviewCount || raw.reviewCount || 0,
+          travelTips: raw.travel_tips || raw.TravelTips || raw.travelTips || [],
+          bestTime: raw.best_time || raw.BestTime || raw.bestTime || '',
+        }));
+        setAllDestinations(mapped as Destination[]);
       }
       if (eventRes.status === 'success' && eventRes.data) {
         const mapped = (eventRes.data as any[]).map(raw => ({

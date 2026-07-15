@@ -424,7 +424,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
                           {recommendation.dest.name}
                         </p>
                         <p className="text-[9px] lg:text-[11px] text-white/50">
-                          {recommendation.dest.subRegion}, Yogyakarta
+                          {recommendation.dest.subRegion ? `${recommendation.dest.subRegion}, ` : ''}Yogyakarta
                         </p>
                       </div>
                     </div>
