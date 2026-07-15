@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Destination, EcosystemPartner, Review } from '@/types';
 import { events as eventsApi } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import AIFloatingAssistant from '@/components/AIFloatingAssistant';
 
 interface DestinationDetailProps {
@@ -31,6 +32,8 @@ export default function DestinationDetail({
   isSaved,
   onSelectPartnerOnMap
 }: DestinationDetailProps) {
+  const { user } = useAuth();
+  const userInitials = user?.name ? user.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2) : 'YG';
   // States
   const [activeMediaTab, setActiveMediaTab] = useState<'photos' | 'video' | '360' | 'drone' | 'reels'>('photos');
   const [activeImageIdx, setActiveImageIdx] = useState(0);
@@ -164,8 +167,8 @@ export default function DestinationDetail({
     const updated = [
       ...currentComments,
       {
-        user: 'You (Traveler)',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150',
+        user: user?.name || 'Traveler',
+        avatar: '',
         text: text.trim()
       }
     ];
@@ -363,12 +366,8 @@ export default function DestinationDetail({
               </span>
             )}
 
-            <div className="h-8 w-8 rounded-full overflow-hidden border border-gold-400/30">
-              <img 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" 
-                alt="Traveler Profile" 
-                className="h-full w-full object-cover"
-              />
+            <div className="h-8 w-8 rounded-full border border-gold-400/30 bg-royal-950 text-gold-300 flex items-center justify-center text-[10px] font-mono font-bold">
+              {userInitials}
             </div>
           </div>
 
