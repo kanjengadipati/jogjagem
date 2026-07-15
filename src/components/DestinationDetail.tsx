@@ -851,7 +851,7 @@ export default function DestinationDetail({
             {/* 3. CURATOR SUMMARY BLOCK */}
             <div className="bg-[#f5edd6]/50 border border-gold-200/55 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
               <div className="flex items-center space-x-2">
-                <Sparkles className="h-5 w-5 text-gold-600 animate-pulse" />
+                <Award className="h-5 w-5 text-gold-600" />
                 <h3 className="font-manrope text-xs uppercase tracking-[0.15em] text-gold-700 font-extrabold">
                   Curator's Pick
                 </h3>
