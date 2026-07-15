@@ -548,9 +548,42 @@ export default function DestinationDetail({
   // Calculate ticket pricing from destination data
   const parseTicketPrice = () => {
     const raw = destination.ticketPrice || '';
-    const match = raw.replace(/[^0-9]/g, '');
-    const domestic = parseInt(match, 10) || 50000;
-    return { domestic, foreign: domestic * 7.5 };
+
+    // Pattern: "IDR 375,000 (Foreigners) / IDR 50,000 (Domestic)" — number before keyword
+    const foreignMatch = raw.match(/(\d[\d,.]*)\s*\(?\s*(?:Foreign|foreign|WNA|Asing|Tourist)/i);
+    const domesticMatch = raw.match(/(\d[\d,.]*)\s*\(?\s*(?:Domestic|domestic|WNI|Lokal|Local)/i);
+
+    // Pattern: "IDR 40,000 (Adult) / IDR 20,000 (Child)"
+    const adultMatch = raw.match(/(\d[\d,.]*)\s*\(?\s*(?:Adult|Dewasa)/i);
+    const childMatch = raw.match(/(\d[\d,.]*)\s*\(?\s*(?:Child|Anak)/i);
+
+    let domestic = 0;
+    let foreign = 0;
+
+    if (domesticMatch && foreignMatch) {
+      domestic = parseInt(domesticMatch[1].replace(/[^0-9]/g, ''), 10);
+      foreign = parseInt(foreignMatch[1].replace(/[^0-9]/g, ''), 10);
+    } else if (foreignMatch && !domesticMatch) {
+      foreign = parseInt(foreignMatch[1].replace(/[^0-9]/g, ''), 10);
+      domestic = foreign;
+    } else if (adultMatch) {
+      domestic = parseInt(adultMatch[1].replace(/[^0-9]/g, ''), 10);
+      foreign = childMatch
+        ? parseInt(childMatch[1].replace(/[^0-9]/g, ''), 10)
+        : Math.round(domestic * 7.5);
+    } else {
+      // No labels — first number is the price
+      const firstNumber = raw.match(/(\d[\d,.]*)/);
+      if (firstNumber) {
+        domestic = parseInt(firstNumber[1].replace(/[^0-9]/g, ''), 10);
+        foreign = Math.round(domestic * 7.5);
+      } else {
+        domestic = 50000;
+        foreign = 375000;
+      }
+    }
+
+    return { domestic: domestic || 50000, foreign: foreign || 375000 };
   };
 
   const calculatePrice = () => {
