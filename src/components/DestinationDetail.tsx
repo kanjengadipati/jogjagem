@@ -1495,7 +1495,11 @@ export default function DestinationDetail({
                           <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF7F2] border-r border-gold-200" />
                           <span className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF7F2] border-l border-gold-200" />
 
-                          <div className="flex items-start gap-2.5 px-1.5">
+                          <div 
+                            onClick={() => setSelectedPartner(partner)}
+                            className="flex items-start gap-2.5 px-1.5 cursor-pointer hover:opacity-85 transition-opacity"
+                            title="View Partner Details"
+                          >
                             {partner.image && (
                               <img
                                 src={partner.image}
