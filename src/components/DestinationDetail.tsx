@@ -214,6 +214,7 @@ export default function DestinationDetail({
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState('');
   const [newReviewTravelerType, setNewReviewTravelerType] = useState<'Solo' | 'Couple' | 'Family' | 'Friends'>('Solo');
+  const [visibleReviews, setVisibleReviews] = useState(6);
 
   const { isAuthenticated } = useAuth();
 
@@ -1126,157 +1127,183 @@ export default function DestinationDetail({
             {/* 9. REVIEWS & COMMUNITY EXPERIENCE FEED */}
             <div id="community-stories" className="space-y-6 scroll-mt-20">
 
-              {/* Section Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <MessageSquare className="h-4 w-4 text-gold-600" />
-                    <h2 className="font-manrope text-[10px] uppercase tracking-[0.2em] text-gold-700 font-extrabold">Community Reviews</h2>
+              {/* ── Top: Rating Summary + AI Panel ── */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+
+                {/* Left: numeric rating + star bars */}
+                <div className="bg-white border border-stone-100 rounded-2xl p-5 flex gap-5 items-center shadow-sm">
+                  <div className="text-center shrink-0">
+                    <p className="text-5xl font-manrope font-extrabold text-[#1c1a17]">{destination.rating.toFixed(1)}</p>
+                    <div className="flex items-center gap-0.5 justify-center mt-1">
+                      {[1,2,3,4,5].map(s => (
+                        <Star key={s} className={`h-3.5 w-3.5 ${s <= Math.round(destination.rating) ? 'fill-amber-400 text-amber-400' : 'text-stone-200'}`} />
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-stone-400 mt-1 font-mono">{communityReviews.length.toLocaleString()} reviews</p>
                   </div>
-                  <p className="text-xl font-manrope font-bold text-[#1c1a17]">
-                    {communityReviews.length} Traveler{communityReviews.length !== 1 ? 's' : ''} Shared
-                  </p>
+                  <div className="flex-1 space-y-1.5">
+                    {[5,4,3,2,1].map(star => {
+                      const count = communityReviews.filter(r => Math.round(r.rating) === star).length;
+                      const pct = communityReviews.length > 0 ? (count / communityReviews.length) * 100 : 0;
+                      return (
+                        <div key={star} className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-stone-500 w-2 shrink-0">{star}</span>
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400 shrink-0" />
+                          <div className="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-amber-400 rounded-full transition-all duration-700"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-stone-400 font-mono w-7 text-right shrink-0">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Profile Filter pills */}
-                <div className="flex overflow-x-auto scrollbar-none gap-1.5 shrink-0">
-                  {[
-                    { key: 'all', label: 'All', emoji: '🌍' },
-                    { key: 'Solo', label: 'Solo', emoji: '🧍' },
-                    { key: 'Couple', label: 'Couple', emoji: '💑' },
-                    { key: 'Family', label: 'Family', emoji: '👨‍👩‍👧' },
-                    { key: 'Friends', label: 'Friends', emoji: '👯' },
-                  ].map(({ key, label, emoji }) => (
-                    <button
-                      key={key}
-                      onClick={() => setReviewFilter(key as any)}
-                      className={`flex items-center gap-1.5 text-[10px] font-semibold px-3 py-1.5 rounded-full border transition-all whitespace-nowrap ${
-                        reviewFilter === key
-                          ? 'bg-[#1c1a17] text-white border-[#1c1a17] shadow-md'
-                          : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400 hover:text-stone-900'
-                      }`}
-                    >
-                      <span>{emoji}</span>
-                      <span>{label}</span>
-                    </button>
-                  ))}
+                {/* Right: AI review summary */}
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 bg-amber-400 rounded-lg flex items-center justify-center">
+                      <Sparkles className="h-3.5 w-3.5 text-white" />
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-amber-800 uppercase tracking-widest">AI Review Summary</span>
+                  </div>
+                  <p className="text-[12px] font-semibold text-amber-900 mb-3">
+                    {communityReviews.length > 0
+                      ? `${Math.round((communityReviews.filter(r => r.rating >= 4).length / communityReviews.length) * 100)}% of travelers recommend this experience`
+                      : 'Be the first to review this destination'}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[9px] font-mono font-bold text-emerald-700 uppercase tracking-widest mb-1.5">Most loved</p>
+                      <ul className="space-y-1">
+                        {(destination as any).aiPros?.slice(0,3).map((pro: string, i: number) => (
+                          <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-700">
+                            <span className="text-emerald-500 mt-0.5 shrink-0">●</span>{pro}
+                          </li>
+                        )) || [
+                          'Stunning scenery',
+                          'Friendly guides',
+                          'Unique experience',
+                        ].map((pro, i) => (
+                          <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-700">
+                            <span className="text-emerald-500 mt-0.5 shrink-0">●</span>{pro}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-mono font-bold text-stone-500 uppercase tracking-widest mb-1.5">Could be better</p>
+                      <ul className="space-y-1">
+                        {(destination as any).aiCons?.slice(0,2).map((con: string, i: number) => (
+                          <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-500">
+                            <span className="text-stone-400 mt-0.5 shrink-0">●</span>{con}
+                          </li>
+                        )) || [
+                          'Can get crowded',
+                          'Limited parking',
+                        ].map((con, i) => (
+                          <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-500">
+                            <span className="text-stone-400 mt-0.5 shrink-0">●</span>{con}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Write a Review Form — premium card */}
-              <div className="relative overflow-hidden rounded-3xl border border-stone-200 bg-gradient-to-br from-[#FAF8F5] to-white shadow-sm">
-                {/* Decorative accent */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500" />
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-5">
-                    <div className="w-8 h-8 bg-gradient-to-br from-gold-400 to-amber-500 rounded-xl flex items-center justify-center shadow-sm">
-                      <Pencil className="h-4 w-4 text-white" />
+              {/* ── Filter chips with counts ── */}
+              <div className="flex overflow-x-auto scrollbar-none gap-2 pb-1">
+                {[
+                  { key: 'all', label: `All (${communityReviews.length})` },
+                  { key: 'Solo', label: `Solo (${communityReviews.filter(r => (r as any).travelerType === 'Solo' || (r as any).traveler_type === 'Solo').length})` },
+                  { key: 'Couple', label: `Couple (${communityReviews.filter(r => (r as any).travelerType === 'Couple' || (r as any).traveler_type === 'Couple').length})` },
+                  { key: 'Family', label: `Family (${communityReviews.filter(r => (r as any).travelerType === 'Family' || (r as any).traveler_type === 'Family').length})` },
+                  { key: 'Friends', label: `Friends (${communityReviews.filter(r => (r as any).travelerType === 'Friends' || (r as any).traveler_type === 'Friends').length})` },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => { setReviewFilter(key as any); setVisibleReviews(6); }}
+                    className={`whitespace-nowrap text-[11px] font-semibold px-4 py-1.5 rounded-full border transition-all ${
+                      reviewFilter === key
+                        ? 'bg-[#1c1a17] text-white border-[#1c1a17]'
+                        : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── Write a Review form ── */}
+              <div className="relative overflow-hidden rounded-2xl border border-stone-200 bg-gradient-to-br from-[#FAF8F5] to-white shadow-sm">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500" />
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-7 h-7 bg-gradient-to-br from-gold-400 to-amber-500 rounded-lg flex items-center justify-center shadow-sm">
+                      <Pencil className="h-3.5 w-3.5 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm font-manrope font-bold text-[#1c1a17]">Write a Review</p>
+                      <p className="text-[13px] font-manrope font-bold text-[#1c1a17]">Write a Review</p>
                       <p className="text-[10px] text-stone-400">Share your honest experience</p>
                     </div>
                   </div>
 
                   {!isAuthenticated ? (
-                    <div className="flex flex-col items-center gap-3 py-6 text-center">
-                      <div className="w-14 h-14 rounded-full bg-stone-100 flex items-center justify-center text-2xl">✍️</div>
-                      <div>
-                        <p className="text-sm font-semibold text-[#1c1a17]">Sign in to leave a review</p>
-                        <p className="text-[11px] text-stone-400 mt-0.5">Help other travelers discover this place</p>
+                    <div className="flex items-center gap-4 bg-stone-50 border border-stone-100 rounded-xl p-4">
+                      <span className="text-3xl">✍️</span>
+                      <div className="flex-1">
+                        <p className="text-[13px] font-semibold text-[#1c1a17]">Sign in to leave a review</p>
+                        <p className="text-[11px] text-stone-400">Help other travelers discover this place</p>
                       </div>
-                      <a
-                        href="/login"
-                        className="mt-1 px-6 py-2 bg-[#1c1a17] text-white text-[10px] font-mono font-bold uppercase tracking-widest rounded-full hover:bg-gold-600 transition-colors"
-                      >
-                        Login to Review
+                      <a href="/login" className="shrink-0 px-4 py-1.5 bg-[#1c1a17] text-white text-[10px] font-mono font-bold uppercase tracking-widest rounded-full hover:bg-gold-600 transition-colors">
+                        Login
                       </a>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {/* Star Rating */}
-                      <div className="flex items-center gap-3">
+                    <div className="space-y-3">
+                      {/* Stars + traveler type row */}
+                      <div className="flex flex-wrap items-center gap-4">
                         <div className="flex items-center gap-1">
                           {[1,2,3,4,5].map(star => (
-                            <button
-                              key={star}
-                              onClick={() => setNewReviewRating(star)}
-                              className="focus:outline-none transition-transform hover:scale-110 active:scale-95"
-                            >
-                              <Star
-                                className={`h-7 w-7 transition-colors ${
-                                  star <= newReviewRating
-                                    ? 'fill-amber-400 text-amber-400'
-                                    : 'text-stone-200 hover:text-amber-200'
-                                }`}
-                              />
+                            <button key={star} onClick={() => setNewReviewRating(star)} className="focus:outline-none transition-transform hover:scale-110">
+                              <Star className={`h-6 w-6 transition-colors ${star <= newReviewRating ? 'fill-amber-400 text-amber-400' : 'text-stone-200 hover:text-amber-200'}`} />
                             </button>
                           ))}
+                          <span className="text-[12px] font-semibold text-stone-500 ml-1">{newReviewRating}/5</span>
                         </div>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-manrope font-bold text-[#1c1a17]">{newReviewRating}</span>
-                          <span className="text-sm text-stone-400">/5</span>
-                        </div>
-                      </div>
-
-                      {/* Traveler Type Selector */}
-                      <div className="space-y-1.5">
-                        <p className="text-[10px] font-mono font-bold text-stone-500 uppercase tracking-widest">You are traveling as</p>
-                        <div className="flex flex-wrap gap-2">
-                          {[
-                            { key: 'Solo', emoji: '🧍', label: 'Solo' },
-                            { key: 'Couple', emoji: '💑', label: 'Couple' },
-                            { key: 'Family', emoji: '👨‍👩‍👧', label: 'Family' },
-                            { key: 'Friends', emoji: '👯', label: 'Friends' },
-                          ].map(({ key, emoji, label }) => (
+                        <div className="flex gap-1.5">
+                          {(['Solo','Couple','Family','Friends'] as const).map(t => (
                             <button
-                              key={key}
-                              onClick={() => setNewReviewTravelerType(key as any)}
-                              className={`flex items-center gap-1.5 text-[11px] font-semibold px-3.5 py-1.5 rounded-full border-2 transition-all ${
-                                newReviewTravelerType === key
-                                  ? 'bg-amber-50 border-amber-400 text-amber-800'
-                                  : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
+                              key={t}
+                              onClick={() => setNewReviewTravelerType(t)}
+                              className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border-2 transition-all ${
+                                newReviewTravelerType === t ? 'bg-amber-50 border-amber-400 text-amber-800' : 'bg-white border-stone-200 text-stone-500'
                               }`}
-                            >
-                              <span className="text-sm">{emoji}</span>
-                              <span>{label}</span>
-                            </button>
+                            >{t}</button>
                           ))}
                         </div>
                       </div>
-
-                      {/* Text area */}
                       <div className="relative">
                         <textarea
                           placeholder="Describe what made this place special — crowds, best time to visit, hidden tips..."
                           value={newReviewText}
                           onChange={(e) => setNewReviewText(e.target.value)}
-                          rows={4}
+                          rows={3}
                           maxLength={500}
-                          className="w-full bg-stone-50 border border-stone-200 text-[12px] px-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none text-stone-700 placeholder:text-stone-300 leading-relaxed"
+                          className="w-full bg-stone-50 border border-stone-200 text-[12px] px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none text-stone-700 placeholder:text-stone-300 leading-relaxed"
                         />
                         <span className="absolute bottom-3 right-4 text-[9px] text-stone-300 font-mono">{newReviewText.length}/500</span>
                       </div>
-
-                      {/* Feedback messages */}
-                      {reviewError && (
-                        <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-                          <span className="text-red-500 text-sm">⚠️</span>
-                          <p className="text-[11px] text-red-600 font-medium">{reviewError}</p>
-                        </div>
-                      )}
-                      {reviewSubmitted && (
-                        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
-                          <span className="text-green-500 text-sm">✅</span>
-                          <p className="text-[11px] text-green-700 font-medium">Review published! Thank you for sharing.</p>
-                        </div>
-                      )}
-
-                      {/* Submit button */}
+                      {reviewError && (<div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2"><span className="text-red-500 text-sm">⚠️</span><p className="text-[11px] text-red-600">{reviewError}</p></div>)}
+                      {reviewSubmitted && (<div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2"><span className="text-green-500 text-sm">✅</span><p className="text-[11px] text-green-700">Review published! Thank you.</p></div>)}
                       <button
                         onClick={handleSubmitReview}
                         disabled={!newReviewText.trim() || submittingReview}
-                        className="w-full py-3 bg-gradient-to-r from-[#1c1a17] to-stone-700 text-white text-[11px] font-mono font-bold uppercase tracking-widest rounded-2xl hover:from-gold-600 hover:to-amber-500 hover:text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-gold-200/50 hover:shadow-lg"
+                        className="w-full py-2.5 bg-[#1c1a17] text-white text-[11px] font-mono font-bold uppercase tracking-widest rounded-xl hover:bg-gold-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {submittingReview ? '✦ Publishing...' : '✦ Publish Review'}
                       </button>
@@ -1285,102 +1312,83 @@ export default function DestinationDetail({
                 </div>
               </div>
 
-              {/* Feed List */}
-              <div className="space-y-4">
-                {filteredReviews.length === 0 && (
-                  <div className="text-center py-12 text-stone-400">
-                    <p className="text-2xl mb-2">🔍</p>
-                    <p className="text-sm font-medium">No {reviewFilter !== 'all' ? reviewFilter : ''} reviews yet</p>
-                    <p className="text-[11px] mt-1">Be the first to share your experience!</p>
-                  </div>
-                )}
-                {filteredReviews.map((review, idx) => {
-                  const isLiked = likedReviewIds.has(review.id);
-                  const tType = (review as any).travelerType || (review as any).traveler_type || null;
-                  const tTypeEmojis: Record<string, string> = { Solo: '🧍', Couple: '💑', Family: '👨‍👩‍👧', Friends: '👯' };
-                  const ratingColor = review.rating >= 4.5 ? 'text-emerald-600' : review.rating >= 3.5 ? 'text-amber-600' : 'text-red-500';
-                  return (
-                    <div
-                      key={review.id}
-                      className="group relative bg-white border border-stone-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 text-left"
-                      style={{ animationDelay: `${idx * 60}ms` }}
-                    >
-                      {/* Colored left accent by rating */}
-                      <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-3xl ${
-                        review.rating >= 4.5 ? 'bg-emerald-400' : review.rating >= 3.5 ? 'bg-amber-400' : 'bg-red-400'
-                      }`} />
-
-                      <div className="pl-5 pr-5 pt-5 pb-4">
-                        {/* Header row */}
-                        <div className="flex items-start justify-between gap-3 mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <img
-                                src={review.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(review.userName)}`}
-                                className="h-11 w-11 rounded-2xl object-cover bg-stone-100 border-2 border-white shadow-sm"
-                                onError={(e) => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${review.userName}`; }}
-                              />
-                              {tType && (
-                                <span className="absolute -bottom-1 -right-1 text-xs w-5 h-5 flex items-center justify-center bg-white rounded-full shadow-sm border border-stone-100">
-                                  {tTypeEmojis[tType] || '🌍'}
-                                </span>
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-[13px] font-bold text-[#1c1a17] leading-tight">{review.userName}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[9px] font-mono text-stone-400 uppercase tracking-widest">{review.date}</span>
+              {/* ── Review Cards grid ── */}
+              {filteredReviews.length === 0 ? (
+                <div className="text-center py-12 text-stone-400">
+                  <p className="text-2xl mb-2">🔍</p>
+                  <p className="text-sm font-medium">No {reviewFilter !== 'all' ? reviewFilter : ''} reviews yet</p>
+                  <p className="text-[11px] mt-1">Be the first to share your experience!</p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredReviews.slice(0, visibleReviews).map((review, idx) => {
+                      const isLiked = likedReviewIds.has(review.id);
+                      const tType = (review as any).travelerType || (review as any).traveler_type || null;
+                      const likeCount = 10 + (idx * 7 % 20);
+                      return (
+                        <div
+                          key={review.id}
+                          className="bg-white border border-stone-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col text-left"
+                        >
+                          {/* User row */}
+                          <div className="flex items-center gap-3 mb-3">
+                            <img
+                              src={review.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(review.userName)}`}
+                              className="h-10 w-10 rounded-full object-cover bg-stone-100 border-2 border-white shadow-sm shrink-0"
+                              onError={(e) => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${review.userName}`; }}
+                            />
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-bold text-[#1c1a17] truncate">{review.userName}</p>
+                              <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-0.5">
+                                  {[1,2,3,4,5].map(s => (
+                                    <Star key={s} className={`h-3 w-3 ${s <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-stone-200'}`} />
+                                  ))}
+                                </div>
                                 {tType && (
-                                  <span className="text-[9px] font-mono bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full uppercase tracking-widest">{tType}</span>
+                                  <span className="text-[9px] bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full font-mono">{tType}</span>
                                 )}
                               </div>
+                              <p className="text-[10px] text-stone-400 font-mono">{review.date}</p>
                             </div>
                           </div>
 
-                          {/* Rating badge */}
-                          <div className={`flex items-center gap-1 font-bold ${ratingColor}`}>
-                            <Star className="h-4 w-4 fill-current" />
-                            <span className="text-base font-manrope">{review.rating.toFixed(1)}</span>
+                          {/* Comment */}
+                          <p className="text-[12px] text-stone-600 leading-relaxed flex-1 line-clamp-4">
+                            {review.comment}
+                          </p>
+
+                          {/* Footer */}
+                          <div className="mt-3 pt-3 border-t border-stone-50 flex items-center">
+                            <button
+                              onClick={() => toggleLikeReview(review.id)}
+                              className={`flex items-center gap-1.5 text-[11px] font-medium transition-all rounded-full px-2.5 py-1 ${
+                                isLiked ? 'text-red-500 bg-red-50' : 'text-stone-400 hover:text-red-400 hover:bg-red-50'
+                              }`}
+                            >
+                              <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-red-500' : ''}`} />
+                              <span>Helpful ({isLiked ? likeCount + 1 : likeCount})</span>
+                            </button>
                           </div>
                         </div>
+                      );
+                    })}
+                  </div>
 
-                        {/* Stars visual */}
-                        <div className="flex items-center gap-0.5 mb-3">
-                          {[1,2,3,4,5].map(s => (
-                            <Star key={s} className={`h-3.5 w-3.5 ${
-                              s <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-stone-200'
-                            }`} />
-                          ))}
-                        </div>
-
-                        {/* Comment */}
-                        <p className="text-[13px] text-stone-600 leading-relaxed">
-                          {review.comment}
-                        </p>
-
-                        {/* Footer */}
-                        <div className="mt-4 pt-3 border-t border-stone-50 flex items-center justify-between">
-                          <button
-                            onClick={() => toggleLikeReview(review.id)}
-                            className={`flex items-center gap-1.5 text-[11px] font-medium transition-all rounded-full px-3 py-1.5 ${
-                              isLiked
-                                ? 'text-red-500 bg-red-50'
-                                : 'text-stone-400 hover:text-red-400 hover:bg-red-50'
-                            }`}
-                          >
-                            <Heart className={`h-3.5 w-3.5 transition-all ${isLiked ? 'fill-red-500 scale-110' : ''}`} />
-                            <span>Helpful {isLiked ? '· Thanks!' : ''}</span>
-                          </button>
-
-                          <button className="text-[10px] font-mono text-gold-600 hover:text-gold-700 transition-colors">
-                            Save tip
-                          </button>
-                        </div>
-                      </div>
+                  {/* Load More */}
+                  {visibleReviews < filteredReviews.length && (
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={() => setVisibleReviews(v => v + 6)}
+                        className="px-8 py-2.5 border border-stone-300 text-[12px] font-semibold text-stone-600 rounded-full hover:bg-stone-50 hover:border-stone-400 transition-all"
+                      >
+                        Load More Reviews ({filteredReviews.length - visibleReviews} remaining)
+                      </button>
                     </div>
-                  );
-                })}
-              </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* 10. AI REVIEW SUMMARY BLOCK */}
