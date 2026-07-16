@@ -150,7 +150,7 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
       <AuthProvider>
       <LocationProvider>
         <div className="min-h-screen bg-[#faf9f6] flex flex-col">
-          <Header activeTab="discover" setActiveTab={() => router.push('/')} savedCount={savedDestinationIds.length} isOverHero={false} />
+          <Header activeTab="discover" setActiveTab={() => router.push('/')} savedCount={savedDestinationIds.length} isOverHero={false} onOpenAuth={() => {}} />
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="h-8 w-8 text-gold-500 animate-spin" />
           </div>
@@ -165,7 +165,7 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
       <AuthProvider>
       <LocationProvider>
         <div className="min-h-screen bg-[#faf9f6] flex flex-col">
-          <Header activeTab="discover" setActiveTab={() => router.push('/')} savedCount={savedDestinationIds.length} isOverHero={false} />
+          <Header activeTab="discover" setActiveTab={() => router.push('/')} savedCount={savedDestinationIds.length} isOverHero={false} onOpenAuth={() => {}} />
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-3" />

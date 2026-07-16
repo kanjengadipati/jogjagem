@@ -37,9 +37,15 @@ interface ProfileResponse {
   id: number;
   name: string;
   email: string;
-  phone?: string;
+  phone_number?: string;
   role: string;
+  is_verified: boolean;
+  phone_verified: boolean;
+  email_verified: boolean;
   permissions: string[];
+  avatar_url?: string;
+  cover_image_url?: string;
+  reviews_count: number;
 }
 
 let accessToken: string | null = null;
@@ -138,6 +144,17 @@ export const auth = {
     return request<User>('/auth/profile', {
       method: 'PATCH',
       body: JSON.stringify({ name, phone_number: phoneNumber }),
+    });
+  },
+
+  async getUserDestinations() {
+    return request<{ destination_slug: string; status: string }[]>('/destinations/my-status');
+  },
+
+  async updateDestinationStatus(slug: string, status: string) {
+    return request(`/destinations/my-status/${slug}`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
     });
   },
 

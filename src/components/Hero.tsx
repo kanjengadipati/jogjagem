@@ -277,7 +277,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
   return (
     <div 
       id="hero-section-container" 
-      className="relative h-screen md:h-[90vh] min-h-[560px] md:min-h-[780px] w-full overflow-hidden bg-royal-950 transition-all duration-700"
+      className="relative min-h-screen md:min-h-[900px] lg:h-[90vh] lg:min-h-[780px] w-full overflow-hidden bg-royal-950 transition-all duration-700"
     >
       {/* Background Slides */}
       {HERO_SLIDES.map((item, index) => (
@@ -301,11 +301,11 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
       ))}
 
       {/* Hero Interactive Area */}
-      <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 pb-8 sm:pb-16 md:pb-20 lg:pb-24 sm:px-6 lg:px-8 pt-20 sm:pt-40">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end lg:items-center w-full">
+      <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-center px-4 pb-8 sm:pb-16 md:pb-20 lg:pb-24 sm:px-6 lg:px-8 pt-20 sm:pt-32 md:pt-28">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end md:items-center w-full">
           
           {/* Left Column: Title and Search */}
-          <div className="lg:col-span-8 space-y-5 sm:space-y-6 text-left animate-fade-in">
+          <div className="md:col-span-7 lg:col-span-8 space-y-5 sm:space-y-6 text-left animate-fade-in">
             <span className="inline-flex items-center space-x-2 font-sans text-[10px] uppercase tracking-[0.08em] text-gold-400 font-semibold drop-shadow-md">
               <span>☀ GOOD MORNING, EXPLORER</span>
             </span>
@@ -407,9 +407,9 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
           </div>
 
           {/* Right Column: AI Recommendation Widget */}
-          <div className="lg:col-span-4 flex flex-col justify-end items-end w-full">
+          <div className="md:col-span-5 lg:col-span-4 flex flex-col justify-end items-end w-full">
             {recommendation ? (
-              <div className="w-full max-w-[420px] bg-stone-950/80 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 lg:p-5 text-left shadow-2xl animate-fade-in">
+              <div className="w-full max-w-full md:max-w-[380px] lg:max-w-[420px] bg-stone-950/80 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 lg:p-5 text-left shadow-2xl animate-fade-in">
                 {/* Header */}
                 <div className="flex items-center space-x-2 mb-2 lg:mb-3">
                   <span className="text-gold-400 text-xs lg:text-sm">✦✦</span>
@@ -511,7 +511,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
               </div>
             ) : (
               /* Skeleton Loader */
-              <div className="w-full max-w-[420px] bg-stone-950/80 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-left shadow-2xl animate-pulse">
+              <div className="w-full max-w-full md:max-w-[380px] lg:max-w-[420px] bg-stone-950/80 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-left shadow-2xl animate-pulse">
                 <div className="h-3 w-28 bg-white/10 rounded mb-4" />
                 <div className="flex gap-4 mb-4">
                   <div className="flex-1">

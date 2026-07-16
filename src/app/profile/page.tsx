@@ -3,30 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
-import { auth, reviews as reviewsApi, type ProfileResponse } from '../../lib/api';
+import { auth, reviews as reviewsApi, type ProfileResponse, type BeReview } from '../../lib/api';
 import ProfileHeader from '../../components/profile/ProfileHeader';
+import TravelPassportCard from '../../components/profile/TravelPassportCard';
 import TravelStatisticsCard from '../../components/profile/TravelStatisticsCard';
-
-interface ProfileStats {
-  name: string;
-  title: string;
-  avatar: string;
-  coverImage: string;
-  level: number;
-  destinationsCount: number;
-  reviewsCount: number;
-  likesCount: number;
-  tripsCount: number;
-}
+import TimelineSection from '../../components/profile/TimelineSection';
+import VisitedDestinations from '../../components/profile/VisitedDestinations';
+import ReviewsSection from '../../components/profile/ReviewsSection';
+import SavedAndLiked from '../../components/profile/SavedAndLiked';
+import MyTripsSection from '../../components/profile/MyTripsSection';
 
 export default function ProfilePage() {
   const router = useRouter();
   const [profileData, setProfileData] = useState<ProfileResponse | null>(null);
-  const [stats, setStats] = useState<ProfileStats | null>(null);
+  const [userDestinations, setUserDestinations] = useState<{ destination_slug: string; status: string }[]>([]);
+  const [userReviews, setUserReviews] = useState<BeReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Edit form state
+  // ... rest of state ...
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
@@ -50,52 +45,34 @@ export default function ProfilePage() {
 
   const loadProfile = async () => {
     try {
-      const res = await auth.getProfile();
-      if (res.status !== 'success' || !res.data) {
+      const [profileRes, destRes] = await Promise.all([
+        auth.getProfile(),
+        auth.getUserDestinations()
+      ]);
+      
+      if (profileRes.status !== 'success' || !profileRes.data) {
         setError('Failed to load profile');
         setLoading(false);
         return;
       }
 
-      const profile = res.data;
-      setProfileData(profile);
-      setName(profile.name || '');
-      setPhone(profile.phone || '');
+      setProfileData(profileRes.data);
+      setName(profileRes.data.name || '');
+      setPhone(profileRes.data.phone_number || '');
+      
+      if (destRes.status === 'success' && destRes.data) {
+        setUserDestinations(destRes.data as any);
+      }
 
-      // Fetch real review count for this user
-      let reviewsCount = 0;
+      // Load reviews
       try {
-        const userId = String((profile as any).id || '');
-        if (userId) {
-          const revRes = await reviewsApi.getByUser(userId);
-          if (revRes.status === 'success' && Array.isArray(revRes.data)) {
-            reviewsCount = revRes.data.length;
-          }
+        const revRes = await reviewsApi.getByUser(String(profileRes.data.id));
+        if (revRes.status === 'success' && revRes.data) {
+          setUserReviews(revRes.data);
         }
-      } catch { /* silently fall back to 0 */ }
-
-      // Saved destinations count from localStorage (no BE endpoint for this yet)
-      let destinationsCount = 0;
-      try {
-        const saved = localStorage.getItem('explore_jogja_saved_v1');
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          destinationsCount = Array.isArray(parsed) ? parsed.length : 0;
-        }
-      } catch { /* ignore */ }
-
-      setStats({
-        name: profile.name || 'Explorer',
-        title: profile.role === 'superadmin' || profile.role === 'admin' ? 'Platform Administrator' : 'Traveler',
-        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(profile.name || 'A')}&backgroundColor=1c1a17`,
-        coverImage: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&q=80&w=1200&h=400',
-        level: Math.min(10, Math.max(1, Math.floor(reviewsCount / 3) + 1)),
-        destinationsCount,
-        reviewsCount,
-        // likes and trips have no BE endpoint yet — show 0 honestly
-        likesCount: 0,
-        tripsCount: 0,
-      });
+      } catch {
+        // Silently fail
+      }
     } catch {
       setError('Network error');
     } finally {
@@ -168,7 +145,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-[#faf9f6]">
       <div className="bg-royal-950 text-white">
-        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <button onClick={() => router.push('/')} className="flex items-center space-x-2 text-white/70 hover:text-white transition-colors mb-4">
             <ArrowLeft className="h-4 w-4" />
             <span className="text-sm font-medium">Back to Explore</span>
@@ -177,15 +154,19 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 space-y-6">
-        {stats && (
-          <>
-            <ProfileHeader profile={stats} onEditProfile={() => {}} />
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 space-y-6">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+        {profileData && (
+          <div className="lg:grid lg:grid-cols-12 gap-6">
+            {/* Left Column: 8/12 */}
+            <div className="lg:col-span-8 space-y-6">
+              <ProfileHeader profile={profileData} />
+              <TimelineSection />
+              <VisitedDestinations userDestinations={userDestinations} />
+              <ReviewsSection reviews={userReviews} />
+              <SavedAndLiked userDestinations={userDestinations} />
+              <MyTripsSection />
 
-                {/* Edit Profile Form */}
-                <div className="bg-white border border-stone-200/60 rounded-2xl p-6 shadow-sm">
+              <div className="bg-white border border-stone-200/60 rounded-2xl p-6 shadow-sm">
                   <h3 className="font-bold text-base text-royal-950 mb-4">Edit Profile</h3>
                   <form onSubmit={handleUpdateProfile} className="space-y-4">
                     <div>
@@ -206,10 +187,9 @@ export default function ProfilePage() {
                       {profileSaving ? 'Saving…' : 'Save Changes'}
                     </button>
                   </form>
-                </div>
+              </div>
 
-                {/* Change Password Form */}
-                <div className="bg-white border border-stone-200/60 rounded-2xl p-6 shadow-sm">
+              <div className="bg-white border border-stone-200/60 rounded-2xl p-6 shadow-sm">
                   <h3 className="font-bold text-base text-royal-950 mb-4">Change Password</h3>
                   <form onSubmit={handleChangePassword} className="space-y-4">
                     {[
@@ -229,13 +209,14 @@ export default function ProfilePage() {
                     </button>
                   </form>
                 </div>
-
-              </div>
-              <div>
-                <TravelStatisticsCard profile={stats} />
-              </div>
             </div>
-          </>
+
+            {/* Right Column: 4/12 */}
+            <div className="lg:col-span-4 space-y-6">
+               <TravelPassportCard profile={profileData} />
+               <TravelStatisticsCard reviewsCount={profileData.reviews_count || 0} />
+            </div>
+          </div>
         )}
       </div>
     </div>

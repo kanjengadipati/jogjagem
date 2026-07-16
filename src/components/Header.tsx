@@ -10,9 +10,10 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
   savedCount: number;
   isOverHero?: boolean;
+  onOpenAuth: (mode: 'login' | 'register') => void;
 }
 
-export default function Header({ activeTab, setActiveTab, savedCount, isOverHero = false }: HeaderProps) {
+export default function Header({ activeTab, setActiveTab, savedCount, isOverHero = false, onOpenAuth }: HeaderProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -129,7 +130,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                   className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer"
                 >
                   <img
-                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || 'User')}`}
+                    src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || 'User')}`}
                     className="h-5 w-5 rounded-full bg-stone-200"
                     alt={user?.name || 'User'}
                   />
