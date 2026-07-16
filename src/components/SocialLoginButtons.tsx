@@ -30,7 +30,6 @@ export default function SocialLoginButtons({ onError, onSuccess }: { onError?: (
   const { socialLogin } = useAuth();
   const googleBtnRef = useRef<HTMLDivElement>(null);
   const [googleReady, setGoogleReady] = useState(false);
-  const [fbReady, setFbReady] = useState(false);
   const [loading, setLoading] = useState<'google' | 'facebook' | null>(null);
 
   const handleGoogleCredential = useCallback(async (response: any) => {
@@ -55,7 +54,6 @@ export default function SocialLoginButtons({ onError, onSuccess }: { onError?: (
           auto_select: false,
           cancel_on_tap_outside: true,
         });
-        // Render hidden Google button — our custom button overlay triggers it
         if (googleBtnRef.current) {
           window.google.accounts.id.renderButton(googleBtnRef.current, {
             theme: 'outline',
@@ -70,18 +68,7 @@ export default function SocialLoginButtons({ onError, onSuccess }: { onError?: (
       .catch(() => {});
   }, [handleGoogleCredential]);
 
-  useEffect(() => {
-    if (!FACEBOOK_APP_ID) return;
-    loadScript('https://connect.facebook.net/en_US/sdk.js', 'facebook-sdk')
-      .then(() => {
-        window.FB?.init({ appId: FACEBOOK_APP_ID, cookie: true, xfbml: false, version: 'v19.0' });
-        setFbReady(true);
-      })
-      .catch(() => {});
-  }, []);
-
   const handleGoogleClick = () => {
-    // Click the hidden Google rendered button — user gesture prevents popup block
     const hiddenBtn = googleBtnRef.current?.querySelector('div[role="button"]') as HTMLElement | null;
     if (hiddenBtn) {
       hiddenBtn.click();
@@ -89,25 +76,39 @@ export default function SocialLoginButtons({ onError, onSuccess }: { onError?: (
   };
 
   const handleFacebookClick = () => {
-    if (!window.FB) return;
-    setLoading('facebook');
-    window.FB.login(async (response: any) => {
-      if (response.authResponse?.accessToken) {
-        const result = await socialLogin('facebook', response.authResponse.accessToken);
-        setLoading(null);
-        if (result.success) {
-          onSuccess?.();
-        } else {
-          onError?.(result.error || 'Facebook login failed');
-        }
-      } else {
-        setLoading(null);
-      }
-    }, { scope: 'email,public_profile' });
+    if (!FACEBOOK_APP_ID) return;
+    // Use OAuth redirect flow — works on HTTP (unlike FB.login popup)
+    const redirectUri = typeof window !== 'undefined' ? window.location.origin : '';
+    const fbAuthUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=email,public_profile&response_type=token`;
+    window.location.href = fbAuthUrl;
   };
 
+  // After Facebook OAuth redirect, extract token from URL hash
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('access_token')) return;
+
+    const params = new URLSearchParams(hash.substring(1));
+    const accessToken = params.get('access_token');
+    if (!accessToken) return;
+
+    // Clean URL
+    window.history.replaceState({}, '', window.location.pathname);
+
+    // Complete login
+    setLoading('facebook');
+    socialLogin('facebook', accessToken).then((result) => {
+      setLoading(null);
+      if (result.success) {
+        onSuccess?.();
+      } else {
+        onError?.(result.error || 'Facebook login failed');
+      }
+    });
+  }, [socialLogin, onError, onSuccess]);
+
   const hasGoogle = GOOGLE_CLIENT_ID && googleReady;
-  const hasFacebook = FACEBOOK_APP_ID && fbReady;
+  const hasFacebook = !!FACEBOOK_APP_ID;
 
   if (!hasGoogle && !hasFacebook) return null;
 
@@ -125,9 +126,7 @@ export default function SocialLoginButtons({ onError, onSuccess }: { onError?: (
       <div className="grid grid-cols-2 gap-3">
         {hasGoogle && (
           <div className="relative">
-            {/* Hidden Google rendered button */}
             <div ref={googleBtnRef} className="absolute inset-0 opacity-0 pointer-events-none [&>div]:!w-full [&>div]:!h-full" />
-            {/* Custom visible button */}
             <button
               type="button"
               onClick={handleGoogleClick}
