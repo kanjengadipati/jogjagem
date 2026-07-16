@@ -1,5 +1,17 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '/api/pleco';
 
+// BE review shape (snake_case from the API)
+interface BeReview {
+  id: string;
+  user_id?: string;
+  destination_id?: string;
+  user_name: string;
+  traveler_type?: string;
+  rating: number;
+  comment: string;
+  status?: string;
+}
+
 interface APIResponse<T = unknown> {
   status: 'success' | 'error';
   message?: string;
@@ -202,6 +214,10 @@ export const events = {
 };
 
 export const reviews = {
+  async getByDestination(destinationId: string) {
+    return request<BeReview[]>(`/reviews?destination_id=${encodeURIComponent(destinationId)}`);
+  },
+
   async create(destinationId: string, rating: number, comment: string, userName?: string, travelerType?: string) {
     return request('/reviews', {
       method: 'POST',
@@ -262,4 +278,4 @@ export const ai = {
   },
 };
 
-export type { User, ProfileResponse, AuthResponse, APIResponse };
+export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview };

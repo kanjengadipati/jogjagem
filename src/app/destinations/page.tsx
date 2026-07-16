@@ -10,6 +10,35 @@ import { Destination } from '@/types';
 import { destinations as destinationApi } from '@/lib/api';
 import { Search, ArrowLeft } from 'lucide-react';
 
+function mapApiToDestination(raw: Record<string, unknown>): Destination {
+  return {
+    id: (raw.id || raw.ExternalID || '') as string,
+    name: (raw.name || raw.Name || '') as string,
+    tagline: (raw.tagline || raw.Tagline || '') as string,
+    category: (raw.category || raw.Category || '') as string,
+    location: (raw.location || raw.Location || '') as string,
+    subRegion: (raw.sub_region || raw.SubRegion || raw.subRegion || '') as string,
+    images: (raw.images || raw.Images || []) as Destination['images'],
+    rating: (raw.rating || raw.Rating || 0) as number,
+    reviewCount: (raw.review_count || raw.ReviewCount || raw.reviewCount || 0) as number,
+    description: (raw.description || raw.Description || '') as string,
+    story: (raw.story || raw.Story || '') as string,
+    ticketPrice: (raw.ticket_price || raw.TicketPrice || raw.ticketPrice || '') as string,
+    openingHours: (raw.opening_hours || raw.OpeningHours || raw.openingHours || '') as string,
+    facilities: (raw.facilities || raw.Facilities || []) as string[],
+    travelTips: (raw.travel_tips || raw.TravelTips || raw.travelTips || []) as string[],
+    bestTime: (raw.best_time || raw.BestTime || raw.bestTime || '') as string,
+    weather: (raw.weather || raw.Weather || { temp: '', condition: '', status: '' }) as Destination['weather'],
+    latitude: (raw.latitude || raw.Latitude || 0) as number,
+    longitude: (raw.longitude || raw.Longitude || 0) as number,
+    reviews: (raw.reviews || raw.Reviews || []) as Destination['reviews'],
+    partners: (raw.partners || raw.Partners || []) as Destination['partners'],
+    faqs: (raw.faqs || raw.Faqs || raw.FAQs || []) as Destination['faqs'],
+    googleMapsUrl: (raw.google_maps_url || raw.GoogleMapsURL || raw.googleMapsUrl || '') as string,
+    googleReviewCount: (raw.google_review_count || raw.GoogleReviewCount || raw.googleReviewCount || 0) as number,
+  };
+}
+
 function DestinationsPageInner() {
   const router = useRouter();
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
@@ -44,7 +73,7 @@ function DestinationsPageInner() {
         // Assuming response is { status: 'success', data: Destination[] } or similar structure based on API
         // Adjust according to the actual API response structure if needed
         const data = (response as any).data || (response as any);
-        setAllDestinations(Array.isArray(data) ? data : []);
+        setAllDestinations(Array.isArray(data) ? data.map(mapApiToDestination) : []);
       } catch (e) {
         console.error("Failed to fetch destinations:", e);
       } finally {

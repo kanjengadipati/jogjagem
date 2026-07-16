@@ -14,6 +14,8 @@ import { Destination, EcosystemPartner, Review } from '@/types';
 import { events as eventsApi, reviews as reviewsApi, destinations as destinationsApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { inferTravelerIntent, orderCardsByIntent, IntentProfile } from '@/lib/travelerIntent';
+import { fetchLiveWeather, LiveWeather } from '@/lib/weather';
+import { useLocation } from '@/contexts/LocationContext';
 import AIFloatingAssistant from '@/components/AIFloatingAssistant';
 
 interface DestinationDetailProps {
@@ -47,11 +49,45 @@ export default function DestinationDetail({
   const ecosystemPausedUntilRef = React.useRef<number>(0);
   const ecosystemTabs = ['stay', 'eat', 'experience', 'shop', 'guide'] as const;
   const [selectedPartner, setSelectedPartner] = useState<EcosystemPartner | null>(null);
+  const { coords } = useLocation();
+  const routePolylineRef = useRef<any>(null);
 
   // Leaflet refs for detail map
   const detailMapContainerRef = useRef<HTMLDivElement>(null);
   const detailMapInstanceRef = useRef<any>(null);
   const detailMarkerGroupRef = useRef<any>(null);
+
+  // Draw route helper
+  const drawRoute = async (L: any) => {
+    if (!coords || !detailMapInstanceRef.current) return;
+    
+    // Clear previous
+    if (routePolylineRef.current) {
+      detailMapInstanceRef.current.removeLayer(routePolylineRef.current);
+    }
+
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${coords.lng},${coords.lat};${destination.longitude},${destination.latitude}?overview=full&geometries=geojson`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+        const polyline = L.geoJSON(data.routes[0].geometry, {
+          style: { color: '#cb8527', weight: 5, opacity: 0.85 }
+        }).addTo(detailMapInstanceRef.current);
+        routePolylineRef.current = polyline;
+      }
+    } catch (e) {
+      console.error("OSRM Routing failed:", e);
+    }
+  };
+
+  // Route drawing effect
+  useEffect(() => {
+    if (detailMapInstanceRef.current && coords) {
+      import('leaflet').then((L) => drawRoute(L));
+    }
+  }, [coords, destination.latitude, destination.longitude]);
 
   // Initialize and update Detail Page Leaflet Map
   useEffect(() => {
@@ -72,6 +108,13 @@ export default function DestinationDetail({
         zoom: 14,
         scrollWheelZoom: false, // disable scroll zoom for page scroll safety
       });
+
+      // Fit bounds if user is also in Yogyakarta
+      const inYogya = (lat: number, lng: number) => lat >= -8.2 && lat <= -7.5 && lng >= 110.0 && lng <= 110.6;
+      if (coords && inYogya(coords.lat, coords.lng) && inYogya(destination.latitude, destination.longitude)) {
+        const bounds = L.latLngBounds([destination.latitude, destination.longitude], [coords.lat, coords.lng]);
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
 
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CartoDB',
@@ -205,9 +248,37 @@ export default function DestinationDetail({
   }, []);
   const [copied, setCopied] = useState(false);
   
-  // Reviews state
-  const [communityReviews, setCommunityReviews] = useState<Review[]>(destination.reviews);
+  // Reviews state — loaded from BE on mount
+  const [communityReviews, setCommunityReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
   const [reviewFilter, setReviewFilter] = useState<'all' | 'Solo' | 'Couple' | 'Family' | 'Friends'>('all');
+
+  // Fetch live reviews from BE
+  useEffect(() => {
+    if (!destination.id) return;
+    setReviewsLoading(true);
+    reviewsApi.getByDestination(destination.id)
+      .then(res => {
+        if (res.status === 'success' && Array.isArray(res.data)) {
+          const mapped: Review[] = (res.data as any[]).map((r: any) => ({
+            id: r.id || String(r.ID || ''),
+            userName: r.user_name || r.UserName || 'Anonymous',
+            userAvatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(r.user_name || 'A')}`,
+            rating: r.rating || r.Rating || 0,
+            date: r.CreatedAt ? new Date(r.CreatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '',
+            comment: r.comment || r.Comment || '',
+            travelerType: (r.traveler_type || r.TravelerType || undefined) as Review['travelerType'],
+          }));
+          setCommunityReviews(mapped);
+        } else {
+          // Fallback to embedded reviews from destination data
+          setCommunityReviews(destination.reviews || []);
+        }
+      })
+      .catch(() => setCommunityReviews(destination.reviews || []))
+      .finally(() => setReviewsLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destination.id]);
   const [newReviewText, setNewReviewText] = useState('');
   const [newReviewRating, setNewReviewRating] = useState(5);
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -232,15 +303,11 @@ export default function DestinationDetail({
     } catch {}
   }, []);
 
-  // Ticket booking modal state
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [ticketQuantity, setTicketQuantity] = useState(1);
   const [ticketCategory, setTicketCategory] = useState<'domestic' | 'foreign'>('domestic');
   const [ticketBooked, setTicketBooked] = useState(false);
   const [slideshowPaused, setSlideshowPaused] = useState(false);
-
-  // Offer success states
-  const [claimedOffers, setClaimedOffers] = useState<Set<string>>(new Set());
 
   // Similar destinations from pre-fetched list
   const [similarDestinations, setSimilarDestinations] = useState<Destination[]>([]);
@@ -279,6 +346,18 @@ export default function DestinationDetail({
   const [currentAssistantTime, setCurrentAssistantTime] = useState('09:15 AM');
   const [liveCrowdLevel, setLiveCrowdLevel] = useState<'Low' | 'Moderate' | 'High'>('Low');
   const [selectedJourneyActionIdx, setSelectedJourneyActionIdx] = useState<number | null>(null);
+  const [liveWeather, setLiveWeather] = useState<LiveWeather | null>(null);
+
+  // Fetch live weather from Open-Meteo
+  useEffect(() => {
+    if (destination.latitude && destination.longitude) {
+      fetchLiveWeather(destination.latitude, destination.longitude)
+        .then(data => {
+          if (data) setLiveWeather(data);
+        })
+        .catch(() => {});
+    }
+  }, [destination.latitude, destination.longitude]);
 
   // Clock effect for AI live journey
   useEffect(() => {
@@ -346,12 +425,6 @@ export default function DestinationDetail({
       newBookmarks.add(idx);
     }
     setBookmarkedTipIds(newBookmarks);
-  };
-
-  const handleClaimOffer = (offerId: string) => {
-    const newClaimed = new Set(claimedOffers);
-    newClaimed.add(offerId);
-    setClaimedOffers(newClaimed);
   };
 
   const handleSubmitReview = async () => {
@@ -610,7 +683,11 @@ export default function DestinationDetail({
   return (
     <div id={`tourism-hub-page-${destination.id}`} className="bg-[#fcfbfa] min-h-screen text-[#1b1c16] font-sans">
       
-      <AIFloatingAssistant destination={destination} />
+      <AIFloatingAssistant 
+        destination={destination} 
+        liveWeather={liveWeather} 
+        liveCrowdLevel={liveCrowdLevel} 
+      />
 
       {/* 1. EXQUISITE STICKY NAVIGATION BAR */}
       <nav className="sticky top-0 z-50 bg-[#0f100c]/90 backdrop-blur-md border-b border-white/5 text-white transition-all duration-300">
@@ -643,7 +720,6 @@ export default function DestinationDetail({
             <a href="#ecosystem-section" className="hover:text-gold-300 transition-colors">Ecosystem</a>
             <a href="#interactive-map-section" className="hover:text-gold-300 transition-colors">Route Map</a>
             <a href="#community-stories" className="hover:text-gold-300 transition-colors">Stories</a>
-            <a href="#exclusive-vouchers" className="hover:text-gold-300 transition-colors">Vouchers</a>
           </div>
 
           {/* Right Action Icons */}
@@ -741,9 +817,9 @@ export default function DestinationDetail({
             <div className="lg:col-span-4 flex flex-col items-start lg:items-end space-y-4">
               <div className="bg-black/45 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center space-x-3 text-left w-full sm:w-auto shadow-2xl">
                 <div className="flex -space-x-2.5">
-                  <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.name)}&backgroundColor=d6a147`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
-                  <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.location)}&backgroundColor=4d3c1e`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
-                  <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.subRegion || 'jogja')}&backgroundColor=1c1a17`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
+                  <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.name)}&backgroundColor=d6a147`} alt={`${destination.name} avatar`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
+                  <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.location)}&backgroundColor=4d3c1e`} alt={`${destination.location} avatar`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
+                  <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.subRegion || 'jogja')}&backgroundColor=1c1a17`} alt={`${destination.subRegion || 'Jogja'} avatar`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] text-gold-300 font-mono tracking-wider font-bold uppercase">COMMUNITY</span>
@@ -817,7 +893,7 @@ export default function DestinationDetail({
                       : 'border-white/20 opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={img?.url || ''} className="w-full h-full object-cover" />
+                  <img src={img?.url || ''} alt={`${destination.name} foto ${idx + 1}`} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -935,7 +1011,7 @@ export default function DestinationDetail({
                   <div className="relative rounded-2xl overflow-hidden border border-gold-200/30 shadow-md group aspect-[4/3] bg-royal-950">
                     <img 
                       src={destination.images[1]?.url || destination.images[0]?.url || ''} 
-                      alt="Stone Carvings Relief" 
+                      alt={`${destination.name} detail foto`} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-4 flex flex-col justify-end text-left">
@@ -1039,7 +1115,7 @@ export default function DestinationDetail({
               {/* Leaflet Map Grid Container */}
               <div className="relative rounded-3xl overflow-hidden border border-gold-200/50 shadow-lg aspect-16/10">
                 {/* Leaflet DOM container */}
-                <div ref={detailMapContainerRef} className="w-full h-full z-0 bg-stone-100" />
+                <div ref={detailMapContainerRef} id="detail-map-section" className="w-full h-full z-0 bg-stone-100" />
 
                 {/* Filter Overlay Buttons */}
                 <div className="absolute top-4 left-4 z-20 bg-white/95 backdrop-blur-md border border-gold-200/50 p-2.5 rounded-2xl flex flex-col gap-1.5 shadow-lg w-40">
@@ -1072,7 +1148,7 @@ export default function DestinationDetail({
                       className="flex items-center space-x-3 text-left w-full sm:w-auto cursor-pointer hover:opacity-90 transition-opacity"
                       title="View Partner Details"
                     >
-                      <img src={selectedMapPartner.image} className="h-14 w-14 rounded-xl object-cover border border-white/10 shrink-0" />
+                      <img src={selectedMapPartner.image} alt={selectedMapPartner.name} className="h-14 w-14 rounded-xl object-cover border border-white/10 shrink-0" />
                       <div>
                         <div className="flex items-center space-x-1.5">
                           <span className="text-[8px] font-mono font-bold tracking-widest text-gold-300 uppercase">{selectedMapPartner.category}</span>
@@ -1086,7 +1162,7 @@ export default function DestinationDetail({
                     <div className="flex items-center space-x-2.5 w-full sm:w-auto justify-end">
                       <div className="text-right">
                         <span className="block text-xs font-bold text-amber-400">★ {selectedMapPartner.rating.toFixed(1)}</span>
-                        <span className="block text-[8px] font-mono text-white/50">{selectedMapPartner.promotion || 'Special Voucher'}</span>
+                        <span className="block text-[8px] font-mono text-white/50">{selectedMapPartner.promotion || 'Special Offer'}</span>
                       </div>
                       <a 
                         href={`tel:${selectedMapPartner.phone || '+62274'}`}
@@ -1095,18 +1171,6 @@ export default function DestinationDetail({
                       >
                         <Phone className="h-4 w-4" />
                       </a>
-                      <button 
-                        onClick={() => {
-                          if (selectedMapPartner.promotion) handleClaimOffer(selectedMapPartner.id);
-                        }}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-widest transition-all ${
-                          claimedOffers.has(selectedMapPartner.id) 
-                            ? 'bg-emerald-600 text-white' 
-                            : 'bg-gold-400 hover:bg-gold-500 text-royal-950'
-                        }`}
-                      >
-                        {claimedOffers.has(selectedMapPartner.id) ? 'CLAIMED ✓' : 'CLAIM VOUCHER'}
-                      </button>
                     </div>
                   </div>
                 )}
@@ -1181,7 +1245,7 @@ export default function DestinationDetail({
                   const badge = event.category?.charAt(0).toUpperCase() + event.category?.slice(1) || 'Event';
                   return (
                     <div key={event.id} className="group relative aspect-[16/10] overflow-hidden rounded-2xl border border-stone-200/10 shadow-md bg-royal-950">
-                      <img src={event.image_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-90" referrerPolicy="no-referrer" />
+                      <img src={event.image_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-90" referrerPolicy="no-referrer" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
                       
                       <div className="absolute top-3 left-3 bg-red-600 text-white text-[9px] font-mono uppercase tracking-widest font-bold px-2 py-0.5 rounded-full">
@@ -1487,97 +1551,6 @@ export default function DestinationDetail({
               )}
             </div>
 
-            {/* 10. AI REVIEW SUMMARY BLOCK */}
-            <div className="bg-[#FAF6F0] border border-gold-100/70 rounded-3xl p-6 sm:p-8 space-y-5">
-              <div className="flex items-center space-x-2">
-                <Sparkles className="h-5 w-5 text-gold-600" />
-                <h3 className="font-manrope text-xs uppercase tracking-[0.15em] text-royal-700 font-extrabold">
-                  AI Review Aggregator & Analyst
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                
-                {/* Visitors Love — derived from travelTips */}
-                <div className="space-y-3">
-                  <span className="text-[10px] font-mono tracking-widest text-emerald-700 uppercase font-bold">Visitors Love (PROS)</span>
-                  <div className="space-y-2.5">
-                    {(destination.travelTips.length > 0
-                      ? destination.travelTips.slice(0, 3)
-                      : [destination.description?.slice(0, 60) || 'Unique experience', 'Beautiful scenery', 'Well-maintained site']
-                    ).map((tip, i) => {
-                      const avgRating = communityReviews.length > 0
-                        ? (communityReviews.reduce((sum, r) => sum + r.rating, 0) / communityReviews.length).toFixed(1)
-                        : '4.7';
-                      const pct = communityReviews.length > 0
-                        ? `${Math.round((communityReviews.filter(r => r.rating >= 4).length / communityReviews.length) * 100)}%`
-                        : '90%';
-                      return (
-                        <div key={i} className="flex items-center justify-between text-xs">
-                          <div className="flex flex-col text-left">
-                            <span className="font-bold text-[#1c1a17]">{tip.length > 40 ? tip.slice(0, 40) + '…' : tip}</span>
-                            <span className="text-[9px] text-stone-500 font-mono">Satisfied rating • {avgRating}</span>
-                          </div>
-                          <span className="bg-emerald-50 text-emerald-800 font-mono font-bold text-[10px] px-2 py-0.5 rounded-full">{pct}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Visitors Mention — derived from reviews or generic fallback */}
-                <div className="space-y-3">
-                  <span className="text-[10px] font-mono tracking-widest text-amber-700 uppercase font-bold">Visitors Mention (CONS)</span>
-                  <div className="space-y-2.5">
-                    {(() => {
-                      const cons: { topic: string; issue: string }[] = [];
-                      // Check review comments for common complaints
-                      const reviewText = communityReviews.map(r => r.comment?.toLowerCase() || ' ').join(' ');
-                      if (reviewText.includes('crowd') || reviewText.includes('busy') || reviewText.includes('queue')) {
-                        cons.push({ topic: 'Can get crowded', issue: 'Visit early morning for fewer people' });
-                      }
-                      if (reviewText.includes('parking') || reviewText.includes('far') || reviewText.includes('walk')) {
-                        cons.push({ topic: 'Parking distance', issue: 'Comfortable walking shoes recommended' });
-                      }
-                      if (reviewText.includes('hot') || reviewText.includes('sun') || reviewText.includes('heat')) {
-                        cons.push({ topic: 'Afternoon heat', issue: 'Bring sunscreen and stay hydrated' });
-                      }
-                      if (reviewText.includes('ticket') || reviewText.includes('price') || reviewText.includes('expensive')) {
-                        cons.push({ topic: 'Ticket pricing', issue: 'Book online to skip the queue' });
-                      }
-                      // Fill remaining slots with category-based suggestions
-                      if (cons.length < 3) {
-                        const category = (destination.category || '').toLowerCase();
-                        if (category.includes('heritage') || category.includes('temple')) {
-                          cons.push({ topic: 'Limited shade areas', issue: 'Wear a hat and bring water' });
-                        }
-                        if (category.includes('beach')) {
-                          cons.push({ topic: 'Strong waves', issue: 'Follow local safety guidelines' });
-                        }
-                        if (category.includes('mountain') || category.includes('adventure')) {
-                          cons.push({ topic: 'Altitude changes', issue: 'Acclimatize gradually if needed' });
-                        }
-                      }
-                      // Final fallback
-                      while (cons.length < 3) {
-                        cons.push({ topic: 'Peak hours can be busy', issue: 'Plan your visit during off-peak times' });
-                      }
-                      return cons.slice(0, 3);
-                    })().map((item, i) => (
-                      <div key={i} className="flex items-start justify-between text-xs p-2 border rounded-xl border-amber-200 bg-amber-50">
-                        <div className="flex flex-col text-left">
-                          <span className="font-bold text-stone-900">{item.topic}</span>
-                          <span className="text-[9px] text-stone-600 mt-0.5">{item.issue}</span>
-                        </div>
-                        <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
           </div>
 
           {/* RIGHT 4-COLUMN AUXILIARY STICKY PANEL */}
@@ -1638,12 +1611,12 @@ export default function DestinationDetail({
                 ))}
               </div>
 
-              <button 
+              {/* <button 
                 onClick={() => setShowTicketModal(true)}
-                className="w-full py-2.5 bg-gold-400 hover:bg-gold-500 text-royal-950 text-xs font-mono font-bold uppercase tracking-widest rounded-xl transition-colors shadow-md"
+                className="w-full py-2.5 bg-gold-400 hover:bg-gold-500 text-royal-950 text-xs font-mono font-bold uppercase tracking-widest rounded-xl transition-colors shadow-md hidden"
               >
                 BOOK LIVE COMPANION SESSION
-              </button>
+              </button> */}
             </div>
 
             {/* 11. TOURISM ECOSYSTEM INTENT RAILS */}
@@ -1716,7 +1689,7 @@ export default function DestinationDetail({
                       onClick={() => setSelectedPartner(partner)}
                       className="group border border-stone-100 p-2.5 rounded-xl flex space-x-3 hover:border-gold-300 hover:bg-stone-50/50 transition-all duration-300 text-left cursor-pointer"
                     >
-                      <img src={partner.image} className="h-14 w-14 rounded-lg object-cover border shrink-0 bg-stone-100" />
+                      <img src={partner.image} alt={partner.name} className="h-14 w-14 rounded-lg object-cover border shrink-0 bg-stone-100" />
                       <div className="flex-1 min-w-0 flex flex-col justify-between">
                         <div>
                           <div className="flex items-center justify-between">
@@ -1740,81 +1713,7 @@ export default function DestinationDetail({
               </div>
             </div>
 
-            {/* 12. EXCLUSIVE OFFERS / PROMOTIONS */}
-            <div id="exclusive-vouchers" className="bg-[#FAF7F2] border border-gold-200/50 rounded-3xl p-5 shadow-sm text-left scroll-mt-20">
-              <div className="flex items-center justify-between border-b border-gold-100 pb-3 mb-4">
-                <div className="flex items-center space-x-2">
-                  <Tag className="h-4.5 w-4.5 text-gold-600 animate-pulse" />
-                  <h3 className="font-manrope text-xs uppercase tracking-[0.15em] text-gold-800 font-extrabold">
-                    Exclusive Offers Around Here
-                  </h3>
-                </div>
-                <span className="text-[8.5px] font-mono text-gold-700 bg-gold-50/80 border border-gold-200/60 px-2.5 py-1 rounded-full font-bold uppercase whitespace-nowrap shrink-0">
-                  {destination.partners.filter(p => p.promotion).length} Offers
-                </span>
-              </div>
 
-              <div className="space-y-3.5">
-                {destination.partners.filter(p => p.promotion).length === 0 ? (
-                  <p className="text-xs text-stone-500 italic py-4 text-center">No active promotions at the moment.</p>
-                ) : (
-                  destination.partners
-                    .filter(p => p.promotion)
-                    .map(partner => {
-                      const offerId = `offer-${partner.id}`;
-                      const isClaimed = claimedOffers.has(offerId);
-                      // Auto-generate a promo code from partner name
-                      const promoCode = partner.name
-                        .toUpperCase()
-                        .replace(/[^A-Z0-9]/g, '')
-                        .slice(0, 12);
-                      return (
-                        <div key={offerId} className="border border-gold-200 bg-white p-3.5 rounded-2xl relative overflow-hidden flex flex-col justify-between">
-                          {/* Decorative punch holes */}
-                          <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF7F2] border-r border-gold-200" />
-                          <span className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FAF7F2] border-l border-gold-200" />
-
-                          <div 
-                            onClick={() => setSelectedPartner(partner)}
-                            className="flex items-start gap-2.5 px-1.5 cursor-pointer hover:opacity-85 transition-opacity"
-                            title="View Partner Details"
-                          >
-                            {partner.image && (
-                              <img
-                                src={partner.image}
-                                alt={partner.name}
-                                className="h-10 w-10 rounded-lg object-cover shrink-0 border border-gold-100"
-                              />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <span className="text-[8px] font-mono text-stone-500 block uppercase leading-none">{partner.name}</span>
-                              <h4 className="font-manrope text-xs font-extrabold text-stone-900 mt-1 leading-tight">{partner.promotion}</h4>
-                              <p className="text-[9.5px] text-stone-500 font-light leading-snug mt-0.5">{partner.price}</p>
-                            </div>
-                          </div>
-
-                          <div className="mt-3.5 pt-2.5 border-t border-dashed border-stone-200 flex items-center justify-between px-1.5">
-                            <span className="text-[9px] font-mono text-gold-700 bg-gold-50 border border-gold-100 px-2 py-0.5 rounded uppercase font-bold tracking-wide">
-                              {promoCode}
-                            </span>
-                            <button 
-                              onClick={() => handleClaimOffer(offerId)}
-                              disabled={isClaimed}
-                              className={`text-[9px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border transition-all ${
-                                isClaimed 
-                                  ? 'bg-emerald-600 text-white border-transparent' 
-                                  : 'bg-gold-400 hover:bg-gold-500 text-royal-950 border-gold-400'
-                              }`}
-                            >
-                              {isClaimed ? 'CLAIMED ✓' : 'CLAIM'}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
-                )}
-              </div>
-            </div>
 
             {/* 13. SIMILAR DESTINATIONS */}
             <div className="bg-white border border-stone-200/50 rounded-3xl p-5 shadow-sm text-left space-y-4">
@@ -1834,7 +1733,7 @@ export default function DestinationDetail({
                     }}
                     className="group flex items-center space-x-3 cursor-pointer text-left"
                   >
-                    <img src={similar.images[0]?.url || ''} className="h-12 w-16 rounded-xl object-cover shrink-0 bg-stone-100" />
+                    <img src={similar.images[0]?.url || ''} alt={similar.name} className="h-12 w-16 rounded-xl object-cover shrink-0 bg-stone-100" />
                     <div className="flex-1 min-w-0">
                       <h4 className="font-manrope text-xs font-bold text-stone-900 group-hover:text-gold-600 transition-all truncate leading-tight">{similar.name}</h4>
                       <p className="text-[9px] text-stone-500 font-light truncate mt-0.5">{similar.tagline}</p>
@@ -1865,7 +1764,7 @@ export default function DestinationDetail({
               <div key={story.id} className="bg-white border border-stone-200/40 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between group cursor-pointer hover:shadow-md transition-shadow">
                 {/* Visual image box */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-royal-950">
-                  <img src={story.img} className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500" />
+                  <img src={story.img} alt={`Cerita wisata ${story.user}`} className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500" />
                   <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-2 py-0.5 rounded-full text-[8.5px] font-mono text-stone-700 font-semibold border">
                     {story.tag}
                   </div>
@@ -1879,7 +1778,7 @@ export default function DestinationDetail({
                   
                   <div className="flex items-center justify-between border-t border-stone-100 pt-3">
                     <div className="flex items-center space-x-2">
-                      <img src={story.avatar} className="h-7 w-7 rounded-full object-cover border" />
+                      <img src={story.avatar} alt={story.user} className="h-7 w-7 rounded-full object-cover border" />
                       <div className="text-left">
                         <span className="block text-[10px] font-bold text-stone-900 leading-none">{story.user}</span>
                         <span className="block text-[8px] font-mono text-stone-500 leading-none mt-0.5">{story.location} traveler</span>
@@ -1924,7 +1823,7 @@ export default function DestinationDetail({
                 </div>
                 <h4 className="font-manrope font-bold text-base text-stone-900">Your Yogyakarta Royal Pass is Booked!</h4>
                 <p className="text-xs text-stone-600 font-light max-w-xs mx-auto">
-                  A high-resolution companion PDF barcode and secure token voucher has been synchronized to your email and cached for offline travel access.
+                  A high-resolution companion PDF has been synchronized to your email and cached for offline travel access.
                 </p>
                 <div className="p-3 bg-stone-50 rounded-xl border border-dashed font-mono text-[10px] text-left text-stone-700 max-w-xs mx-auto space-y-1">
                   <span className="block font-bold border-b pb-1 mb-1">PASS SUMMARY DETAILS:</span>
