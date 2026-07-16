@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { X, Mail, Lock, User, Loader2, Check, Info } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import SocialLoginButtons from './SocialLoginButtons';
 
@@ -21,6 +21,15 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: Au
   const { login, register } = useAuth();
 
   if (!isOpen) return null;
+
+  const passwordChecks = [
+    { label: 'At least 8 characters', valid: password.length >= 8 },
+    { label: 'Uppercase letter (A-Z)', valid: /[A-Z]/.test(password) },
+    { label: 'Lowercase letter (a-z)', valid: /[a-z]/.test(password) },
+    { label: 'Number (0-9)', valid: /[0-9]/.test(password) },
+    { label: 'Symbol (!@#$%^&*)', valid: /[^A-Za-z0-9]/.test(password) },
+    { label: 'No spaces', valid: !password.includes(' ') },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,17 +143,39 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: Au
               />
             </div>
 
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-              <input
-                type="password"
-                placeholder="Password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-11 pr-4 text-sm text-royal-950 placeholder-stone-400 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
-              />
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-11 pr-4 text-sm text-royal-950 placeholder-stone-400 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
+                />
+              </div>
+
+              {/* Password requirements - only show in register mode */}
+              {mode === 'register' && password.length > 0 && (
+                <div className="mt-2 p-3 rounded-xl bg-stone-50 border border-stone-200 space-y-1.5">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Info className="h-3 w-3 text-stone-400" />
+                    <span className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider">Password requirements</span>
+                  </div>
+                  {passwordChecks.map((check, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className={`h-3.5 w-3.5 rounded-full flex items-center justify-center ${check.valid ? 'bg-emerald-500' : 'bg-stone-200'}`}>
+                        {check.valid && <Check className="h-2.5 w-2.5 text-white" />}
+                      </div>
+                      <span className={`text-[11px] ${check.valid ? 'text-emerald-600 font-medium' : 'text-stone-500'}`}>
+                        {check.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <button
