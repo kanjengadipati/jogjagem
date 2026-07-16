@@ -10,10 +10,10 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
   savedCount: number;
   isOverHero?: boolean;
-  onOpenAuth: (mode: 'login' | 'register') => void;
+  onOpenAuth?: (mode: 'login' | 'register') => void;
 }
 
-export default function Header({ activeTab, setActiveTab, savedCount, isOverHero = false, onOpenAuth }: HeaderProps) {
+export default function Header({ activeTab, setActiveTab, savedCount, isOverHero = false, onOpenAuth: _onOpenAuth }: HeaderProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);

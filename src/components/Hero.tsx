@@ -83,12 +83,12 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
           const cfg = data.data;
           if (cfg.landing_hero_title) {
             const parts = cfg.landing_hero_title.split('\n');
-            setHeroConfig({
-              title: parts[0] || 'Jogja is',
-              titleAccent: parts[1] || 'Calling You',
-              subtitle: cfg.landing_hero_subtitle || heroConfig.subtitle,
-              ctaText: cfg.landing_cta_text || heroConfig.ctaText,
-            });
+            setHeroConfig(prev => ({
+              title: parts[0] || prev.title,
+              titleAccent: parts[1] || prev.titleAccent,
+              subtitle: cfg.landing_hero_subtitle || prev.subtitle,
+              ctaText: cfg.landing_cta_text || prev.ctaText,
+            }));
           }
         }
       })

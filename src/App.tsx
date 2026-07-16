@@ -190,14 +190,14 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7F3EE] flex items-center justify-center">
         <RefreshCw className="h-10 w-10 text-gold-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div id="explore-jogja-app-root" className="min-h-screen bg-[#faf9f6] flex flex-col justify-between">
+    <div id="explore-jogja-app-root" className="min-h-screen bg-[#F7F3EE] flex flex-col justify-between">
       
       {/* Premium Header */}
       <Header 
@@ -341,7 +341,7 @@ export default function App() {
                   </div>
 
                   {displayDestinations.length === 0 ? (
-                    <div className="text-center py-12 border border-dashed border-gold-200 rounded-3xl bg-white p-6">
+                    <div className="text-center py-12 border border-dashed border-gold-200 rounded-3xl bg-[#FCFAF8] p-6">
                       <span className="block text-sm font-medium text-royal-950">No matches found for this category</span>
                     </div>
                   ) : (
@@ -366,7 +366,7 @@ export default function App() {
                     
                     {/* Left Column: Upcoming Festivals (7/12) */}
                     <div className="lg:col-span-7 flex flex-col">
-                      <div className="flex items-end justify-between mb-5 border-b border-stone-200/50 pb-3">
+                      <div className="flex items-end justify-between mb-5 border-b border-[#E8E0D5] pb-3">
                         <div className="text-left">
                           <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
                             Upcoming Festivals
@@ -438,7 +438,7 @@ export default function App() {
 
                     {/* Right Column: AI Picks Just For You (5/12) */}
                     <div className="lg:col-span-5 flex flex-col">
-                      <div className="flex items-end justify-between mb-5 border-b border-stone-200/50 pb-3">
+                      <div className="flex items-end justify-between mb-5 border-b border-[#E8E0D5] pb-3">
                         <div className="text-left">
                           <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
                             AI Picks Just for You
@@ -558,7 +558,7 @@ export default function App() {
 
                 {/* AI Suggested Journey Section */}
                 <section id="ai-suggested-journey-timeline" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-6 border-b border-stone-200/50 pb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-6 border-b border-[#E8E0D5] pb-4">
                     <div className="text-left">
                       <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
                         AI Suggested Journey
@@ -595,7 +595,7 @@ export default function App() {
                             {idx > 0 && <div className="flex-shrink-0 text-[#A78B71]/40 font-bold text-base sm:text-lg">&rarr;</div>}
                             <div 
                               onClick={() => handleExploreDestination(dest)}
-                              className="flex-shrink-0 w-[275px] sm:w-[320px] lg:w-auto lg:flex-1 bg-[#FAF6F0] border border-stone-200/10 rounded-[24px] p-2.5 sm:p-3.5 flex items-center justify-between cursor-pointer hover:bg-[#FAF1E6] hover:shadow-md transition-all duration-300 group"
+                              className="flex-shrink-0 w-[275px] sm:w-[320px] lg:w-auto lg:flex-1 bg-[#F7F3EE] border border-stone-200/10 rounded-[24px] p-2.5 sm:p-3.5 flex items-center justify-between cursor-pointer hover:bg-[#FAF1E6] hover:shadow-md transition-all duration-300 group"
                             >
                               <div className="flex flex-col items-center justify-center flex-shrink-0 w-24 sm:w-28 text-center px-1">
                                 <div className="mb-2 w-8 h-8 rounded-full bg-white/50 flex items-center justify-center" style={{ color: slot.color }}>
@@ -647,7 +647,7 @@ export default function App() {
                   <p className="text-sm text-royal-700/70 font-light">Festivals, cultural shows, and seasonal highlights in Yogyakarta.</p>
                 </div>
                 {allEvents.length === 0 ? (
-                  <div className="text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-white p-6 max-w-md mx-auto">
+                  <div className="text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-[#FCFAF8] p-6 max-w-md mx-auto">
                     <Calendar className="h-10 w-10 text-gold-400 mx-auto mb-3" />
                     <h3 className="font-manrope text-base font-bold text-royal-950">No Events Found</h3>
                     <p className="text-xs text-royal-700/60 font-light mt-1 max-w-xs mx-auto">Check back soon for upcoming festivals and events.</p>
@@ -655,7 +655,7 @@ export default function App() {
                 ) : (
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {allEvents.map((evt) => (
-                      <div key={evt.id} className="group rounded-3xl overflow-hidden bg-white border border-stone-200/50 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+                      <div key={evt.id} className="group rounded-3xl overflow-hidden bg-white border border-[#E8E0D5] shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
                         <div className="relative h-44 overflow-hidden bg-stone-100">
                           {evt.image ? (
                             <img src={evt.image} alt={evt.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" referrerPolicy="no-referrer" />
@@ -665,7 +665,7 @@ export default function App() {
                             </div>
                           )}
                           {evt.category && (
-                            <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-royal-950 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border border-stone-200/50">
+                            <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-royal-950 text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border border-[#E8E0D5]">
                               {evt.category}
                             </span>
                           )}
@@ -719,7 +719,7 @@ export default function App() {
                     ))
                   }
                   {allDestinations.filter(d => ['adventure', 'nature', 'hidden-gem', 'beach'].includes(d.category?.toLowerCase())).length === 0 && (
-                    <div className="col-span-full text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-white p-6">
+                    <div className="col-span-full text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-[#FCFAF8] p-6">
                       <Leaf className="h-10 w-10 text-gold-400 mx-auto mb-3" />
                       <h3 className="font-manrope text-base font-bold text-royal-950">Loading Experiences...</h3>
                     </div>
@@ -771,7 +771,7 @@ export default function App() {
                 </div>
 
                 {savedDestinations.length === 0 ? (
-                  <div className="text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-white p-6 max-w-md mx-auto">
+                  <div className="text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-[#FCFAF8] p-6 max-w-md mx-auto">
                     <Compass className="h-10 w-10 text-gold-500 mx-auto mb-3 animate-spin" />
                     <h3 className="font-manrope text-base font-bold text-royal-950">No Saved Places</h3>
                     <p className="text-xs text-royal-700/60 font-light mt-1 max-w-xs mx-auto">

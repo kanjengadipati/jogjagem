@@ -18,6 +18,7 @@ import { inferTravelerIntent, orderCardsByIntent, IntentProfile } from '@/lib/tr
 import { fetchLiveWeather, LiveWeather } from '@/lib/weather';
 import { useLocation } from '@/contexts/LocationContext';
 import AIFloatingAssistant from '@/components/AIFloatingAssistant';
+import SubNav from '@/components/SubNav';
 
 interface DestinationDetailProps {
   destination: Destination;
@@ -721,68 +722,23 @@ export default function DestinationDetail({
         liveCrowdLevel={liveCrowdLevel} 
       />
 
-      {/* 1. EXQUISITE STICKY NAVIGATION BAR */}
-      <nav className="sticky top-0 z-50 bg-[#0f100c]/90 backdrop-blur-md border-b border-white/5 text-white transition-all duration-300">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-          
-          {/* Logo / Back Button */}
-          <div className="flex items-center space-x-4">
-            <button 
-              onClick={onBack}
-              className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors flex items-center space-x-1.5 text-gold-300 hover:text-white"
-              title="Go back"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span className="hidden sm:inline text-xs font-mono tracking-widest uppercase">BACK</span>
-            </button>
-            <div className="h-4 w-[1px] bg-white/15 hidden sm:block" />
-            <div className="flex items-center space-x-2">
-              <img src="/logo-gold-new.png" alt="Jogjagem" className="h-5 w-auto" />
-              <div className="flex flex-col -space-y-1">
-                <span className="font-manrope text-sm font-extrabold tracking-widest">JOGJAGEM</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Center Links (National Geographic & Airbnb Style) */}
-          <div className="hidden lg:flex items-center space-x-8 text-xs font-mono tracking-widest uppercase text-white/70">
-            <button onClick={onBack} className="hover:text-gold-300 transition-colors">Explore</button>
-            <a href="#suggested-journey-section" className="hover:text-gold-300 transition-colors">Journey</a>
-            <a href="#ecosystem-section" className="hover:text-gold-300 transition-colors">Ecosystem</a>
-            <a href="#interactive-map-section" className="hover:text-gold-300 transition-colors">Route Map</a>
-            <a href="#community-stories" className="hover:text-gold-300 transition-colors">Stories</a>
-          </div>
-
-          {/* Right Action Icons */}
-          <div className="flex items-center space-x-4">
-            <button 
-              onClick={() => onToggleSave(destination)}
-              className={`p-2 rounded-full hover:bg-white/10 transition-all ${isSaved ? 'text-gold-400' : 'text-white/80'}`}
-              title="Bookmark Destination"
-            >
-              <Heart className={`h-5 w-5 ${isSaved ? 'fill-gold-400 text-gold-400' : ''}`} />
-            </button>
-            <button 
-              onClick={handleShare}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors text-white/80"
-              title="Share"
-            >
-              <Share2 className="h-5 w-5" />
-            </button>
-            
-            {copied && (
-              <span className="absolute top-16 right-4 sm:right-20 bg-gold-400 text-royal-950 font-mono text-[10px] font-bold px-3 py-1 rounded-full shadow-md animate-fade-in border border-gold-300">
-                COPIED COHESIVE LINK!
-              </span>
-            )}
-
-            <div className="h-8 w-8 rounded-full border border-gold-400/30 bg-royal-950 text-gold-300 flex items-center justify-center text-[10px] font-mono font-bold">
-              {userInitials}
-            </div>
-          </div>
-
-        </div>
-      </nav>
+      {/* 1. STICKY NAVIGATION BAR */}
+      <SubNav
+        onBack={onBack}
+        title={destination.name}
+        centerLinks={[
+          { label: 'Explore', onClick: onBack },
+          { label: 'Journey', href: '#suggested-journey-section' },
+          { label: 'Ecosystem', href: '#ecosystem-section' },
+          { label: 'Route Map', href: '#interactive-map-section' },
+          { label: 'Stories', href: '#community-stories' },
+        ]}
+        isSaved={isSaved}
+        onToggleSave={() => onToggleSave(destination)}
+        onShare={handleShare}
+        copiedToast={copied}
+        userInitials={userInitials}
+      />
 
       {/* 2. HERO GALLERY (80vh) */}
       <section className="relative h-[72vh] md:h-[80vh] w-full bg-[#0f100c] overflow-hidden">
