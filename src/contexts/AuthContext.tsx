@@ -41,6 +41,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Handle Google OAuth redirect callback on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const idToken = params.get('id_token');
+    if (idToken) {
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+      auth.socialLogin('google', idToken).then((res) => {
+        if (res.status === 'success') {
+          refreshProfile();
+        }
+      });
+    }
+  }, [refreshProfile]);
+
   useEffect(() => {
     refreshProfile();
   }, [refreshProfile]);
@@ -85,14 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await auth.socialLogin(provider, token);
       if (res.status === 'success') {
         await refreshProfile();
-        const profileRes = await auth.getProfile();
-        const role = profileRes?.data?.role;
-        if (role === 'admin' || role === 'superadmin') {
-          const accessToken = auth.getAccessToken();
-          if (accessToken) {
-            window.open(`http://localhost:3005/login?token=${accessToken}`, '_blank');
-          }
-        }
         return { success: true };
       }
       return { success: false, error: res.message || 'Social login failed' };

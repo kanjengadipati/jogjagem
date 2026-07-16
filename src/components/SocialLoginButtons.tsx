@@ -1,68 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
+import React, { useState } from 'react';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
-function loadScript(src: string, id: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (document.getElementById(id)) { resolve(); return; }
-    const script = document.createElement('script');
-    script.id = id;
-    script.src = src;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error(`Failed to load ${src}`));
-    document.head.appendChild(script);
-  });
-}
-
 export default function SocialLoginButtons({ onError, onSuccess }: { onError?: (msg: string) => void; onSuccess?: () => void }) {
-  const { socialLogin } = useAuth();
   const [loading, setLoading] = useState<'google' | null>(null);
-  const [googleReady, setGoogleReady] = useState(false);
-
-  const handleGoogleCredential = useCallback(async (credential: string) => {
-    setLoading('google');
-    const result = await socialLogin('google', credential);
-    setLoading(null);
-    if (result.success) {
-      onSuccess?.();
-    } else {
-      onError?.(result.error || 'Google login failed');
-    }
-  }, [socialLogin, onError, onSuccess]);
-
-  // Handle Google OAuth redirect callback
-  useEffect(() => {
-    const hash = window.location.hash;
-    const params = new URLSearchParams(window.location.search);
-
-    // Check for Google OAuth redirect response
-    const idToken = params.get('id_token');
-    if (idToken) {
-      // Clean URL
-      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
-      handleGoogleCredential(idToken);
-      return;
-    }
-  }, [handleGoogleCredential]);
-
-  // Initialize Google Identity Services
-  useEffect(() => {
-    if (!GOOGLE_CLIENT_ID) return;
-    loadScript('https://accounts.google.com/gsi/client', 'google-identity-script')
-      .then(() => {
-        setGoogleReady(true);
-      })
-      .catch(() => {});
-  }, []);
 
   const handleGoogleClick = () => {
     if (!GOOGLE_CLIENT_ID) return;
