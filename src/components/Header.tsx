@@ -75,7 +75,10 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                 <button
                   key={item.id}
                   id={`nav-link-${item.id}`}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    if (item.id === 'planner') router.push('/planner');
+                    else setActiveTab(item.id);
+                  }}
                   className={`text-sm font-medium tracking-wide transition-all duration-300 border-b-2 py-1 ${
                     isActive 
                       ? 'border-gold-400 text-gold-300 font-semibold' 
@@ -104,7 +107,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             {isAuthenticated && (
               <button
                 id="desktop-saved-icon-btn"
-                onClick={() => setActiveTab('saved')}
+                onClick={() => router.push('/saved')}
                 className="relative p-1.5 rounded-full hover:bg-white/10 transition-colors text-white"
               >
                 <Heart className={`h-5 w-5 ${savedCount > 0 ? 'fill-gold-400 text-gold-400 animate-pulse' : ''}`} />
@@ -219,7 +222,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
           <div className="flex lg:hidden items-center space-x-3">
             {isAuthenticated && (
               <button
-                onClick={() => setActiveTab('saved')}
+                onClick={() => router.push('/saved')}
                 className="relative p-2 rounded-full text-white hover:bg-white/10"
               >
                 <Heart className={`h-5 w-5 ${savedCount > 0 ? 'fill-gold-400 text-gold-400' : ''}`} />
@@ -290,7 +293,11 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             return (
               <button
                 key={item.id}
-                onClick={() => handleNav(item.id)}
+                onClick={() => {
+                    if (item.id === 'planner') { setDrawerOpen(false); router.push('/planner'); }
+                    else if (item.id === 'saved') { setDrawerOpen(false); router.push('/saved'); }
+                    else handleNav(item.id);
+                  }}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group ${
                   isActive ? 'bg-gold-700/30 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'
                 }`}

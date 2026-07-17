@@ -378,32 +378,38 @@ export const ai = {
 
 export const trips = {
   async getAll() {
-    return request<Array<{
-      id: string;
-      destination_id: string;
-      destination_name: string;
-      destination_image?: string;
-      status: 'planned' | 'ongoing' | 'completed';
-      start_date?: string;
-      end_date?: string;
-      notes?: string;
-    }>>('/trips');
+    return request<TripResponse[]>('/trips');
   },
 
-  async create(destinationId: string, startDate?: string, endDate?: string, notes?: string) {
-    return request('/trips', {
+  async getById(tripId: string) {
+    return request<TripResponse>(`/trips/${tripId}`);
+  },
+
+  async create(payload: {
+    title: string;
+    start_date?: string;
+    end_date?: string;
+    duration_days: number;
+    days: TripDayPayload[];
+    notes?: string;
+    status?: string;
+  }) {
+    return request<TripResponse>('/trips', {
       method: 'POST',
-      body: JSON.stringify({
-        destination_id: destinationId,
-        start_date: startDate,
-        end_date: endDate,
-        notes,
-      }),
+      body: JSON.stringify(payload),
     });
   },
 
-  async update(tripId: string, data: { status?: string; notes?: string; start_date?: string; end_date?: string }) {
-    return request(`/trips/${tripId}`, {
+  async update(tripId: string, data: {
+    title?: string;
+    start_date?: string;
+    end_date?: string;
+    duration_days?: number;
+    days?: TripDayPayload[];
+    notes?: string;
+    status?: string;
+  }) {
+    return request<TripResponse>(`/trips/${tripId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
@@ -443,3 +449,23 @@ interface BePartner {
 }
 
 export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BePartner };
+
+export interface TripDayPayload {
+  dayNumber: number;
+  destinationIds: string[];
+  notes: string;
+}
+
+export interface TripResponse {
+  id: string;           // external_id
+  user_id: number;
+  title: string;
+  start_date: string;
+  end_date: string;
+  duration_days: number;
+  days: TripDayPayload[];
+  notes: string;
+  status: string;
+  created_at?: string;
+  updated_at?: string;
+}

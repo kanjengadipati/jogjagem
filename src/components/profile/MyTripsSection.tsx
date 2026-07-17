@@ -3,35 +3,25 @@
 import React, { useEffect, useState } from 'react';
 import { CalendarDays, MapPin, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { trips as tripsApi } from '../../lib/api';
-
-interface Trip {
-  id: string;
-  destination_id: string;
-  destination_name: string;
-  destination_image?: string;
-  status: 'planned' | 'ongoing' | 'completed';
-  start_date?: string;
-  end_date?: string;
-  notes?: string;
-}
+import { trips as tripsApi, type TripResponse } from '../../lib/api';
 
 const STATUS_CONFIG = {
   planned:   { label: 'Planned',   color: 'text-indigo-600', bg: 'bg-indigo-50', icon: Clock },
   ongoing:   { label: 'Ongoing',   color: 'text-emerald-600', bg: 'bg-emerald-50', icon: MapPin },
   completed: { label: 'Completed', color: 'text-stone-400',  bg: 'bg-stone-100', icon: CheckCircle2 },
+  draft:     { label: 'Draft',     color: 'text-stone-400',  bg: 'bg-stone-100', icon: Clock },
 };
 
 export default function MyTripsSection() {
   const router = useRouter();
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const [trips, setTrips] = useState<TripResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     tripsApi.getAll()
       .then((res) => {
         if (res.status === 'success' && res.data) {
-          setTrips(res.data);
+          setTrips(res.data as TripResponse[]);
         }
       })
       .catch(() => {})
@@ -55,7 +45,7 @@ export default function MyTripsSection() {
           )}
         </div>
         <button
-          onClick={() => router.push('/?tab=planner')}
+          onClick={() => router.push('/planner')}
           className="text-xs font-semibold text-gold-600 hover:text-gold-700 flex items-center gap-1 transition-colors"
         >
           Plan New <ArrowRight className="w-3 h-3" />
@@ -96,7 +86,7 @@ export default function MyTripsSection() {
             Start planning your next adventure with Trip Planner.
           </p>
           <button
-            onClick={() => router.push('/?tab=planner')}
+            onClick={() => router.push('/planner')}
             className="px-5 py-2 bg-stone-950 hover:bg-stone-800 text-white text-xs font-bold rounded-xl transition-all duration-200"
           >
             Plan a Trip
@@ -106,27 +96,21 @@ export default function MyTripsSection() {
         /* Trip list */
         <div className="flex-1 space-y-2 overflow-y-auto">
           {activeTrips.map((trip) => {
-            const cfg = STATUS_CONFIG[trip.status];
+            const cfg = STATUS_CONFIG[trip.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.draft;
             const StatusIcon = cfg.icon;
             return (
               <div
                 key={trip.id}
                 className="flex items-center gap-3 p-3 bg-stone-50 rounded-xl border border-stone-100 hover:border-gold-200 hover:bg-gold-50/30 transition-all duration-200 cursor-pointer"
               >
-                {/* Thumbnail */}
-                {trip.destination_image ? (
-                  <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-stone-200">
-                    <img src={trip.destination_image} alt={trip.destination_name} className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="w-10 h-10 rounded-lg bg-gold-50 flex items-center justify-center shrink-0">
-                    <MapPin className="w-4 h-4 text-gold-500" />
-                  </div>
-                )}
+                {/* Icon placeholder — TripResponse has no image */}
+                <div className="w-10 h-10 rounded-lg bg-gold-50 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4 text-gold-500" />
+                </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-stone-900 truncate">{trip.destination_name}</p>
+                  <p className="text-xs font-bold text-stone-900 truncate">{trip.title}</p>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <StatusIcon className={`w-3 h-3 ${cfg.color}`} />
                     <span className={`text-[10px] font-semibold ${cfg.color}`}>{cfg.label}</span>
@@ -149,23 +133,16 @@ export default function MyTripsSection() {
                 <div className="flex-1 h-px bg-stone-100" />
               </div>
               {completedTrips.slice(0, 2).map((trip) => {
-                const cfg = STATUS_CONFIG.completed;
                 return (
                   <div
                     key={trip.id}
                     className="flex items-center gap-3 p-3 bg-stone-50/50 rounded-xl border border-stone-100/50 opacity-60"
                   >
-                    {trip.destination_image ? (
-                      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-stone-200 grayscale">
-                        <img src={trip.destination_image} alt={trip.destination_name} className="w-full h-full object-cover" />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="w-4 h-4 text-stone-400" />
-                      </div>
-                    )}
+                    <div className="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-stone-400" />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-stone-500 truncate line-through">{trip.destination_name}</p>
+                      <p className="text-xs font-semibold text-stone-500 truncate line-through">{trip.title}</p>
                     </div>
                   </div>
                 );

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { 
-  CalendarDays, Plus, Trash, ArrowRight, MapPin, Sparkles, 
-  Clock, Coffee, Utensils, MessageSquare, ListTodo, PlusCircle, CheckCircle, Info, Save
+import React, { useState, useEffect } from 'react';
+import {
+  CalendarDays, Trash, Sparkles,
+  PlusCircle, CheckCircle, Info, Save, Loader2
 } from 'lucide-react';
 import { Destination, TripPlan, TripDay } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
+import { trips as tripsApi, TripDayPayload, TripResponse } from '../lib/api';
 
 /** Safely extract the first image URL regardless of whether images are
  *  plain strings or {url, credit} objects (both shapes come from the BE). */

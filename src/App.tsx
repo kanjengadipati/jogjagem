@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Header from './components/Header';
 import AuthModal from './components/AuthModal';
 import Hero from './components/Hero';
 import CategoryLinks from './components/CategoryLinks';
 import DestinationCard, { isLandscape } from './components/DestinationCard';
 import ConversationalAI from './components/ConversationalAI';
-import TripPlanner from './components/TripPlanner';
 
 import { Destination, Festival } from './types';
 import { destinations, events, config, auth } from './lib/api';
@@ -14,7 +13,9 @@ import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, Calendar
 
 export default function App() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<string>('discover');
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'discover';
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [conversationalQuery, setConversationalQuery] = useState<string>('');
   const [initialImageResult, setInitialImageResult] = useState<{
@@ -78,9 +79,19 @@ export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
 
+  const [pendingReportId, setPendingReportId] = useState<string | null>(null);
+
   const openAuth = (mode: 'login' | 'register') => {
     setAuthModalMode(mode);
     setAuthModalOpen(true);
+  };
+  
+  const handleAuthSuccess = () => {
+    const pendingId = sessionStorage.getItem('pending_report');
+    if (pendingId) {
+      setPendingReportId(pendingId);
+      sessionStorage.removeItem('pending_report');
+    }
   };
 
   const [savedDestinations, setSavedDestinations] = useState<Destination[]>([]);
@@ -149,14 +160,28 @@ export default function App() {
     return savedDestinations.some(d => d.id === id);
   };
 
+  // Keep URL in sync with active tab so back/forward and direct links work
+  const navigateToTab = (tab: string) => {
+    setActiveTab(tab);
+    router.push(`/?tab=${tab}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const handleHeroSearch = (query: string) => {
     setConversationalQuery(query);
-    setActiveTab('ai-assistant');
+    navigateToTab('ai-assistant');
   };
 
   const handleHeroImageSearch = (imageUrl: string, reply: string, matchedDestinationIds: string[]) => {
     setInitialImageResult({ imageUrl, reply, matchedDestinationIds });
-    setActiveTab('ai-assistant');
+    navigateToTab('ai-assistant');
   };
 
   const toSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -203,7 +228,7 @@ export default function App() {
           if (tab === 'map') {
             router.push('/map');
           } else if (tab === 'events') {
-            setActiveTab('discover-events');
+            navigateToTab('discover-events');
             setTimeout(() => {
               const el = document.getElementById('upcoming-festivals-showcase');
               if (el) {
@@ -217,7 +242,7 @@ export default function App() {
               }
             }, 150);
           } else if (tab === 'experiences') {
-            setActiveTab('discover-experiences');
+            navigateToTab('discover-experiences');
             setTimeout(() => {
               const el = document.getElementById('trending-destinations-showcase');
               if (el) {
@@ -231,7 +256,7 @@ export default function App() {
               }
             }, 150);
           } else {
-            setActiveTab(tab);
+            navigateToTab(tab);
           }
         }}
         savedCount={savedDestinations.length}
@@ -291,12 +316,15 @@ export default function App() {
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6">
                       {displayDestinations.map((dest) => (
-                        <DestinationCard
+                      <DestinationCard
                           key={dest.id}
                           destination={dest}
                           onExplore={handleExploreDestination}
                           onToggleSave={handleToggleSave}
+                          onAuthRequired={() => openAuth('login')}
                           isSaved={isSaved(dest.id)}
+                          isReportPending={pendingReportId === dest.id}
+                          onClearPendingReport={() => setPendingReportId(null)}
                           className={isLandscape(dest.id) ? 'col-span-2 lg:col-span-2' : 'col-span-1 lg:col-span-1'}
                         />
                       ))}
@@ -510,7 +538,7 @@ export default function App() {
                       <p className="text-xs text-stone-500/80 mt-0.5">One perfect day in Jogja</p>
                     </div>
                     <button 
-                      onClick={() => setActiveTab('planner')}
+                      onClick={() => router.push('/planner')}
                       className="mt-2 sm:mt-0 text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 border-b border-gold-700/10 hover:border-gold-900 pb-0.5 cursor-pointer w-fit"
                     >
                       <span>Customize with AI</span>
@@ -650,7 +678,7 @@ export default function App() {
                   <p className="text-sm text-royal-700/70 font-light">Adventure, nature, and hidden gems across Yogyakarta.</p>
                 </div>
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {allDestinations
+                    {allDestinations
                     .filter(d => ['adventure', 'nature', 'hidden-gem', 'beach'].includes(d.category?.toLowerCase()))
                     .map((dest) => (
                       <DestinationCard
@@ -658,7 +686,10 @@ export default function App() {
                         destination={dest}
                         onExplore={handleExploreDestination}
                         onToggleSave={handleToggleSave}
+                        onAuthRequired={() => openAuth('login')}
                         isSaved={isSaved(dest.id)}
+                        isReportPending={pendingReportId === dest.id}
+                        onClearPendingReport={() => setPendingReportId(null)}
                       />
                     ))
                   }
@@ -684,56 +715,14 @@ export default function App() {
               />
             )}
 
-            {/* Active Tab: Trip Planner */}
-            {activeTab === 'planner' && (
-              <TripPlanner
-                savedDestinations={savedDestinations}
-                onExploreDestination={handleExploreDestination}
-                onRemoveFromSaved={handleToggleSave}
-              />
-            )}
-
-            {/* Active Tab: Saved Favorites Drawer */}
-            {activeTab === 'saved' && (
-              <section id="saved-bookmarks-dashboard" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 animate-fade-in">
-                <div className="flex flex-col space-y-2 mb-8 border-b border-gold-100 pb-5">
-                  <div className="flex items-center space-x-2.5">
-                    <Heart className="h-5 w-5 fill-gold-600 text-gold-600 animate-pulse" />
-                    <h2 className="font-manrope text-2xl font-bold text-royal-950">Your Bookmarked Discoveries</h2>
-                  </div>
-                  <p className="text-sm text-royal-700/80 font-light">
-                    Your customized offline-saved library. You can immediately allocate these favorited sights into your Trip Planner slots.
-                  </p>
-                </div>
-
-                {savedDestinations.length === 0 ? (
-                  <div className="text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-[#FCFAF8] p-6 max-w-md mx-auto">
-                    <Compass className="h-10 w-10 text-gold-500 mx-auto mb-3 animate-spin" />
-                    <h3 className="font-manrope text-base font-bold text-royal-950">No Saved Places</h3>
-                    <p className="text-xs text-royal-700/60 font-light mt-1 max-w-xs mx-auto">
-                      Whenever you explore Yogyakarta destinations, click the heart icon to persist them securely inside this dashboard.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {savedDestinations.map((dest) => (
-                      <DestinationCard
-                        key={dest.id}
-                        destination={dest}
-                        onExplore={handleExploreDestination}
-                        onToggleSave={handleToggleSave}
-                        isSaved={isSaved(dest.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
-            )}
+            {/* Active Tab: Trip Planner → /planner route */}
+            {/* Active Tab: Saved → /saved route */}
         </>
       </main>
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
         defaultMode={authModalMode}
       />
 
@@ -761,7 +750,7 @@ export default function App() {
       {/* Mobile Sticky Bottom Tab Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-royal-950/95 backdrop-blur-md border-t border-royal-900 px-4 pt-2.5 pb-[calc(10px+env(safe-area-inset-bottom,0px))] flex justify-around items-center text-white">
         <button
-          onClick={() => setActiveTab('discover')}
+          onClick={() => navigateToTab('discover')}
           className={`flex flex-col items-center justify-center space-y-0.5 ${
             ['discover','events','experiences'].includes(activeTab) ? 'text-gold-400 font-semibold' : 'text-white/60'
           }`}
@@ -771,7 +760,7 @@ export default function App() {
         </button>
 
         <button
-          onClick={() => setActiveTab('ai-assistant')}
+          onClick={() => navigateToTab('ai-assistant')}
           className={`flex flex-col items-center justify-center space-y-0.5 ${
             activeTab === 'ai-assistant' ? 'text-gold-400 font-semibold' : 'text-white/60'
           }`}
@@ -781,7 +770,7 @@ export default function App() {
         </button>
 
         <button
-          onClick={() => setActiveTab('planner')}
+          onClick={() => router.push('/planner')}
           className={`flex flex-col items-center justify-center space-y-0.5 ${
             activeTab === 'planner' ? 'text-gold-400 font-semibold' : 'text-white/60'
           }`}
@@ -801,7 +790,7 @@ export default function App() {
         </button>
 
         <button
-          onClick={() => setActiveTab('saved')}
+          onClick={() => router.push('/saved')}
           className={`flex flex-col items-center justify-center space-y-0.5 relative ${
             activeTab === 'saved' ? 'text-gold-400 font-semibold' : 'text-white/60'
           }`}

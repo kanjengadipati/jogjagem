@@ -35,7 +35,7 @@ export default function AICtaBanner() {
 
       {/* CTA button */}
       <button
-        onClick={() => router.push('/?tab=ai-assistant')}
+        onClick={() => router.push('/ai')}
         className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-stone-950 hover:bg-stone-800 text-white text-sm font-bold rounded-xl transition-all duration-200 whitespace-nowrap"
       >
         <Sparkles className="w-4 h-4" />

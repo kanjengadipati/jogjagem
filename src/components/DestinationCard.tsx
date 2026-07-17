@@ -9,7 +9,10 @@ interface DestinationCardProps {
   destination: Destination;
   onExplore: (dest: Destination) => void;
   onToggleSave: (dest: Destination) => void;
+  onAuthRequired?: () => void;
   isSaved: boolean;
+  isReportPending?: boolean;
+  onClearPendingReport?: () => void;
   className?: string;
 }
 
@@ -34,8 +37,18 @@ const BADGE_MAP: Record<string, string> = {
   'wonosari': 'Live Tonight'
 };
 
-export default function DestinationCard({ destination, onExplore, onToggleSave, isSaved, className = '' }: DestinationCardProps) {
+export default function DestinationCard({ 
+  destination, onExplore, onToggleSave, onAuthRequired = () => {}, isSaved, 
+  isReportPending = false, onClearPendingReport = () => {}, className = '' 
+}: DestinationCardProps) {
   const [reportOpen, setReportOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (isReportPending) {
+      setReportOpen(true);
+      onClearPendingReport();
+    }
+  }, [isReportPending, onClearPendingReport]);
 
   const handleToggleSave = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -54,7 +67,8 @@ export default function DestinationCard({ destination, onExplore, onToggleSave, 
   const handleReportOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!auth.isLoggedIn()) {
-      alert('Silakan login terlebih dahulu untuk melaporkan gambar.');
+      sessionStorage.setItem('pending_report', destination.id);
+      onAuthRequired();
       return;
     }
     setReportOpen(true);

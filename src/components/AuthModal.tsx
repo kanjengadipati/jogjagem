@@ -6,10 +6,11 @@ import SocialLoginButtons from './SocialLoginButtons';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   defaultMode?: 'login' | 'register';
 }
 
-export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'login' }: AuthModalProps) {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -50,6 +51,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: Au
       const result = await login(email, password);
       if (result.success) {
         onClose();
+        onSuccess?.();
         resetForm();
       } else {
         setError(result.error || 'Login failed');
