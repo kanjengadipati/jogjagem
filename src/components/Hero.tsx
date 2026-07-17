@@ -338,7 +338,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
 
 
           {/* ── Main content area ── */}
-          <div className="mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-6 lg:justify-center lg:pb-36">
+          <div className="mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-0 lg:justify-center lg:pb-36">
 
             {/* Title + Search */}
             <div className="flex-1 flex items-center lg:block lg:flex-none lg:items-start">
@@ -374,7 +374,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
             </div>
 
             {/* Trending Now — mobile/tablet, pushed to bottom with mt-auto */}
-            <div className="block lg:hidden mt-auto pt-4 pb-8">
+            <div className="block lg:hidden mt-auto pt-4 pb-20">
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-gold-400 text-xs">✦</span>
                 <span className="text-[11px] font-bold text-white tracking-wide">Trending Now</span>
