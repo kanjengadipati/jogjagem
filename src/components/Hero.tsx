@@ -429,7 +429,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
 
 
           {/* Trending Now — desktop only, absolute bottom */}
-          <div className="hidden lg:block absolute bottom-8 left-0 right-0 z-10 px-8">
+          <div className="hidden lg:block absolute bottom-[62px] left-0 right-0 z-10 px-8">
             <div className="mx-auto max-w-7xl">
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-gold-400 text-xs">✦</span>
