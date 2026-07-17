@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   CalendarDays, Plus, Trash, ArrowRight, MapPin, Sparkles, 
-  Clock, Coffee, Utensils, MessageSquare, ListTodo, PlusCircle, CheckCircle, Info, Lock, Save
+  Clock, Coffee, Utensils, MessageSquare, ListTodo, PlusCircle, CheckCircle, Info, Save
 } from 'lucide-react';
 import { Destination, TripPlan, TripDay } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -179,9 +179,7 @@ export default function TripPlanner({
             className={`flex items-center space-x-1.5 rounded-full px-5 py-2.5 text-xs font-semibold active:scale-95 transition-all shadow-md ${
               saveFeedback === 'saved'
                 ? 'bg-green-600 text-white'
-                : isAuthenticated
-                ? 'bg-white border border-gold-300 text-gold-800 hover:bg-gold-50'
-                : 'bg-white border border-gold-200 text-stone-400 hover:border-gold-400 hover:text-gold-700'
+                : 'bg-white border border-gold-300 text-gold-800 hover:bg-gold-50'
             }`}
           >
             {saveFeedback === 'saved' ? (
@@ -189,14 +187,9 @@ export default function TripPlanner({
                 <CheckCircle className="h-4 w-4" />
                 <span>Plan Saved!</span>
               </>
-            ) : isAuthenticated ? (
-              <>
-                <Save className="h-4 w-4" />
-                <span>Save Plan</span>
-              </>
             ) : (
               <>
-                <Lock className="h-4 w-4" />
+                <Save className="h-4 w-4" />
                 <span>Save Plan</span>
               </>
             )}
