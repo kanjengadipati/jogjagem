@@ -45,7 +45,7 @@ export default function DestinationCard({ destination, onExplore, onToggleSave, 
     <div
       id={`destination-card-${destination.id}`}
       onClick={() => onExplore(destination)}
-      className={`group relative w-full overflow-hidden rounded-[24px] bg-royal-950 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl cursor-pointer border border-gold-100/10 ${heightClass} ${className}`}
+      className={`group relative w-full overflow-hidden rounded-[24px] bg-[#FCFAF8] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl cursor-pointer border border-stone-200/40 ${heightClass} ${className}`}
     >
       {/* Immersive Destination Thumbnail */}
       <img

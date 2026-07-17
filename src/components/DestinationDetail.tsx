@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { inferTravelerIntent, orderCardsByIntent, IntentProfile } from '@/lib/travelerIntent';
 import { fetchLiveWeather, LiveWeather } from '@/lib/weather';
 import { useLocation } from '@/contexts/LocationContext';
+import { useLeafletMap } from '@/hooks/useLeafletMap';
 import AIFloatingAssistant from '@/components/AIFloatingAssistant';
 import SubNav from '@/components/SubNav';
 
@@ -85,18 +86,21 @@ export default function DestinationDetail({
   const { coords } = useLocation();
   const routePolylineRef = useRef<any>(null);
 
-  // Leaflet refs for detail map
-  const detailMapContainerRef = useRef<HTMLDivElement>(null);
-  const detailMapInstanceRef = useRef<any>(null);
-  const detailMarkerGroupRef = useRef<any>(null);
+  // Leaflet refs for detail map — use shared hook
+  const { mapRef: detailMapContainerRef, mapInstance: detailMapInstance, leafletRef: detailLeafletRef, markerGroup: detailMarkerGroup } = useLeafletMap({
+    center: [destination.latitude, destination.longitude],
+    zoom: 14,
+    scrollWheelZoom: false,
+    zoomControl: true,
+  });
 
   // Draw route helper
   const drawRoute = async (L: any) => {
-    if (!coords || !detailMapInstanceRef.current) return;
+    if (!coords || !detailMapInstance.current) return;
     
     // Clear previous
     if (routePolylineRef.current) {
-      detailMapInstanceRef.current.removeLayer(routePolylineRef.current);
+      detailMapInstance.current.removeLayer(routePolylineRef.current);
     }
 
     try {
@@ -107,7 +111,14 @@ export default function DestinationDetail({
       if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
         const polyline = L.geoJSON(data.routes[0].geometry, {
           style: { color: '#cb8527', weight: 5, opacity: 0.85 }
-        }).addTo(detailMapInstanceRef.current);
+        }).addTo(detailMapInstance.current);
+
+        polyline.eachLayer((layer: any) => {
+          if (layer.getElement) {
+            layer.getElement()?.classList.add('route-animated');
+          }
+        });
+
         routePolylineRef.current = polyline;
       }
     } catch (e) {
@@ -117,51 +128,29 @@ export default function DestinationDetail({
 
   // Route drawing effect
   useEffect(() => {
-    if (detailMapInstanceRef.current && coords) {
-      import('leaflet').then((L) => drawRoute(L));
+    if (detailMapInstance.current && coords) {
+      drawRoute(detailLeafletRef.current);
     }
   }, [coords, destination.latitude, destination.longitude]);
 
-  // Initialize and update Detail Page Leaflet Map
+  // Render markers when map is ready or dependencies change
   useEffect(() => {
-    if (typeof window === 'undefined' || !detailMapContainerRef.current) return;
+    const L = detailLeafletRef.current;
+    const markers = detailMarkerGroup.current;
+    const map = detailMapInstance.current;
+    if (!L || !markers || !map) return;
 
-    import('leaflet').then((L) => {
-      // Clear previous map instance if any
-      if (detailMapInstanceRef.current) {
-        detailMapInstanceRef.current.remove();
-        detailMapInstanceRef.current = null;
-      }
+    markers.clearLayers();
 
-      const container = detailMapContainerRef.current;
-      if (!container) return;
+    // Fit bounds if user is also in Yogyakarta
+    const inYogya = (lat: number, lng: number) => lat >= -8.2 && lat <= -7.5 && lng >= 110.0 && lng <= 110.6;
+    if (coords && inYogya(coords.lat, coords.lng) && inYogya(destination.latitude, destination.longitude)) {
+      const bounds = L.latLngBounds([destination.latitude, destination.longitude], [coords.lat, coords.lng]);
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
 
-      const map = L.map(container, {
-        center: [destination.latitude, destination.longitude],
-        zoom: 14,
-        scrollWheelZoom: false, // disable scroll zoom for page scroll safety
-      });
-
-      // Fit bounds if user is also in Yogyakarta
-      const inYogya = (lat: number, lng: number) => lat >= -8.2 && lat <= -7.5 && lng >= 110.0 && lng <= 110.6;
-      if (coords && inYogya(coords.lat, coords.lng) && inYogya(destination.latitude, destination.longitude)) {
-        const bounds = L.latLngBounds([destination.latitude, destination.longitude], [coords.lat, coords.lng]);
-        map.fitBounds(bounds, { padding: [50, 50] });
-      }
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CartoDB',
-        subdomains: 'abcd',
-        maxZoom: 20
-      }).addTo(map);
-
-      const markerGroup = L.layerGroup().addTo(map);
-      detailMarkerGroupRef.current = markerGroup;
-      detailMapInstanceRef.current = map;
-
-      // Draw markers
-      // 1. Center Destination
-      const centerIcon = L.divIcon({
+    // 1. Center Destination
+    const centerIcon = L.divIcon({
         className: 'custom-detail-center-marker',
         html: `
           <div class="relative flex h-11 w-11 items-center justify-center rounded-full bg-royal-950 text-gold-300 border-2 border-gold-400 shadow-2xl animate-bounce">
@@ -178,7 +167,7 @@ export default function DestinationDetail({
 
       L.marker([destination.latitude, destination.longitude], { icon: centerIcon })
         .bindTooltip(destination.name, { permanent: true, direction: 'bottom', className: 'font-manrope font-bold text-[9px] px-2 py-0.5 rounded-full border border-gold-300 shadow' })
-        .addTo(markerGroup);
+        .addTo(markers);
 
       // 2. Partners
       if (selectedMapFilter === 'all' || selectedMapFilter === 'partner') {
@@ -209,7 +198,7 @@ export default function DestinationDetail({
           marker.on('click', () => {
             setSelectedMapPartner(partner);
           });
-          marker.addTo(markerGroup);
+          marker.addTo(markers);
         });
       }
 
@@ -225,7 +214,7 @@ export default function DestinationDetail({
           iconSize: [90, 20],
           iconAnchor: [45, 10]
         });
-        L.marker([destination.latitude + 0.003, destination.longitude + 0.005], { icon: pkIcon }).addTo(markerGroup);
+        L.marker([destination.latitude + 0.003, destination.longitude + 0.005], { icon: pkIcon }).addTo(markers);
       }
 
       // 4. Render Toilet
@@ -240,7 +229,7 @@ export default function DestinationDetail({
           iconSize: [80, 20],
           iconAnchor: [40, 10]
         });
-        L.marker([destination.latitude - 0.004, destination.longitude - 0.003], { icon: toiletIcon }).addTo(markerGroup);
+        L.marker([destination.latitude - 0.004, destination.longitude - 0.003], { icon: toiletIcon }).addTo(markers);
       }
 
       // 5. Render Emergency
@@ -255,17 +244,9 @@ export default function DestinationDetail({
           iconSize: [100, 20],
           iconAnchor: [50, 10]
         });
-        L.marker([destination.latitude + 0.002, destination.longitude - 0.003], { icon: emergencyIcon }).addTo(markerGroup);
+        L.marker([destination.latitude + 0.002, destination.longitude - 0.003], { icon: emergencyIcon }).addTo(markers);
       }
-    });
-
-    return () => {
-      if (detailMapInstanceRef.current) {
-        detailMapInstanceRef.current.remove();
-        detailMapInstanceRef.current = null;
-      }
-    };
-  }, [destination, enrichedPartners, selectedMapFilter, selectedMapPartner]);
+  }, [destination, enrichedPartners, selectedMapFilter, selectedMapPartner, coords]);
 
 
   // Auto-rotate ecosystem tabs like a slideshow

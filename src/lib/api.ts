@@ -46,6 +46,8 @@ interface ProfileResponse {
   avatar_url?: string;
   cover_image_url?: string;
   reviews_count: number;
+  created_at?: string;
+  location?: string;
 }
 
 let accessToken: string | null = null;
@@ -86,14 +88,20 @@ async function request<T>(
     credentials: 'include',
   });
 
-  const json: APIResponse<T> = await res.json();
-
-  if (res.status === 401 && path !== '/auth/refresh') {
+  if ((res.status === 401 || res.status === 403) && path !== '/auth/refresh') {
     const refreshed = await tryRefresh();
     if (refreshed) {
       return request<T>(path, options);
     }
     setAccessToken(null);
+    return { status: 'error', message: 'Unauthorized' } as any;
+  }
+
+  let json: APIResponse<T>;
+  try {
+    json = await res.json();
+  } catch {
+    json = { status: 'error', message: `Server returned status ${res.status}` } as any;
   }
 
   return json;
@@ -144,6 +152,52 @@ export const auth = {
     return request<User>('/auth/profile', {
       method: 'PATCH',
       body: JSON.stringify({ name, phone_number: phoneNumber }),
+    });
+  },
+
+  async uploadAvatar(file: File) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    const res = await fetch(`${API_BASE}/auth/profile/avatar`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      credentials: 'include',
+    });
+    return res.json() as Promise<APIResponse<{ avatar_url: string }>>;
+  },
+
+  async updateAvatarUrl(name: string, url: string) {
+    return request<{ avatar_url: string }>('/auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ name, avatar_url: url }),
+    });
+  },
+
+  async uploadCover(file: File) {
+    const formData = new FormData();
+    formData.append('cover', file);
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    const res = await fetch(`${API_BASE}/auth/profile/cover`, {
+      method: 'POST',
+      headers,
+      body: formData,
+      credentials: 'include',
+    });
+    return res.json() as Promise<APIResponse<{ cover_image_url: string }>>;
+  },
+
+  async updateCoverUrl(name: string, url: string) {
+    return request<{ cover_image_url: string }>('/auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ name, cover_image_url: url }),
     });
   },
 
@@ -291,11 +345,65 @@ export const ai = {
     }>(`/ai/recommend?time=${encodeURIComponent(timeOfDay)}`);
   },
 
+  async trending() {
+    return request<{
+      items: Array<{
+        type: 'destination' | 'event';
+        id: string;
+        badge: string;
+        headline: string;
+        reason: string;
+        imageUrl: string;
+        rating: number;
+        distance: string;
+        location: string;
+      }>;
+    }>('/ai/trending');
+  },
+
   async getJourney(destinationName: string) {
     return request<{ steps: Array<{ time: string; title: string; desc: string }> }>('/ai/journey', {
       method: 'POST',
       body: JSON.stringify({ destinationName }),
     });
+  },
+};
+
+export const trips = {
+  async getAll() {
+    return request<Array<{
+      id: string;
+      destination_id: string;
+      destination_name: string;
+      destination_image?: string;
+      status: 'planned' | 'ongoing' | 'completed';
+      start_date?: string;
+      end_date?: string;
+      notes?: string;
+    }>>('/trips');
+  },
+
+  async create(destinationId: string, startDate?: string, endDate?: string, notes?: string) {
+    return request('/trips', {
+      method: 'POST',
+      body: JSON.stringify({
+        destination_id: destinationId,
+        start_date: startDate,
+        end_date: endDate,
+        notes,
+      }),
+    });
+  },
+
+  async update(tripId: string, data: { status?: string; notes?: string; start_date?: string; end_date?: string }) {
+    return request(`/trips/${tripId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async delete(tripId: string) {
+    return request(`/trips/${tripId}`, { method: 'DELETE' });
   },
 };
 

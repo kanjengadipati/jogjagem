@@ -53,20 +53,20 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
           {/* Brand Logo */}
             <div 
             id="brand-logo-container" 
-            className="flex cursor-pointer items-center group"
+            className="flex cursor-pointer items-center group shrink-0"
             onClick={() => setActiveTab('discover')}
           >
-            <div className="text-gold-400 transition-transform duration-300 group-hover:scale-105 mr-3">
+            <div className="text-gold-400 transition-transform duration-300 group-hover:scale-105 mr-2">
               <Image src="/logo-gold-new.png" alt="Jogjagem Logo" width={40} height={40} className="object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="font-manrope text-[17px] font-bold tracking-widest text-white">Jogjagem</span>
-              <span className="font-sans text-[9px] uppercase tracking-[0.08em] text-gold-300/90 font-semibold">Hidden Gems of Yogyakarta</span>
+              <span className="font-sans text-[8px] uppercase tracking-[0.08em] text-gold-300/90 font-semibold">Hidden Gems of Yogyakarta</span>
             </div>
           </div>
 
           {/* Desktop Navigation — lg and above only */}
-          <nav id="desktop-navbar" className="hidden lg:flex items-center space-x-5 xl:space-x-8">
+          <nav id="desktop-navbar" className="hidden lg:flex items-center whitespace-nowrap space-x-3 xl:space-x-8">
             {navItems.filter(item => item.id !== 'map').map((item) => {
               const isActive = activeTab === item.id || 
                 (item.id === 'events' && activeTab === 'discover-events') || 
@@ -101,7 +101,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
           </nav>
 
           {/* Desktop Action Icons — lg and above */}
-          <div className="hidden lg:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-2 shrink-0">
             <button
               id="desktop-saved-icon-btn"
               onClick={() => setActiveTab('saved')}

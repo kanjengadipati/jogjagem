@@ -205,7 +205,7 @@ export default function App() {
           if (tab === 'map') {
             router.push('/map');
           } else if (tab === 'events') {
-            setActiveTab('discover');
+            setActiveTab('discover-events');
             setTimeout(() => {
               const el = document.getElementById('upcoming-festivals-showcase');
               if (el) {
@@ -219,7 +219,7 @@ export default function App() {
               }
             }, 150);
           } else if (tab === 'experiences') {
-            setActiveTab('discover');
+            setActiveTab('discover-experiences');
             setTimeout(() => {
               const el = document.getElementById('trending-destinations-showcase');
               if (el) {

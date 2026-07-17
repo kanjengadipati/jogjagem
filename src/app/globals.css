@@ -28,9 +28,28 @@
 /* Base resets & custom scrollbar */
 html, body {
   font-family: var(--font-sans);
-  background-color: #fcfbfa;
+  background-color: #F7F3EE;
   color: #1b1c16;
   overflow-x: hidden;
+}
+
+/* Paper grain texture overlay — subtle noise like premium print */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 300px 300px;
+}
+
+/* Ensure content sits above grain */
+#__next, #explore-jogja-app-root {
+  position: relative;
+  z-index: 1;
 }
 
 ::-webkit-scrollbar {
@@ -62,6 +81,16 @@ html, body {
 @keyframes ecosystem-progress {
   from { transform: scaleX(0); }
   to   { transform: scaleX(1); }
+}
+
+/* Route polyline marching ants animation */
+@keyframes route-march {
+  to { stroke-dashoffset: -20; }
+}
+
+.leaflet-interactive.route-animated {
+  stroke-dasharray: 10, 6;
+  animation: route-march 0.8s linear infinite;
 }
 
 /* Hide scrollbar utility */

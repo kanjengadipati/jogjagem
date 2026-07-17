@@ -255,6 +255,7 @@ function ProfilePageContent() {
                   savedCount={savedCount}
                   visitedCount={visitedCount}
                   onShareProfile={handleShareProfile}
+                  onProfileUpdate={(updated) => setProfileData(updated)}
                 />
 
                 {/* 2. Three-column row: My Trips | Wishlist | Travel Statistics */}
