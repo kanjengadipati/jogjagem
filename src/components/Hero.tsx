@@ -146,49 +146,17 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
     fetchAIRecommendation();
   }, [destinations]);
 
-  const TRENDING_FALLBACK: TrendingItem[] = [
-    {
-      type: 'destination', id: 'goajomblang', badge: 'Hidden Gem',
-      headline: 'Celestial Beam of Heavenly Light', reason: 'Vertical cave with a breathtaking column of light',
-      imageUrl: 'https://images.unsplash.com/photo-1628047563315-d1e8b8d222b9?auto=format&fit=crop&w=400&q=80',
-      rating: 4.9, distance: '45 min', location: 'Gunungkidul',
-    },
-    {
-      type: 'event', id: 'sekaten', badge: 'Spesial Hari Ini',
-      headline: 'Perayaan Budaya Sekaten Yogyakarta', reason: 'Royal Javanese gamelan festival at Kraton',
-      imageUrl: 'https://images.unsplash.com/photo-1533050487297-09b450131914?auto=format&fit=crop&w=400&q=80',
-      rating: 0, distance: '10 min', location: 'Yogyakarta',
-    },
-    {
-      type: 'destination', id: 'merapi', badge: 'Trending',
-      headline: 'Mount Merapi Lava Tour', reason: 'Thrilling jeep ride through volcanic ash fields',
-      imageUrl: 'https://images.unsplash.com/photo-1556375403-b96342fc0ee2?auto=format&fit=crop&w=400&q=80',
-      rating: 4.8, distance: '35 min', location: 'Sleman',
-    },
-    {
-      type: 'destination', id: 'malioboro', badge: 'Populer',
-      headline: 'The Soul of Yogyakarta', reason: 'Iconic street lined with batik, street food & culture',
-      imageUrl: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=400&q=80',
-      rating: 4.6, distance: '5 min', location: 'Yogyakarta',
-    },
-    {
-      type: 'destination', id: 'kalibiru', badge: 'Trending',
-      headline: 'Enchanted Pine Forest Views', reason: 'Hilltop platform with panoramic reservoir vistas',
-      imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=400&q=80',
-      rating: 4.6, distance: '60 min', location: 'Bantul',
-    },
-  ];
-
   useEffect(() => {
     let cancelled = false;
     setTrendingLoading(true);
     ai.trending()
       .then(res => {
         if (cancelled) return;
-        const items = res.status === 'success' && res.data?.items?.length ? res.data.items : TRENDING_FALLBACK;
-        setTrendingItems(items);
+        if (res.status === 'success' && res.data?.items?.length) {
+          setTrendingItems(res.data.items);
+        }
       })
-      .catch(() => { if (!cancelled) setTrendingItems(TRENDING_FALLBACK); })
+      .catch(() => {})
       .finally(() => { if (!cancelled) setTrendingLoading(false); });
     return () => { cancelled = true; };
   }, []);

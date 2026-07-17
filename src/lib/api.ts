@@ -201,6 +201,13 @@ export const auth = {
     });
   },
 
+  async reportDestinationImage(destinationId: string, reason: string, details: string) {
+    return request(`/destinations/${destinationId}/report`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, details }),
+    });
+  },
+
   async getUserDestinations() {
     return request<{ destination_slug: string; status: string }[]>('/destinations/my-status');
   },
