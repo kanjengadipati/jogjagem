@@ -24,7 +24,6 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
   const navItems = [
     { id: 'discover', label: 'Explore', icon: Compass },
     { id: 'events', label: 'Events', icon: CalendarDays },
-    { id: 'experiences', label: 'Experiences', icon: Home },
     { id: 'planner', label: 'Trip Planner', icon: CalendarDays },
     { id: 'ai-assistant', label: 'AI Assistant', icon: Brain },
     { id: 'map', label: 'Interactive Map', icon: Map },
@@ -67,7 +66,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 
           {/* Desktop Navigation — lg and above only */}
           <nav id="desktop-navbar" className="hidden lg:flex items-center whitespace-nowrap space-x-3 xl:space-x-8">
-            {navItems.filter(item => item.id !== 'map').map((item) => {
+            {navItems.filter(item => item.id !== 'map' && (item.id !== 'saved' || isAuthenticated)).map((item) => {
               const isActive = activeTab === item.id || 
                 (item.id === 'events' && activeTab === 'discover-events') || 
                 (item.id === 'experiences' && activeTab === 'discover-experiences');
@@ -102,60 +101,64 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 
           {/* Desktop Action Icons — lg and above */}
           <div className="hidden lg:flex items-center space-x-2 shrink-0">
-            <button
-              id="desktop-saved-icon-btn"
-              onClick={() => setActiveTab('saved')}
-              className="relative p-1.5 rounded-full hover:bg-white/10 transition-colors text-white"
-            >
-              <Heart className={`h-5 w-5 ${savedCount > 0 ? 'fill-gold-400 text-gold-400 animate-pulse' : ''}`} />
-              {savedCount > 0 && (
-                <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-gold-500 text-[8px] font-bold text-white">
-                  {savedCount}
-                </span>
-              )}
-            </button>
-
-            <div className="relative">
+            {isAuthenticated && (
               <button
-                onClick={() => setBellOpen(!bellOpen)}
-                className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-white relative"
+                id="desktop-saved-icon-btn"
+                onClick={() => setActiveTab('saved')}
+                className="relative p-1.5 rounded-full hover:bg-white/10 transition-colors text-white"
               >
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-gold-400" />
+                <Heart className={`h-5 w-5 ${savedCount > 0 ? 'fill-gold-400 text-gold-400 animate-pulse' : ''}`} />
+                {savedCount > 0 && (
+                  <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-gold-500 text-[8px] font-bold text-white">
+                    {savedCount}
+                  </span>
+                )}
               </button>
+            )}
 
-              {bellOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setBellOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden z-50 animate-fade-in">
-                    <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
-                      <span className="text-sm font-bold text-royal-950">Notifikasi</span>
-                      <button onClick={() => setBellOpen(false)} className="text-xs text-stone-400 hover:text-stone-600">
-                        Tandai sudah dibaca
-                      </button>
-                    </div>
-                    <div className="max-h-80 overflow-y-auto">
-                      {[
-                        { title: 'Prambanan Temple Festival', desc: 'Festival budaya dimulai 5 hari lagi', time: '2 jam lalu', unread: true },
-                        { title: 'Rekomendasi AI Hari Ini', desc: '3 tempat wisata baru dekat Anda', time: '5 jam lalu', unread: true },
-                        { title: 'Trip Planner Update', desc: 'Rute perjalanan Anda sudah siap', time: 'Kemarin', unread: false },
-                      ].map((n, i) => (
-                        <div key={i} className={`px-4 py-3 border-b border-stone-50 hover:bg-stone-50 transition-colors cursor-pointer ${n.unread ? 'bg-gold-50/50' : ''}`}>
-                          <div className="flex items-start gap-2.5">
-                            {n.unread && <span className="mt-1.5 h-2 w-2 rounded-full bg-gold-500 shrink-0" />}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold text-royal-950 leading-tight">{n.title}</p>
-                              <p className="text-[11px] text-stone-500 mt-0.5 leading-snug">{n.desc}</p>
-                              <p className="text-[10px] text-stone-400 mt-1">{n.time}</p>
+            {isAuthenticated && (
+              <div className="relative">
+                <button
+                  onClick={() => setBellOpen(!bellOpen)}
+                  className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-white relative"
+                >
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-gold-400" />
+                </button>
+
+                {bellOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setBellOpen(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden z-50 animate-fade-in">
+                      <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
+                        <span className="text-sm font-bold text-royal-950">Notifikasi</span>
+                        <button onClick={() => setBellOpen(false)} className="text-xs text-stone-400 hover:text-stone-600">
+                          Tandai sudah dibaca
+                        </button>
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {[
+                          { title: 'Prambanan Temple Festival', desc: 'Festival budaya dimulai 5 hari lagi', time: '2 jam lalu', unread: true },
+                          { title: 'Rekomendasi AI Hari Ini', desc: '3 tempat wisata baru dekat Anda', time: '5 jam lalu', unread: true },
+                          { title: 'Trip Planner Update', desc: 'Rute perjalanan Anda sudah siap', time: 'Kemarin', unread: false },
+                        ].map((n, i) => (
+                          <div key={i} className={`px-4 py-3 border-b border-stone-50 hover:bg-stone-50 transition-colors cursor-pointer ${n.unread ? 'bg-gold-50/50' : ''}`}>
+                            <div className="flex items-start gap-2.5">
+                              {n.unread && <span className="mt-1.5 h-2 w-2 rounded-full bg-gold-500 shrink-0" />}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold text-royal-950 leading-tight">{n.title}</p>
+                                <p className="text-[11px] text-stone-500 mt-0.5 leading-snug">{n.desc}</p>
+                                <p className="text-[10px] text-stone-400 mt-1">{n.time}</p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Auth Section */}
             {isAuthenticated ? (
@@ -214,17 +217,19 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 
           {/* Mobile/tablet top action menu — below lg */}
           <div className="flex lg:hidden items-center space-x-3">
-            <button 
-              onClick={() => setActiveTab('saved')} 
-              className="relative p-2 rounded-full text-white hover:bg-white/10"
-            >
-              <Heart className={`h-5 w-5 ${savedCount > 0 ? 'fill-gold-400 text-gold-400' : ''}`} />
-              {savedCount > 0 && (
-                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold-500 text-[8px] font-bold text-white">
-                  {savedCount}
-                </span>
-              )}
-            </button>
+            {isAuthenticated && (
+              <button
+                onClick={() => setActiveTab('saved')}
+                className="relative p-2 rounded-full text-white hover:bg-white/10"
+              >
+                <Heart className={`h-5 w-5 ${savedCount > 0 ? 'fill-gold-400 text-gold-400' : ''}`} />
+                {savedCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold-500 text-[8px] font-bold text-white">
+                    {savedCount}
+                  </span>
+                )}
+              </button>
+            )}
             
             {isAuthenticated ? (
               <button
@@ -277,7 +282,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          {navItems.map((item) => {
+          {navItems.filter(item => item.id !== 'saved' || isAuthenticated).map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id ||
               (item.id === 'events' && activeTab === 'discover-events') ||
