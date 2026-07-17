@@ -10,7 +10,7 @@ import TripPlanner from './components/TripPlanner';
 
 import { Destination, Festival } from './types';
 import { destinations, events, config, auth } from './lib/api';
-import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, RefreshCw, AlertCircle } from 'lucide-react';
+import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, RefreshCw } from 'lucide-react';
 
 export default function App() {
   const router = useRouter();
@@ -27,7 +27,6 @@ export default function App() {
   const [allEvents, setAllEvents] = useState<Festival[]>([]);
   const [allQuotes, setAllQuotes] = useState<{ text: string; author: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -71,7 +70,6 @@ export default function App() {
       }
     }).catch(err => {
       console.error('Failed to load data:', err);
-      setApiError(true);
     }).finally(() => {
       setIsLoading(false);
     });
@@ -247,61 +245,6 @@ export default function App() {
             {/* Active Tab: Discover (Homepage) */}
             {(activeTab === 'discover' || activeTab.startsWith('discover-')) && (
               <div className="space-y-4 animate-fade-in">
-                {false && (
-                  <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-                    <div className="rounded-3xl bg-amber-50 border border-amber-200/60 p-5 text-amber-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm">
-                      <div className="flex items-start space-x-3.5">
-                        <AlertCircle className="h-5.5 w-5.5 text-amber-600 shrink-0 mt-0.5" />
-                        <div>
-                          <h4 className="text-sm font-semibold text-amber-950">Connection Issue Detected</h4>
-                          <p className="text-xs text-amber-700/90 mt-1 leading-relaxed">
-                            Could not connect to the backend server. If you are developing locally, please ensure the backend Go API server is running on port 8081. If you've deployed, verify your API base URL configuration.
-                          </p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => {
-                          setIsLoading(true);
-                          setApiError(false);
-                          Promise.all([
-                            destinations.getAll(),
-                            events.getAll(),
-                            config.getQuotes(),
-                          ]).then(([destRes, eventRes, quoteRes]) => {
-                            if (destRes.status === 'success' && destRes.data) {
-                              setAllDestinations(destRes.data as Destination[]);
-                            }
-                            if (eventRes.status === 'success' && eventRes.data) {
-                              const mapped = (eventRes.data as any[]).map(raw => ({
-                                id: raw.id || raw.ExternalID || '',
-                                name: raw.title || raw.Name || '',
-                                date: raw.start_date ? `${raw.start_date} - ${raw.end_date || ''}` : (raw.date || ''),
-                                location: raw.location || '',
-                                image: raw.image_url || raw.image || '',
-                                description: raw.description || '',
-                                highlights: Array.isArray(raw.highlights) ? raw.highlights : [],
-                                category: raw.category || '',
-                              }));
-                              setAllEvents(mapped);
-                            }
-                            if (quoteRes.status === 'success' && quoteRes.data) {
-                              setAllQuotes(quoteRes.data);
-                            }
-                          }).catch(err => {
-                            console.error('Failed to load data on retry:', err);
-                            setApiError(true);
-                          }).finally(() => {
-                            setIsLoading(false);
-                          });
-                        }}
-                        className="text-xs font-semibold text-amber-950 bg-amber-100 hover:bg-amber-200/80 px-4 py-2 rounded-xl border border-amber-300/60 transition-all cursor-pointer shrink-0 w-fit"
-                      >
-                        Retry Connection
-                      </button>
-                    </div>
-                  </div>
-                )}
-
                 {/* Visual Fullscreen Hero Section */}
                 <Hero
                   destinations={allDestinations}
