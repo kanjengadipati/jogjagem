@@ -208,7 +208,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 
         {/* Mobile Navigation Panel */}
         {mobileMenuOpen && (
-          <div id="mobile-navigation-panel" className="lg:hidden border-t border-royal-900 bg-royal-950/95 backdrop-blur-lg animate-fade-in">
+          <div id="mobile-navigation-panel" className="lg:hidden border-t border-royal-900 bg-royal-950 backdrop-blur-lg animate-fade-in relative z-50">
             <div className="space-y-1 px-3 py-4">
               {navItems.map((item) => {
                 const isActive = activeTab === item.id;
