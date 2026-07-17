@@ -340,7 +340,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
 
 
           {/* ── Main content area ── */}
-          <div className="mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-0 lg:justify-center lg:pb-36">
+          <div className="mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-0 lg:justify-center lg:pb-52">
 
             {/* Title + Search */}
             <div className="flex-1 flex items-center lg:block lg:flex-none lg:items-start">
