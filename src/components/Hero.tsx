@@ -254,7 +254,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
       <style>{`@keyframes marqueeScroll { 0% { transform: translateX(0); } 70% { transform: translateX(-50%); } 100% { transform: translateX(0); } }`}</style>
       <div
         id="hero-section-container"
-        className="relative min-h-[calc(100svh-64px)] lg:h-[90vh] lg:min-h-[900px] w-full bg-royal-950"
+        className="relative min-h-[calc(100svh-64px)] lg:h-[90vh] lg:min-h-[780px] w-full bg-royal-950"
       >
         {/* ── Background slides ── */}
         <div className="absolute inset-0 overflow-hidden">
@@ -271,7 +271,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
         </div>
 
         {/* ── Foreground ── */}
-        <div className="relative z-10 flex flex-col min-h-[calc(100svh-64px)] lg:min-h-[900px] lg:h-[90vh]">
+        <div className="relative z-10 flex flex-col min-h-[calc(100svh-64px)] lg:min-h-[780px] lg:h-[90vh]">
 
           {recommendation && isRecommendationDismissed && (
             <button onClick={() => setIsRecommendationDismissed(false)} className="absolute top-[22px] right-3 sm:right-5 lg:right-8 z-20 hover:scale-110 transition-transform" aria-label="Buka rekomendasi AI">
@@ -340,7 +340,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
 
 
           {/* ── Main content area ── */}
-          <div className="mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-0 lg:justify-center lg:pb-[220px]">
+          <div className="mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-0 lg:justify-center lg:pb-36">
 
             {/* Title + Search */}
             <div className="flex-1 flex items-center lg:block lg:flex-none lg:items-start">
