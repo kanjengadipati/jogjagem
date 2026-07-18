@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, X, Shield, Zap, Navigation } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
+import { useLocale } from '@/contexts/LocaleContext';
 
 export default function LocationPermissionModal() {
   const { permission, hasPrompted, requestLocation, dismissPrompt } = useLocation();
+  const { t } = useLocale();
   const [closing, setClosing] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -77,10 +79,10 @@ export default function LocationPermissionModal() {
           {/* Text */}
           <div className="text-center mb-5">
             <h2 className="font-manrope text-[17px] font-extrabold text-royal-950 mb-1.5 tracking-tight">
-              Aktifkan Lokasi?
+              {t('location_permission.heading')}
             </h2>
             <p className="text-[13px] text-stone-500 leading-relaxed">
-              Kami akan menunjukkan tempat wisata dan kuliner terdekat di sekitar Anda.
+              {t('location_permission.description')}
             </p>
           </div>
 
@@ -88,15 +90,15 @@ export default function LocationPermissionModal() {
           <div className="flex gap-2 mb-5">
             <div className="flex-1 bg-gold-50 rounded-xl px-3 py-2.5 flex flex-col items-center text-center gap-1">
               <Zap className="h-3.5 w-3.5 text-gold-600" />
-              <span className="text-[10px] font-semibold text-gold-700 leading-tight">Rekomendasi<br />Real-time</span>
+              <span className="text-[10px] font-semibold text-gold-700 leading-tight">{t('location_permission.realtime_label')}</span>
             </div>
             <div className="flex-1 bg-gold-50 rounded-xl px-3 py-2.5 flex flex-col items-center text-center gap-1">
               <MapPin className="h-3.5 w-3.5 text-gold-600" />
-              <span className="text-[10px] font-semibold text-gold-700 leading-tight">Navigasi<br />Langsung</span>
+              <span className="text-[10px] font-semibold text-gold-700 leading-tight">{t('location_permission.direct_nav_label')}</span>
             </div>
             <div className="flex-1 bg-gold-50 rounded-xl px-3 py-2.5 flex flex-col items-center text-center gap-1">
               <Shield className="h-3.5 w-3.5 text-gold-600" />
-              <span className="text-[10px] font-semibold text-gold-700 leading-tight">Privasi<br />Aman</span>
+              <span className="text-[10px] font-semibold text-gold-700 leading-tight">{t('location_permission.privacy_label')}</span>
             </div>
           </div>
 
@@ -106,13 +108,13 @@ export default function LocationPermissionModal() {
             className="w-full py-3.5 rounded-2xl bg-gold-500 hover:bg-gold-600 active:scale-[0.98] text-white text-[13px] font-bold transition-all shadow-md shadow-gold-500/25 flex items-center justify-center gap-1.5"
           >
             <MapPin className="h-4 w-4" />
-            Ya, Aktifkan
+            {t('location_permission.enable_btn')}
           </button>
           <button
             onClick={handleDismiss}
             className="w-full py-3 rounded-2xl text-stone-400 text-[13px] font-semibold transition-all hover:text-stone-600 mt-1"
           >
-            Lewati
+            {t('location_permission.skip_btn')}
           </button>
         </div>
       </div>

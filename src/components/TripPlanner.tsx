@@ -32,7 +32,10 @@ export default function TripPlanner({
 }: TripPlannerProps) {
   const { isAuthenticated } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [saveFeedback, setSaveFeedback] = useState<'idle' | 'saved'>('idle');
+  const [saveFeedback, setSaveFeedback] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  // remote BE id — null means trip hasn't been saved yet
+  const [remoteId, setRemoteId] = useState<string | null>(null);
+
   const [tripPlan, setTripPlan] = useState<TripPlan>({
     id: 'my-custom-trip',
     title: 'My Royal Yogyakarta Escape',
@@ -41,23 +44,48 @@ export default function TripPlanner({
     days: [
       { dayNumber: 1, destinations: [], notes: 'Cultural heritage immersion' },
       { dayNumber: 2, destinations: [], notes: 'Volcano thrills and hot coffee' },
-      { dayNumber: 3, destinations: [], notes: 'Southern sunset beach mirror' }
-    ]
+      { dayNumber: 3, destinations: [], notes: 'Southern sunset beach mirror' },
+    ],
   });
 
   const [activeDayIdx, setActiveDayIdx] = useState(0);
   const [tripNotes, setTripNotes] = useState('');
 
+  // ── Load existing trip from BE on mount ────────────────────────────
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    tripsApi.getAll().then((res) => {
+      if (res.status !== 'success' || !res.data?.length) return;
+      const remote = (res.data as TripResponse[])[0];
+      setRemoteId(remote.id);
+      // Rebuild days — dest objects are not stored on BE, only IDs.
+      // We keep the structure; full dest objects re-attach from savedDestinations.
+      const destMap = Object.fromEntries(savedDestinations.map((d) => [d.id, d]));
+      const days: TripDay[] = (remote.days ?? []).map((d: TripDayPayload) => ({
+        dayNumber: d.dayNumber,
+        notes: d.notes ?? '',
+        destinations: (d.destinationIds ?? [])
+          .map((id: string) => destMap[id])
+          .filter(Boolean) as Destination[],
+      }));
+      if (days.length > 0) {
+        setTripPlan({
+          id: remote.id,
+          title: remote.title,
+          startDate: remote.start_date ?? '',
+          durationDays: remote.duration_days,
+          days,
+        });
+      }
+    }).catch(() => {});
+  }, [isAuthenticated]);
+
   const handleAddDestinationToDay = (dest: Destination, dayNum: number) => {
     setTripPlan(prev => {
       const updatedDays = prev.days.map(day => {
         if (day.dayNumber === dayNum) {
-          // Check if already exists in this day
           if (day.destinations.some(d => d.id === dest.id)) return day;
-          return {
-            ...day,
-            destinations: [...day.destinations, dest]
-          };
+          return { ...day, destinations: [...day.destinations, dest] };
         }
         return day;
       });
@@ -69,10 +97,7 @@ export default function TripPlanner({
     setTripPlan(prev => {
       const updatedDays = prev.days.map(day => {
         if (day.dayNumber === dayNum) {
-          return {
-            ...day,
-            destinations: day.destinations.filter(d => d.id !== destId)
-          };
+          return { ...day, destinations: day.destinations.filter(d => d.id !== destId) };
         }
         return day;
       });
@@ -82,12 +107,9 @@ export default function TripPlanner({
 
   const handleUpdateDayNotes = (dayNum: number, notesText: string) => {
     setTripPlan(prev => {
-      const updatedDays = prev.days.map(day => {
-        if (day.dayNumber === dayNum) {
-          return { ...day, notes: notesText };
-        }
-        return day;
-      });
+      const updatedDays = prev.days.map(day =>
+        day.dayNumber === dayNum ? { ...day, notes: notesText } : day
+      );
       return { ...prev, days: updatedDays };
     });
   };
@@ -95,37 +117,61 @@ export default function TripPlanner({
   const handleAddDay = () => {
     setTripPlan(prev => {
       const newDayNum = prev.durationDays + 1;
-      const newDay: TripDay = {
-        dayNumber: newDayNum,
-        destinations: [],
-        notes: `Exploring Yogyakarta's beauties`
-      };
-      return {
-        ...prev,
-        durationDays: newDayNum,
-        days: [...prev.days, newDay]
-      };
+      const newDay: TripDay = { dayNumber: newDayNum, destinations: [], notes: `Exploring Yogyakarta's beauties` };
+      return { ...prev, durationDays: newDayNum, days: [...prev.days, newDay] };
     });
     setActiveDayIdx(tripPlan.days.length);
   };
 
   const activeDay = tripPlan.days[activeDayIdx];
 
-  const handleSavePlan = () => {
+  // Serialise local TripDay[] → TripDayPayload[] for the BE
+  const buildPayload = () =>
+    tripPlan.days.map((day) => ({
+      dayNumber: day.dayNumber,
+      destinationIds: day.destinations.map((d) => d.id),
+      notes: day.notes ?? '',
+    }));
+
+  const handleSavePlan = async () => {
     if (!isAuthenticated) {
       setAuthModalOpen(true);
       return;
     }
-    // Persist to localStorage as a simple save (backend integration can be added later)
+    setSaveFeedback('saving');
     try {
-      const saved = JSON.parse(localStorage.getItem('jogjagem_trip_plans') || '[]');
-      const existing = saved.findIndex((p: TripPlan) => p.id === tripPlan.id);
-      if (existing >= 0) saved[existing] = tripPlan;
-      else saved.push(tripPlan);
-      localStorage.setItem('jogjagem_trip_plans', JSON.stringify(saved));
-    } catch { /* ignore storage errors */ }
-    setSaveFeedback('saved');
-    setTimeout(() => setSaveFeedback('idle'), 2500);
+      const payload = {
+        title: tripPlan.title,
+        start_date: tripPlan.startDate,
+        duration_days: tripPlan.durationDays,
+        days: buildPayload(),
+        notes: tripNotes,
+        status: 'draft',
+      };
+
+      if (remoteId) {
+        // Update existing
+        const res = await tripsApi.update(remoteId, payload);
+        if (res.status === 'success') {
+          setSaveFeedback('saved');
+        } else {
+          setSaveFeedback('error');
+        }
+      } else {
+        // Create new
+        const res = await tripsApi.create(payload);
+        if (res.status === 'success' && res.data) {
+          setRemoteId((res.data as TripResponse).id);
+          setSaveFeedback('saved');
+        } else {
+          setSaveFeedback('error');
+        }
+      }
+    } catch {
+      setSaveFeedback('error');
+    } finally {
+      setTimeout(() => setSaveFeedback('idle'), 2500);
+    }
   };
 
   // Dynamic advice generator based on selected destinations in active day
@@ -180,6 +226,8 @@ export default function TripPlanner({
             className={`flex items-center space-x-1.5 rounded-full px-5 py-2.5 text-xs font-semibold active:scale-95 transition-all shadow-md ${
               saveFeedback === 'saved'
                 ? 'bg-green-600 text-white'
+                : saveFeedback === 'error'
+                ? 'bg-red-500 text-white'
                 : 'bg-white border border-gold-300 text-gold-800 hover:bg-gold-50'
             }`}
           >
@@ -187,6 +235,16 @@ export default function TripPlanner({
               <>
                 <CheckCircle className="h-4 w-4" />
                 <span>Plan Saved!</span>
+              </>
+            ) : saveFeedback === 'saving' ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Saving…</span>
+              </>
+            ) : saveFeedback === 'error' ? (
+              <>
+                <Save className="h-4 w-4" />
+                <span>Retry Save</span>
               </>
             ) : (
               <>

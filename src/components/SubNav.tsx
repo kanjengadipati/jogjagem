@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ArrowLeft, Heart, Share2 } from 'lucide-react';
+import { useLocale } from '@/contexts/LocaleContext';
 
 interface SubNavLink {
   label: string;
@@ -41,6 +42,7 @@ export default function SubNav({
   rightExtra,
   zClass = 'z-50',
 }: SubNavProps) {
+  const { t } = useLocale();
   return (
     <nav className={`sticky top-0 ${zClass} bg-[#0f100c]/90 backdrop-blur-md border-b border-white/5 text-white transition-all duration-300`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
@@ -50,10 +52,10 @@ export default function SubNav({
           <button
             onClick={onBack}
             className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors flex items-center space-x-1.5 text-gold-300 hover:text-white shrink-0"
-            title="Go back"
+            title={t('subnav.go_back')}
           >
             <ArrowLeft className="h-5 w-5" />
-            <span className="hidden sm:inline text-xs font-mono tracking-widest uppercase">Back</span>
+            <span className="hidden sm:inline text-xs font-mono tracking-widest uppercase">{t('common.back')}</span>
           </button>
           {title && (
             <>
@@ -104,7 +106,7 @@ export default function SubNav({
             <button
               onClick={onToggleSave}
               className={`p-2 rounded-full hover:bg-white/10 transition-all ${isSaved ? 'text-gold-400' : 'text-white/80'}`}
-              title="Save"
+              title={t('subnav.save')}
             >
               <Heart className={`h-5 w-5 ${isSaved ? 'fill-gold-400 text-gold-400' : ''}`} />
             </button>
@@ -113,14 +115,14 @@ export default function SubNav({
             <button
               onClick={onShare}
               className="p-2 rounded-full hover:bg-white/10 transition-colors text-white/80"
-              title="Share"
+              title={t('subnav.share')}
             >
               <Share2 className="h-5 w-5" />
             </button>
           )}
           {copiedToast && (
             <span className="absolute -bottom-8 right-0 bg-gold-400 text-royal-950 font-mono text-[10px] font-bold px-3 py-1 rounded-full shadow-md border border-gold-300 whitespace-nowrap">
-              COPIED LINK!
+              {t('common.copied')}
             </span>
           )}
           {userInitials && (

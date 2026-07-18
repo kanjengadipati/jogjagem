@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Heart, Compass, Loader2 } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
+import I18nProvider from '@/contexts/I18nProvider';
+import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
 import AuthModal from '@/components/AuthModal';
@@ -15,6 +17,7 @@ import { Destination } from '@/types';
 function SavedPageContent() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const { t } = useLocale();
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
@@ -124,7 +127,7 @@ function SavedPageContent() {
 
       <SubNav
         onBack={() => router.back()}
-        title="Saved Places"
+        title={t('saved_page.heading')}
         zClass="z-40"
       />
 
@@ -133,25 +136,25 @@ function SavedPageContent() {
         <div className="flex flex-col space-y-2 mb-8 border-b border-gold-100 pb-5">
           <div className="flex items-center space-x-2.5">
             <Heart className="h-5 w-5 fill-gold-600 text-gold-600" />
-            <h2 className="font-manrope text-2xl font-bold text-royal-950">Your Bookmarked Discoveries</h2>
+            <h2 className="font-manrope text-2xl font-bold text-royal-950">{t('saved_page.title')}</h2>
           </div>
           <p className="text-sm text-royal-700/80 font-light">
-            Your saved destinations. Allocate them into your Trip Planner to build the perfect itinerary.
+            {t('saved_page.description')}
           </p>
         </div>
 
         {savedDestinations.length === 0 ? (
           <div className="text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-white/40 p-6 max-w-md mx-auto">
             <Compass className="h-10 w-10 text-gold-500 mx-auto mb-3" />
-            <h3 className="font-manrope text-base font-bold text-royal-950">No Saved Places Yet</h3>
+            <h3 className="font-manrope text-base font-bold text-royal-950">{t('saved_page.empty_heading')}</h3>
             <p className="text-xs text-royal-700/60 font-light mt-1 max-w-xs mx-auto">
-              Explore Yogyakarta and tap the heart icon on any destination to save it here.
+              {t('saved_page.empty_desc')}
             </p>
             <button
               onClick={() => router.push('/')}
               className="mt-5 px-5 py-2.5 bg-royal-950 hover:bg-royal-800 text-white text-xs font-bold rounded-xl transition-all"
             >
-              Explore Destinations
+              {t('saved_page.explore_btn')}
             </button>
           </div>
         ) : (
@@ -183,7 +186,9 @@ export default function SavedPage() {
   return (
     <AuthProvider>
       <LocationProvider>
-        <SavedPageContent />
+        <I18nProvider>
+          <SavedPageContent />
+        </I18nProvider>
       </LocationProvider>
     </AuthProvider>
   );

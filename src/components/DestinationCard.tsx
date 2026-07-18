@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star, Heart, Flag } from 'lucide-react';
 import { Destination } from '../types';
 import { auth } from '../lib/api';
+import { useLocale } from '@/contexts/LocaleContext';
 import ReportModal from './ReportModal';
 
 interface DestinationCardProps {
@@ -42,6 +43,7 @@ export default function DestinationCard({
   isReportPending = false, onClearPendingReport = () => {}, className = '' 
 }: DestinationCardProps) {
   const [reportOpen, setReportOpen] = useState(false);
+  const { t } = useLocale();
 
   React.useEffect(() => {
     if (isReportPending) {
@@ -58,9 +60,9 @@ export default function DestinationCard({
   const handleReport = async (reason: string, details: string) => {
     try {
       await auth.reportDestinationImage(destination.id, reason, details);
-      alert('Terima kasih atas laporannya.');
+      alert(t('report.report_submitted'));
     } catch {
-      alert('Gagal mengirim laporan.');
+      alert(t('report.report_failed'));
     }
   };
 
@@ -106,7 +108,7 @@ export default function DestinationCard({
             <button
                 onClick={handleReportOpen}
                 className="p-1.5 rounded-full bg-black/20 hover:bg-red-500 text-white backdrop-blur-sm transition-all"
-                title="Laporkan gambar"
+                title={t('destination_card.report_image_title')}
             >
                 <Flag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
@@ -155,7 +157,7 @@ export default function DestinationCard({
           {/* Photo Credit — hidden on mobile */}
           <div className="hidden sm:block mt-1.5">
             <span className="text-[9px] text-white/40 font-mono">
-              Photo: {destination.images[0]?.credit || 'Unsplash'} / Unsplash
+              {t('common.photo')} {destination.images[0]?.credit || 'Unsplash'} / Unsplash
             </span>
           </div>
         </div>

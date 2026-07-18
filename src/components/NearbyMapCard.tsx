@@ -4,10 +4,12 @@ import React, { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Map, Navigation } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
+import { useLocale } from '@/contexts/LocaleContext';
 
 export default function NearbyMapCard() {
   const router = useRouter();
   const { coords, permission, requestLocation } = useLocation();
+  const { t } = useLocale();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
 
@@ -86,7 +88,7 @@ export default function NearbyMapCard() {
 
           <div className="absolute top-2 left-2 bg-gold-500 border border-gold-400/10 px-2 py-0.5 rounded-full text-[8px] font-sans font-semibold text-white uppercase tracking-[0.08em] flex items-center gap-1" style={{ zIndex: 450 }}>
             <Map className="h-2 w-2" />
-            {coords ? 'Near You' : 'Enable Location'}
+            {coords ? t('nearby_map.badge_near') : t('nearby_map.badge_enable')}
           </div>
 
           <div className="absolute bottom-2 right-2 h-6 w-6 rounded-full bg-gold-400 text-royal-950 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" style={{ zIndex: 450 }}>
@@ -97,10 +99,10 @@ export default function NearbyMapCard() {
 
           <div className="absolute bottom-0 inset-x-0 p-2.5 flex flex-col justify-end text-left" style={{ zIndex: 450 }}>
             <h3 className="font-manrope text-[11px] font-bold text-white leading-tight group-hover:text-gold-300 transition-colors drop-shadow">
-              Explore Nearby
+              {t('nearby_map.heading')}
             </h3>
             <p className="text-[9px] text-white/70 mt-0.5 drop-shadow">
-              {coords ? "See what's around you" : 'Tap to enable'}
+              {coords ? t('nearby_map.description') : t('nearby_map.tap_enable')}
             </p>
           </div>
         </div>

@@ -20,6 +20,7 @@ import { useLocation } from '@/contexts/LocationContext';
 import { useLeafletMap } from '@/hooks/useLeafletMap';
 import AIFloatingAssistant from '@/components/AIFloatingAssistant';
 import SubNav from '@/components/SubNav';
+import { useLocale } from '@/contexts/LocaleContext';
 
 interface DestinationDetailProps {
   destination: Destination;
@@ -38,6 +39,7 @@ export default function DestinationDetail({
   isSaved,
   onSelectPartnerOnMap
 }: DestinationDetailProps) {
+  const { t } = useLocale();
   const { user, isAuthenticated } = useAuth();
   const userInitials = user?.name ? user.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2) : 'YG';
   // States
@@ -708,11 +710,11 @@ export default function DestinationDetail({
         onBack={onBack}
         title={destination.name}
         centerLinks={[
-          { label: 'Explore', onClick: onBack },
-          { label: 'Journey', href: '#suggested-journey-section' },
-          { label: 'Ecosystem', href: '#ecosystem-section' },
-          { label: 'Route Map', href: '#interactive-map-section' },
-          { label: 'Stories', href: '#community-stories' },
+          { label: t('destination_detail.nav_explore'), onClick: onBack },
+          { label: t('destination_detail.nav_journey'), href: '#suggested-journey-section' },
+          { label: t('destination_detail.nav_ecosystem'), href: '#ecosystem-section' },
+          { label: t('destination_detail.nav_route_map'), href: '#interactive-map-section' },
+          { label: t('destination_detail.nav_stories'), href: '#community-stories' },
         ]}
         isSaved={isSaved}
         onToggleSave={() => onToggleSave(destination)}
@@ -742,13 +744,13 @@ export default function DestinationDetail({
           <div className="flex flex-wrap items-center gap-2.5 mt-2">
             <span className="bg-gold-500/90 backdrop-blur-md border border-gold-400/20 text-white text-[9px] md:text-[10px] font-mono tracking-widest uppercase px-3.5 py-1 rounded-full font-bold shadow-lg flex items-center space-x-1.5">
               <Award className="h-3 w-3 animate-pulse" />
-              <span>{destination.category === 'heritage' ? 'UNESCO WORLD HERITAGE' : 'CURATED HIGHLANDS'}</span>
+              <span>{destination.category === 'heritage' ? t('destination_detail.badge_unesco_heritage') : t('destination_detail.badge_curated_highlands')}</span>
             </span>
             <span className="bg-white/10 backdrop-blur-md border border-white/15 text-gold-200 text-[9px] md:text-[10px] font-mono tracking-widest uppercase px-3.5 py-1 rounded-full shadow-md">
-              {destination.category === 'heritage' ? 'Sultanate Core Zone' : destination.category === 'beach' ? 'Southern Coast Zone' : destination.category === 'mountain' ? 'Highland Adventure Zone' : destination.subRegion ? `${destination.subRegion} Division` : 'Yogyakarta Region'}
+              {destination.category === 'heritage' ? t('destination_detail.zone_sultanate') : destination.category === 'beach' ? t('destination_detail.zone_southern') : destination.category === 'mountain' ? t('destination_detail.zone_highland') : destination.subRegion ? `${destination.subRegion} ${t('destination_detail.division_label')}` : t('destination_detail.zone_yogyakarta')}
             </span>
             <span className="bg-emerald-600/90 backdrop-blur-md text-white text-[9px] md:text-[10px] font-mono tracking-widest uppercase px-3.5 py-1 rounded-full font-bold">
-              ● OPEN TODAY
+              {t('destination_detail.open_today')}
             </span>
           </div>
 
@@ -763,7 +765,7 @@ export default function DestinationDetail({
                     <Star key={i} className="h-4.5 w-4.5 fill-amber-400 text-amber-400" />
                   ))}
                 </span>
-                <span className="text-sm font-semibold font-mono text-gold-200 mt-0.5">{destination.rating} ({destination.reviewCount} reviews)</span>
+                <span className="text-sm font-semibold font-mono text-gold-200 mt-0.5">{destination.rating} ({destination.reviewCount} {t('destination_detail.reviews_label')})</span>
               </div>
               
               <h1 className="font-display text-4xl sm:text-5xl lg:text-6.5xl tracking-tight leading-[1.05] text-white">
@@ -777,7 +779,7 @@ export default function DestinationDetail({
               {/* Geographic Region Label */}
               <div className="flex items-center space-x-2 text-white/80 text-xs md:text-sm font-mono pt-1">
                 <MapPin className="h-4 w-4 text-gold-400 shrink-0" />
-                <span>{destination.location} • {destination.subRegion} Division</span>
+                <span>{destination.location} • {destination.subRegion} {t('destination_detail.division_label')}</span>
               </div>
             </div>
 
@@ -790,8 +792,8 @@ export default function DestinationDetail({
                   <img src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(destination.subRegion || 'jogja')}&backgroundColor=1c1a17`} alt={`${destination.subRegion || 'Jogja'} avatar`} className="h-7 w-7 rounded-full border-2 border-royal-950 object-cover" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-gold-300 font-mono tracking-wider font-bold uppercase">COMMUNITY</span>
-                  <span className="text-xs text-white/95 font-semibold">{destination.reviewCount.toLocaleString()} travelers reviewed</span>
+                  <span className="text-[10px] text-gold-300 font-mono tracking-wider font-bold uppercase">{t('destination_detail.community_label')}</span>
+                  <span className="text-xs text-white/95 font-semibold">{destination.reviewCount.toLocaleString()} {t('destination_detail.travelers_reviewed')}</span>
                 </div>
               </div>
 
@@ -806,7 +808,7 @@ export default function DestinationDetail({
                   }`}
                 >
                   <Heart className="h-4 w-4" />
-                  <span>{isSaved ? 'Bookmarked' : 'Save'}</span>
+                  <span>{isSaved ? t('destination_detail.bookmarked') : t('destination_detail.save')}</span>
                 </button>
               </div>
             </div>
@@ -817,11 +819,11 @@ export default function DestinationDetail({
           <div className="border-t border-white/10 pt-4 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
             <div className="flex overflow-x-auto scrollbar-none w-full sm:w-auto -mx-4 px-4 sm:mx-0 sm:px-0 space-x-1 sm:space-x-2.5">
               {[
-                { id: 'photos', label: `Photos 1,248`, icon: Camera },
-                { id: 'video', label: 'Cinematic 4K', icon: Video },
-                { id: '360', label: '360° View', icon: Eye },
-                { id: 'drone', label: 'Drone Flyby', icon: Compass },
-                { id: 'reels', label: 'Travel Reels', icon: Play }
+                { id: 'photos', label: t('destination_detail.media_tab_photos'), icon: Camera },
+                { id: 'video', label: t('destination_detail.media_tab_cinematic'), icon: Video },
+                { id: '360', label: t('destination_detail.media_tab_360'), icon: Eye },
+                { id: 'drone', label: t('destination_detail.media_tab_drone'), icon: Compass },
+                { id: 'reels', label: t('destination_detail.media_tab_reels'), icon: Play }
               ].map(tab => {
                 const Icon = tab.icon;
                 return (
@@ -869,7 +871,7 @@ export default function DestinationDetail({
             {/* Photo Credit */}
             <div className="absolute bottom-3 right-4 z-10">
               <span className="bg-black/50 backdrop-blur-sm text-white/70 text-[10px] font-mono px-2 py-0.5 rounded">
-                Photo: {destination.images[activeImageIdx]?.credit || 'Unsplash'} / Unsplash
+                {t('common.photo')} {destination.images[activeImageIdx]?.credit || 'Unsplash'} / Unsplash
               </span>
             </div>
           </div>
@@ -890,7 +892,7 @@ export default function DestinationDetail({
               <div className="flex items-center space-x-2">
                 <Award className="h-5 w-5 text-gold-600" />
                 <h3 className="font-manrope text-xs uppercase tracking-[0.15em] text-gold-700 font-extrabold">
-                  Curator's Pick
+                  {t('destination_detail.curator_pick')}
                 </h3>
               </div>
               
@@ -900,12 +902,12 @@ export default function DestinationDetail({
 
               <div className="border-t border-gold-200/40 pt-6 grid grid-cols-2 sm:grid-cols-3 gap-5">
                 {[
-                  { label: "Optimal Visit Hour", value: destination.bestTime || "09:00 AM - 11:30 AM", detail: "Golden hour light", icon: Clock },
-                  { label: "Opening Hours", value: destination.openingHours || "08:00 - 17:00", detail: "Daily access", icon: Ticket },
-                  { label: "Visiting Season", value: getVisitingSeason(), detail: getSeasonDetail(), icon: CloudSun },
-                  { label: "Terrain & Access", value: destination.facilities?.[0] || "Flat Pathway", detail: destination.facilities?.[1] || "Easy walking", icon: Landmark },
-                  { label: "Ticket Price", value: `IDR ${domesticTicketPrice}`, detail: `Foreign: IDR ${foreignTicketPrice}`, icon: Ticket },
-                  { label: "Climate", value: `Live ${destination.weather.temp || '27°C'} • ${destination.weather.condition || 'Sunny'}`, detail: destination.weather.status || "Mild climate", icon: Thermometer }
+                  { label: t('destination_detail.optimal_visit'), value: destination.bestTime || "09:00 AM - 11:30 AM", detail: t('destination_detail.golden_hour'), icon: Clock },
+                  { label: t('destination_detail.opening_hours'), value: destination.openingHours || "08:00 - 17:00", detail: t('destination_detail.daily_access'), icon: Ticket },
+                  { label: t('destination_detail.visiting_season'), value: getVisitingSeason(), detail: getSeasonDetail(), icon: CloudSun },
+                  { label: t('destination_detail.terrain_access'), value: destination.facilities?.[0] || "Flat Pathway", detail: destination.facilities?.[1] || t('destination_detail.easy_walking'), icon: Landmark },
+                  { label: t('destination_detail.ticket_price'), value: `IDR ${domesticTicketPrice}`, detail: `Foreign: IDR ${foreignTicketPrice}`, icon: Ticket },
+                  { label: t('destination_detail.climate'), value: `Live ${destination.weather.temp || '27°C'} • ${destination.weather.condition || 'Sunny'}`, detail: destination.weather.status || t('destination_detail.mild_climate'), icon: Thermometer }
                 ].map((item, i) => {
                   const Icon = item.icon;
                   return (
@@ -929,7 +931,7 @@ export default function DestinationDetail({
               <div className="flex items-center space-x-2">
                 <Landmark className="h-5 w-5 text-gold-600" />
                 <h2 className="font-manrope text-xs uppercase tracking-[0.15em] text-royal-700 font-extrabold">
-                  The Editorial Story & Heritage
+                  {t('destination_detail.editorial_story')}
                 </h2>
               </div>
 
@@ -954,7 +956,7 @@ export default function DestinationDetail({
                     </div>
                     {destination.travelTips && destination.travelTips.length > 0 && (
                       <div className="mt-4 space-y-2">
-                        <span className="text-[9px] font-mono font-bold text-gold-700 uppercase tracking-widest">TRAVELER PRO TIPS</span>
+                        <span className="text-[9px] font-mono font-bold text-gold-700 uppercase tracking-widest">{t('destination_detail.traveler_tips')}</span>
                         {destination.travelTips.map((tip, i) => (
                           <div key={i} className="flex items-start space-x-2 text-xs text-stone-700">
                             <CheckCircle className="h-3.5 w-3.5 text-gold-500 shrink-0 mt-0.5" />
@@ -969,7 +971,7 @@ export default function DestinationDetail({
                     onClick={() => setStoryExpanded(!storyExpanded)}
                     className="text-xs font-mono font-bold uppercase tracking-widest text-gold-700 hover:text-gold-900 border-b-2 border-gold-400/20 hover:border-gold-600 pb-0.5 transition-all flex items-center space-x-1 pt-2"
                   >
-                    <span>{storyExpanded ? 'COLLAPSE HERITAGE TEXT' : 'READ HISTORICAL LEGEND'}</span>
+                    <span>{storyExpanded ? t('destination_detail.collapse_text') : t('destination_detail.read_legend')}</span>
                     <ChevronDown className={`h-3 w-3 transform transition-transform ${storyExpanded ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
@@ -983,8 +985,8 @@ export default function DestinationDetail({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-95"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-4 flex flex-col justify-end text-left">
-                      <span className="text-[9px] font-mono text-gold-300 tracking-widest uppercase">DETAIL RELIEF</span>
-                      <span className="text-xs font-semibold text-white">Interlocking stone reliefs representing epics.</span>
+                      <span className="text-[9px] font-mono text-gold-300 tracking-widest uppercase">{t('destination_detail.detail_relief')}</span>
+                      <span className="text-xs font-semibold text-white">{t('destination_detail.detail_relief_desc')}</span>
                     </div>
                   </div>
                 </div>
@@ -998,15 +1000,15 @@ export default function DestinationDetail({
                 <div className="flex items-center space-x-2">
                   <Compass className="h-5 w-5 text-gold-600 animate-spin-slow" />
                   <h2 className="font-manrope text-xs uppercase tracking-[0.15em] text-royal-700 font-extrabold">
-                    Continue Your Experience
+                    {t('destination_detail.continue_experience')}
                   </h2>
                 </div>
                 {travelerIntent && travelerIntent.intent !== 'general' ? (
                   <span className="text-xs text-stone-500">
-                    Tailored for a <span className="font-semibold text-gold-700">{travelerIntent.label}</span> like you
+                    {t('destination_detail.tailored_for')} <span className="font-semibold text-gold-700">{travelerIntent.label}</span> {t('destination_detail.like_you')}
                   </span>
                 ) : (
-                  <span className="text-xs text-stone-500">Based on your traveler profile</span>
+                  <span className="text-xs text-stone-500">{t('destination_detail.based_on_profile')}</span>
                 )}
               </div>
 
@@ -1014,20 +1016,20 @@ export default function DestinationDetail({
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {(travelerIntent && travelerIntent.intent !== 'general'
                   ? orderCardsByIntent([
-                      { title: "Stay Nearby", icon: Hotel, desc: "Boutique heritage suites", color: "text-[#2e4d3c] bg-emerald-50 border-emerald-100", label: "🏨 STAY" },
-                      { title: "Eat Traditional", icon: Utensils, desc: "Ancient recipes & cafes", color: "text-[#7c4d12] bg-amber-50 border-amber-100", label: "🍜 CULINARY" },
-                      { title: "Experiences", icon: Sparkles, desc: "Volcano offroads & art", color: "text-[#6c2e7c] bg-purple-50 border-purple-100", label: "🎭 DISCOVER" },
-                      { title: "Local Shopping", icon: ShoppingBag, desc: "Pure silver & batik guilds", color: "text-[#7c1212] bg-red-50 border-red-100", label: "🛍 CRAFT" },
-                      { title: "Private Guide", icon: Users, desc: "Licensed expert historians", color: "text-[#125c7c] bg-blue-50 border-blue-100", label: "👨 SERVICE" },
-                      { title: "Transportation", icon: MapPinned, desc: "Royal chariots & rental", color: "text-[#4d4d4d] bg-stone-50 border-stone-100", label: "🚗 RIDE" }
+                      { title: t('destination_detail.card_stay'), icon: Hotel, desc: t('destination_detail.card_stay_desc'), color: "text-[#2e4d3c] bg-emerald-50 border-emerald-100", label: "🏨 STAY" },
+                      { title: t('destination_detail.card_eat'), icon: Utensils, desc: t('destination_detail.card_eat_desc'), color: "text-[#7c4d12] bg-amber-50 border-amber-100", label: "🍜 CULINARY" },
+                      { title: t('destination_detail.card_experiences'), icon: Sparkles, desc: t('destination_detail.card_experiences_desc'), color: "text-[#6c2e7c] bg-purple-50 border-purple-100", label: "🎭 DISCOVER" },
+                      { title: t('destination_detail.card_shopping'), icon: ShoppingBag, desc: t('destination_detail.card_shopping_desc'), color: "text-[#7c1212] bg-red-50 border-red-100", label: "🛍 CRAFT" },
+                      { title: t('destination_detail.card_guide'), icon: Users, desc: t('destination_detail.card_guide_desc'), color: "text-[#125c7c] bg-blue-50 border-blue-100", label: "👨 SERVICE" },
+                      { title: t('destination_detail.card_transport'), icon: MapPinned, desc: t('destination_detail.card_transport_desc'), color: "text-[#4d4d4d] bg-stone-50 border-stone-100", label: "🚗 RIDE" }
                     ], travelerIntent)
                   : [
-                      { title: "Stay Nearby", icon: Hotel, desc: "Boutique heritage suites", color: "text-[#2e4d3c] bg-emerald-50 border-emerald-100", label: "🏨 STAY" },
-                      { title: "Eat Traditional", icon: Utensils, desc: "Ancient recipes & cafes", color: "text-[#7c4d12] bg-amber-50 border-amber-100", label: "🍜 CULINARY" },
-                      { title: "Experiences", icon: Sparkles, desc: "Volcano offroads & art", color: "text-[#6c2e7c] bg-purple-50 border-purple-100", label: "🎭 DISCOVER" },
-                      { title: "Local Shopping", icon: ShoppingBag, desc: "Pure silver & batik guilds", color: "text-[#7c1212] bg-red-50 border-red-100", label: "🛍 CRAFT" },
-                      { title: "Private Guide", icon: Users, desc: "Licensed expert historians", color: "text-[#125c7c] bg-blue-50 border-blue-100", label: "👨 SERVICE" },
-                      { title: "Transportation", icon: MapPinned, desc: "Royal chariots & rental", color: "text-[#4d4d4d] bg-stone-50 border-stone-100", label: "🚗 RIDE" }
+                      { title: t('destination_detail.card_stay'), icon: Hotel, desc: t('destination_detail.card_stay_desc'), color: "text-[#2e4d3c] bg-emerald-50 border-emerald-100", label: "🏨 STAY" },
+                      { title: t('destination_detail.card_eat'), icon: Utensils, desc: t('destination_detail.card_eat_desc'), color: "text-[#7c4d12] bg-amber-50 border-amber-100", label: "🍜 CULINARY" },
+                      { title: t('destination_detail.card_experiences'), icon: Sparkles, desc: t('destination_detail.card_experiences_desc'), color: "text-[#6c2e7c] bg-purple-50 border-purple-100", label: "🎭 DISCOVER" },
+                      { title: t('destination_detail.card_shopping'), icon: ShoppingBag, desc: t('destination_detail.card_shopping_desc'), color: "text-[#7c1212] bg-red-50 border-red-100", label: "🛍 CRAFT" },
+                      { title: t('destination_detail.card_guide'), icon: Users, desc: t('destination_detail.card_guide_desc'), color: "text-[#125c7c] bg-blue-50 border-blue-100", label: "👨 SERVICE" },
+                      { title: t('destination_detail.card_transport'), icon: MapPinned, desc: t('destination_detail.card_transport_desc'), color: "text-[#4d4d4d] bg-stone-50 border-stone-100", label: "🚗 RIDE" }
                     ]
                 ).map((item, idx) => {
                   const Icon = item.icon;
@@ -1056,9 +1058,9 @@ export default function DestinationDetail({
                       <p className="text-[10px] text-stone-500 font-light mt-0.5">{item.desc}</p>
                       
                       <div className="mt-4 pt-2 border-t border-stone-100 flex items-center justify-between">
-                        <span className="text-[9px] font-mono font-bold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded">AI Picked</span>
+                        <span className="text-[9px] font-mono font-bold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded">{t('destination_detail.ai_picked')}</span>
                         <span className="text-[9px] text-stone-400 font-bold group-hover:text-stone-900 transition-all flex items-center">
-                          <span>Browse</span>
+                          <span>{t('destination_detail.browse')}</span>
                           <ArrowRight className="h-2.5 w-2.5 ml-0.5" />
                         </span>
                       </div>
@@ -1074,7 +1076,7 @@ export default function DestinationDetail({
                 <div className="flex items-center space-x-2">
                   <Map className="h-5 w-5 text-gold-600" />
                   <h2 className="font-manrope text-xs uppercase tracking-[0.15em] text-royal-700 font-extrabold">
-                    Ecosystem Interactive Route Map
+                    {t('destination_detail.ecosystem_map')}
                   </h2>
                 </div>
                 <span className="text-xs font-mono text-gold-700">LAT {destination.latitude.toFixed(4)} • LNG {destination.longitude.toFixed(4)}</span>
@@ -1087,13 +1089,13 @@ export default function DestinationDetail({
 
                 {/* Filter Overlay Buttons */}
                 <div className="absolute top-4 left-4 z-20 bg-white/95 backdrop-blur-md border border-gold-200/50 p-2.5 rounded-2xl flex flex-col gap-1.5 shadow-lg w-40">
-                  <span className="text-[8px] font-mono font-bold tracking-wider text-royal-700/60 uppercase border-b pb-1">Filter Map Pins</span>
+                  <span className="text-[8px] font-mono font-bold tracking-wider text-royal-700/60 uppercase border-b pb-1">{t('destination_detail.filter_map_pins')}</span>
                   {[
-                    { id: 'all', label: 'All Markers', icon: Map },
-                    { id: 'partner', label: 'Verified Partners', icon: Award },
-                    { id: 'parking', label: 'Secure Parking', icon: Compass },
-                    { id: 'toilet', label: 'Eco Toilets', icon: Flame },
-                    { id: 'hospital', label: 'Emergency', icon: ShieldAlert }
+                    { id: 'all', label: t('destination_detail.filter_all'), icon: Map },
+                    { id: 'partner', label: t('destination_detail.filter_verified'), icon: Award },
+                    { id: 'parking', label: t('destination_detail.filter_parking'), icon: Compass },
+                    { id: 'toilet', label: t('destination_detail.filter_toilets'), icon: Flame },
+                    { id: 'hospital', label: t('destination_detail.filter_emergency'), icon: ShieldAlert }
                   ].map(f => (
                     <button
                       key={f.id}
@@ -1120,7 +1122,7 @@ export default function DestinationDetail({
                       <div>
                         <div className="flex items-center space-x-1.5">
                           <span className="text-[8px] font-mono font-bold tracking-widest text-gold-300 uppercase">{selectedMapPartner.category}</span>
-                          <span className="text-[8px] font-mono text-emerald-400 font-semibold">• VERIFIED PARTNER</span>
+                          <span className="text-[8px] font-mono text-emerald-400 font-semibold">• {t('destination_detail.verified_partner')}</span>
                         </div>
                         <h4 className="font-manrope font-bold text-sm text-white">{selectedMapPartner.name}</h4>
                         <p className="text-[10px] text-white/70 font-light leading-none mt-0.5">{selectedMapPartner.distance} • {selectedMapPartner.price}</p>
@@ -1152,10 +1154,10 @@ export default function DestinationDetail({
                 <div className="flex items-center space-x-2">
                   <Clock className="h-5 w-5 text-gold-600" />
                   <h2 className="font-manrope text-xs uppercase tracking-[0.15em] text-royal-700 font-extrabold">
-                    AI Suggested Cohesive Journey
+                    {t('destination_detail.ai_suggested_journey')}
                   </h2>
                 </div>
-                <span className="text-xs text-stone-500">Personalized timeline centered around this destination</span>
+                <span className="text-xs text-stone-500">{t('destination_detail.personalized_timeline')}</span>
               </div>
 
               {/* Connected timeline layout exactly like description */}
@@ -1178,7 +1180,7 @@ export default function DestinationDetail({
                           <span>{step.title}</span>
                           {isCurrentDestStep && (
                             <span className="bg-gold-400 text-royal-950 text-[8px] font-mono font-bold tracking-widest uppercase px-1.5 py-0.5 rounded">
-                              Current Station
+                              {t('destination_detail.current_station')}
                             </span>
                           )}
                         </h4>
@@ -1198,10 +1200,10 @@ export default function DestinationDetail({
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-5 w-5 text-gold-600" />
                   <h2 className="font-manrope text-xs uppercase tracking-[0.15em] text-royal-700 font-extrabold">
-                    Upcoming Events Around Here
+                    {t('destination_detail.upcoming_events')}
                   </h2>
                 </div>
-                <span className="text-xs text-stone-500">{nearbyEvents.length > 0 ? `${nearbyEvents.length} event${nearbyEvents.length > 1 ? 's' : ''} nearby` : 'No nearby events'}</span>
+                <span className="text-xs text-stone-500">{nearbyEvents.length > 0 ? `${nearbyEvents.length} event${nearbyEvents.length > 1 ? 's' : ''} nearby` : t('destination_detail.no_nearby_events')}</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1209,7 +1211,7 @@ export default function DestinationDetail({
                   const start = new Date(event.start_date);
                   const now = new Date();
                   const diffDays = Math.ceil((start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                  const countdown = diffDays <= 0 ? 'Happening Now' : diffDays === 1 ? 'Tomorrow' : `In ${diffDays} Days`;
+                  const countdown = diffDays <= 0 ? t('destination_detail.happening_now') : diffDays === 1 ? t('destination_detail.tomorrow') : `${t('destination_detail.in_days')} ${diffDays} ${t('destination_detail.days')}`;
                   const badge = event.category?.charAt(0).toUpperCase() + event.category?.slice(1) || 'Event';
                   return (
                     <div key={event.id} className="group relative aspect-[16/10] overflow-hidden rounded-2xl border border-stone-200/10 shadow-md bg-royal-950">
@@ -1232,7 +1234,7 @@ export default function DestinationDetail({
                           }}
                           className="mt-3 w-full bg-white/10 hover:bg-gold-400 hover:text-royal-950 text-white font-mono text-[9px] uppercase tracking-widest py-1.5 rounded-lg border border-white/15 hover:border-transparent transition-all font-bold"
                         >
-                          BOOK EVENT ENTRY TICKET
+                          {t('destination_detail.book_event_ticket')}
                         </button>
                       </div>
                     </div>
@@ -1240,7 +1242,7 @@ export default function DestinationDetail({
                 })}
                 {nearbyEvents.length === 0 && (
                   <div className="col-span-2 text-center py-8 text-stone-400 text-xs">
-                    No upcoming events near this destination yet.
+                    {t('destination_detail.no_events_yet')}
                   </div>
                 )}
               </div>
@@ -1261,7 +1263,7 @@ export default function DestinationDetail({
                         <Star key={s} className={`h-3.5 w-3.5 ${s <= Math.round(destination.rating) ? 'fill-amber-400 text-amber-400' : 'text-stone-200'}`} />
                       ))}
                     </div>
-                    <p className="text-[10px] text-stone-400 mt-1 font-mono">{communityReviews.length.toLocaleString()} reviews</p>
+                    <p className="text-[10px] text-stone-400 mt-1 font-mono">{communityReviews.length.toLocaleString()} {t('destination_detail.reviews')}</p>
                   </div>
                   <div className="flex-1 space-y-1.5">
                     {[5,4,3,2,1].map(star => {
@@ -1290,16 +1292,16 @@ export default function DestinationDetail({
                     <div className="w-6 h-6 bg-amber-400 rounded-lg flex items-center justify-center">
                       <Sparkles className="h-3.5 w-3.5 text-white" />
                     </div>
-                    <span className="text-[10px] font-mono font-bold text-amber-800 uppercase tracking-widest">AI Review Summary</span>
+                    <span className="text-[10px] font-mono font-bold text-amber-800 uppercase tracking-widest">{t('destination_detail.ai_review_summary')}</span>
                   </div>
                   <p className="text-[12px] font-semibold text-amber-900 mb-3">
                     {communityReviews.length > 0
-                      ? `${Math.round((communityReviews.filter(r => r.rating >= 4).length / communityReviews.length) * 100)}% of travelers recommend this experience`
-                      : 'Be the first to review this destination'}
+                        ? `${Math.round((communityReviews.filter(r => r.rating >= 4).length / communityReviews.length) * 100)}% ${t('destination_detail.travelers_recommend')}`
+                        : t('destination_detail.be_first_review')}
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className="text-[9px] font-mono font-bold text-emerald-700 uppercase tracking-widest mb-1.5">Most loved</p>
+                      <p className="text-[9px] font-mono font-bold text-emerald-700 uppercase tracking-widest mb-1.5">{t('destination_detail.most_loved')}</p>
                       <ul className="space-y-1">
                         {(destination as any).aiPros?.slice(0,3).map((pro: string, i: number) => (
                           <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-700">
@@ -1316,7 +1318,7 @@ export default function DestinationDetail({
                       </ul>
                     </div>
                     <div>
-                      <p className="text-[9px] font-mono font-bold text-stone-500 uppercase tracking-widest mb-1.5">Could be better</p>
+                      <p className="text-[9px] font-mono font-bold text-stone-500 uppercase tracking-widest mb-1.5">{t('destination_detail.could_be_better')}</p>
                       <ul className="space-y-1">
                         {(destination as any).aiCons?.slice(0,2).map((con: string, i: number) => (
                           <li key={i} className="flex items-start gap-1.5 text-[11px] text-stone-500">
@@ -1374,8 +1376,8 @@ export default function DestinationDetail({
                       <Pencil className="h-3.5 w-3.5 text-white" />
                     </div>
                     <div>
-                      <p className="text-[13px] font-manrope font-bold text-[#1c1a17]">Write a Review</p>
-                      <p className="text-[10px] text-stone-400">Share your honest experience</p>
+                      <p className="text-[13px] font-manrope font-bold text-[#1c1a17]">{t('destination_detail.write_a_review')}</p>
+                      <p className="text-[10px] text-stone-400">{t('destination_detail.share_experience')}</p>
                     </div>
                   </div>
 
@@ -1383,11 +1385,11 @@ export default function DestinationDetail({
                     <div className="flex items-center gap-4 bg-stone-50 border border-stone-100 rounded-xl p-4">
                       <span className="text-3xl">✍️</span>
                       <div className="flex-1">
-                        <p className="text-[13px] font-semibold text-[#1c1a17]">Sign in to leave a review</p>
-                        <p className="text-[11px] text-stone-400">Help other travelers discover this place</p>
+                        <p className="text-[13px] font-semibold text-[#1c1a17]">{t('destination_detail.sign_in_review')}</p>
+                        <p className="text-[11px] text-stone-400">{t('destination_detail.help_travelers')}</p>
                       </div>
                       <a href="/login" className="shrink-0 px-4 py-1.5 bg-[#1c1a17] text-white text-[10px] font-mono font-bold uppercase tracking-widest rounded-full hover:bg-gold-600 transition-colors">
-                        Login
+                        {t('destination_detail.login')}
                       </a>
                     </div>
                   ) : (
@@ -1416,7 +1418,7 @@ export default function DestinationDetail({
                       </div>
                       <div className="relative">
                         <textarea
-                          placeholder="Describe what made this place special — crowds, best time to visit, hidden tips..."
+                          placeholder={t('destination_detail.review_placeholder')}
                           value={newReviewText}
                           onChange={(e) => setNewReviewText(e.target.value)}
                           rows={3}
@@ -1426,13 +1428,13 @@ export default function DestinationDetail({
                         <span className="absolute bottom-3 right-4 text-[9px] text-stone-300 font-mono">{newReviewText.length}/500</span>
                       </div>
                       {reviewError && (<div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2"><span className="text-red-500 text-sm">⚠️</span><p className="text-[11px] text-red-600">{reviewError}</p></div>)}
-                      {reviewSubmitted && (<div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2"><span className="text-green-500 text-sm">✅</span><p className="text-[11px] text-green-700">Review published! Thank you.</p></div>)}
+                      {reviewSubmitted && (<div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2"><span className="text-green-500 text-sm">✅</span><p className="text-[11px] text-green-700">{t('destination_detail.review_published')}</p></div>)}
                       <button
                         onClick={handleSubmitReview}
                         disabled={!newReviewText.trim() || submittingReview}
                         className="w-full py-2.5 bg-[#1c1a17] text-white text-[11px] font-mono font-bold uppercase tracking-widest rounded-xl hover:bg-gold-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        {submittingReview ? '✦ Publishing...' : '✦ Publish Review'}
+                        {submittingReview ? `✦ ${t('destination_detail.publishing')}` : `✦ ${t('destination_detail.publish_review')}`}
                       </button>
                     </div>
                   )}
@@ -1443,8 +1445,8 @@ export default function DestinationDetail({
               {filteredReviews.length === 0 ? (
                 <div className="text-center py-12 text-stone-400">
                   <p className="text-2xl mb-2">🔍</p>
-                  <p className="text-sm font-medium">No {reviewFilter !== 'all' ? reviewFilter : ''} reviews yet</p>
-                  <p className="text-[11px] mt-1">Be the first to share your experience!</p>
+                  <p className="text-sm font-medium">{t('destination_detail.no_reviews_yet')}</p>
+                  <p className="text-[11px] mt-1">{t('destination_detail.be_first_experience')}</p>
                 </div>
               ) : (
                 <>
@@ -1496,7 +1498,7 @@ export default function DestinationDetail({
                               }`}
                             >
                               <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-red-500' : ''}`} />
-                              <span>Helpful ({likeCount})</span>
+                              <span>{t('destination_detail.helpful')} ({likeCount})</span>
                             </button>
                           </div>
                         </div>
@@ -1511,7 +1513,7 @@ export default function DestinationDetail({
                         onClick={() => setVisibleReviews(v => v + 6)}
                         className="px-8 py-2.5 border border-stone-300 text-[12px] font-semibold text-stone-600 rounded-full hover:bg-stone-50 hover:border-stone-400 transition-all"
                       >
-                        Load More Reviews ({filteredReviews.length - visibleReviews} remaining)
+                        Load More Reviews ({filteredReviews.length - visibleReviews} {t('destination_detail.remaining')})
                       </button>
                     </div>
                   )}
@@ -1529,28 +1531,28 @@ export default function DestinationDetail({
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <div className="flex items-center space-x-2">
                   <div className="h-2 w-2 rounded-full bg-gold-400 animate-ping" />
-                  <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-gold-300 font-bold">Journey Assistant Panel</span>
+                  <span className="text-[10px] font-mono uppercase tracking-[0.15em] text-gold-300 font-bold">{t('destination_detail.journey_assistant')}</span>
                 </div>
-                <span className="text-[9px] font-mono bg-white/10 px-2.5 py-0.5 rounded-full text-gold-200 font-bold">LIVE JOURNEY</span>
+                <span className="text-[9px] font-mono bg-white/10 px-2.5 py-0.5 rounded-full text-gold-200 font-bold">{t('destination_detail.live_journey')}</span>
               </div>
 
               <div className="space-y-1 text-left">
-                <span className="text-[9px] text-white/50 font-mono tracking-wider">Exploring Now:</span>
+                <span className="text-[9px] text-white/50 font-mono tracking-wider">{t('destination_detail.exploring_now')}</span>
                 <h4 className="font-display text-xl text-white tracking-tight">{destination.name}</h4>
               </div>
 
               {/* Live Context metrics strip */}
               <div className="grid grid-cols-3 gap-2 py-1">
                 <div className="bg-white/5 p-2 rounded-xl text-center">
-                  <span className="block text-[8px] font-mono text-white/40 uppercase">TIME</span>
+                  <span className="block text-[8px] font-mono text-white/40 uppercase">{t('destination_detail.time')}</span>
                   <span className="text-xs font-bold text-gold-300 font-mono mt-0.5 block">{currentAssistantTime}</span>
                 </div>
                 <div className="bg-white/5 p-2 rounded-xl text-center">
-                  <span className="block text-[8px] font-mono text-white/40 uppercase">WEATHER</span>
+                  <span className="block text-[8px] font-mono text-white/40 uppercase">{t('destination_detail.weather')}</span>
                   <span className="text-xs font-bold text-gold-300 font-mono mt-0.5 block">{destination.weather.temp} ☀</span>
                 </div>
                 <div className="bg-white/5 p-2 rounded-xl text-center">
-                  <span className="block text-[8px] font-mono text-white/40 uppercase">CROWD</span>
+                  <span className="block text-[8px] font-mono text-white/40 uppercase">{t('destination_detail.crowd')}</span>
                   <span className={`text-xs font-bold font-mono mt-0.5 block ${liveCrowdLevel === 'High' ? 'text-red-400' : 'text-emerald-400'}`}>
                     {liveCrowdLevel}
                   </span>
@@ -1559,7 +1561,7 @@ export default function DestinationDetail({
 
               {/* Dynamic recommendation list */}
               <div className="space-y-2.5 text-left pt-1">
-                <span className="text-[9px] font-mono text-gold-400/90 tracking-widest uppercase font-bold block">Live Recommendation Cards</span>
+                <span className="text-[9px] font-mono text-gold-400/90 tracking-widest uppercase font-bold block">{t('destination_detail.live_recommendations')}</span>
                 {getAIRecommendations().map((rec, i) => (
                   <div 
                     key={i}
@@ -1572,7 +1574,7 @@ export default function DestinationDetail({
                   >
                     <div className="space-y-0.5">
                       <p className="font-medium">{rec.text}</p>
-                      <span className="text-[9px] font-mono text-white/40">Expected completion: {rec.time}</span>
+                      <span className="text-[9px] font-mono text-white/40">{t('destination_detail.expected_completion')} {rec.time}</span>
                     </div>
                     <ChevronRight className={`h-4 w-4 text-gold-400 shrink-0 transform transition-transform ${selectedJourneyActionIdx === i ? 'rotate-90' : ''}`} />
                   </div>
@@ -1592,19 +1594,19 @@ export default function DestinationDetail({
               <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                 <div className="flex items-center space-x-1.5">
                   <Award className="h-4 w-4 text-gold-600" />
-                  <span className="text-xs font-manrope font-bold text-stone-900">Ecosystem Intent Rail</span>
+                  <span className="text-xs font-manrope font-bold text-stone-900">{t('destination_detail.ecosystem_intent_rail')}</span>
                 </div>
-                <span className="text-[9px] font-mono bg-gold-50 text-gold-700 px-2 py-0.5 rounded-full font-bold">MONETIZED PARTNERS</span>
+                <span className="text-[9px] font-mono bg-gold-50 text-gold-700 px-2 py-0.5 rounded-full font-bold">{t('destination_detail.monetized_partners')}</span>
               </div>
 
               {/* Horiz intent slider */}
               <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-2 border-b border-stone-100">
                 {[
-                  { id: 'stay', label: 'Stay' },
-                  { id: 'eat', label: 'Culinary' },
-                  { id: 'experience', label: 'Vibe' },
-                  { id: 'shop', label: 'Shop' },
-                  { id: 'guide', label: 'Guide' }
+                  { id: 'stay', label: t('destination_detail.tab_stay') },
+                  { id: 'eat', label: t('destination_detail.tab_culinary') },
+                  { id: 'experience', label: t('destination_detail.tab_vibe') },
+                  { id: 'shop', label: t('destination_detail.tab_shop') },
+                  { id: 'guide', label: t('destination_detail.tab_guide') }
                 ].map(item => (
                   <button
                     key={item.id}
@@ -1649,7 +1651,7 @@ export default function DestinationDetail({
               {/* Partner Card list */}
               <div className="space-y-3 pt-1">
                 {activeEcosystemPartners.length === 0 ? (
-                  <p className="text-xs text-stone-500 italic py-4 text-center">No verified partner found under this category.</p>
+                  <p className="text-xs text-stone-500 italic py-4 text-center">{t('destination_detail.no_partner_found')}</p>
                 ) : (
                   activeEcosystemPartners.map(partner => (
                     <div
@@ -1685,7 +1687,7 @@ export default function DestinationDetail({
 
             {/* 13. SIMILAR DESTINATIONS */}
             <div className="bg-white border border-stone-200/50 rounded-3xl p-5 shadow-sm text-left space-y-4">
-              <span className="text-[9px] font-mono font-bold tracking-widest text-gold-700 uppercase block leading-none">PEOPLE ALSO EXPLORED</span>
+              <span className="text-[9px] font-mono font-bold tracking-widest text-gold-700 uppercase block leading-none">{t('destination_detail.people_also_explored')}</span>
               
               <div className="space-y-3.5">
                 {similarDestinations.map(similar => (
@@ -1723,7 +1725,7 @@ export default function DestinationDetail({
           <div className="flex items-center space-x-2 border-b border-gold-100 pb-3">
             <Camera className="h-5 w-5 text-gold-600 animate-pulse" />
             <h2 className="font-manrope text-xs uppercase tracking-[0.15em] text-royal-700 font-extrabold">
-              Traveler Stories & Visual Highlights
+              {t('destination_detail.traveler_stories')}
             </h2>
           </div>
 
@@ -1752,7 +1754,7 @@ export default function DestinationDetail({
                         <span className="block text-[8px] font-mono text-stone-500 leading-none mt-0.5">{story.location} traveler</span>
                       </div>
                     </div>
-                    <span className="text-[9px] font-mono text-gold-700 bg-gold-50 px-2 py-0.5 rounded-md font-bold">AI highlight</span>
+                    <span className="text-[9px] font-mono text-gold-700 bg-gold-50 px-2 py-0.5 rounded-md font-bold">{t('destination_detail.ai_highlight')}</span>
                   </div>
                 </div>
               </div>
@@ -1769,7 +1771,7 @@ export default function DestinationDetail({
             {/* Modal Header */}
             <div className="bg-royal-950 text-white p-5 flex items-center justify-between">
               <div>
-                <span className="text-[8px] font-mono tracking-widest text-gold-300 font-bold uppercase leading-none">Admission Pass</span>
+                <span className="text-[8px] font-mono tracking-widest text-gold-300 font-bold uppercase leading-none">{t('destination_detail.admission_pass')}</span>
                 <h3 className="font-display text-lg text-white mt-1 leading-none">{destination.name}</h3>
               </div>
               <button 
@@ -1789,15 +1791,15 @@ export default function DestinationDetail({
                 <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow border border-emerald-300 animate-bounce">
                   <Check className="h-6 w-6" />
                 </div>
-                <h4 className="font-manrope font-bold text-base text-stone-900">Your Yogyakarta Royal Pass is Booked!</h4>
+                <h4 className="font-manrope font-bold text-base text-stone-900">{t('destination_detail.pass_booked')}</h4>
                 <p className="text-xs text-stone-600 font-light max-w-xs mx-auto">
-                  A high-resolution companion PDF has been synchronized to your email and cached for offline travel access.
+                  {t('destination_detail.pass_pdf_synced')}
                 </p>
                 <div className="p-3 bg-stone-50 rounded-xl border border-dashed font-mono text-[10px] text-left text-stone-700 max-w-xs mx-auto space-y-1">
-                  <span className="block font-bold border-b pb-1 mb-1">PASS SUMMARY DETAILS:</span>
-                  <span>Destination: {destination.name}</span>
-                  <span className="block">Quantity: {ticketQuantity} x {ticketCategory.toUpperCase()}</span>
-                  <span className="block font-bold text-gold-700">Total Price Paid: IDR {calculatePrice()}</span>
+                  <span className="block font-bold border-b pb-1 mb-1">{t('destination_detail.pass_summary')}</span>
+                  <span>{t('destination_detail.pass_destination')}: {destination.name}</span>
+                  <span className="block">{t('destination_detail.pass_quantity')}: {ticketQuantity} x {ticketCategory.toUpperCase()}</span>
+                  <span className="block font-bold text-gold-700">{t('destination_detail.pass_total')}: IDR {calculatePrice()}</span>
                   <span className="block text-[8px] text-stone-400">Security Hash: {Math.random().toString(16).substr(2, 8).toUpperCase()}</span>
                 </div>
                 <button 
@@ -1807,7 +1809,7 @@ export default function DestinationDetail({
                   }}
                   className="w-full bg-royal-950 hover:bg-gold-500 text-white hover:text-royal-950 font-mono text-xs uppercase tracking-widest py-3 rounded-full font-bold transition-colors"
                 >
-                  DISMISS VIEW
+                  {t('destination_detail.dismiss_view')}
                 </button>
               </div>
             ) : (
@@ -1815,7 +1817,7 @@ export default function DestinationDetail({
                 
                 {/* Category selector */}
                 <div className="space-y-2">
-                  <span className="text-[9px] font-mono text-stone-500 uppercase tracking-wider block">Select Citizen Category</span>
+                  <span className="text-[9px] font-mono text-stone-500 uppercase tracking-wider block">{t('destination_detail.select_category')}</span>
                   <div className="grid grid-cols-2 gap-2.5">
                     <button
                       onClick={() => setTicketCategory('domestic')}
@@ -1825,7 +1827,7 @@ export default function DestinationDetail({
                           : 'border-stone-200 hover:bg-stone-50'
                       }`}
                     >
-                      <span className="text-[8px] font-mono tracking-widest text-stone-500 uppercase">Domestic</span>
+                      <span className="text-[8px] font-mono tracking-widest text-stone-500 uppercase">{t('destination_detail.domestic')}</span>
                       <span className="mt-2 text-stone-900 font-bold">IDR {domesticTicketPrice}</span>
                     </button>
                     <button
@@ -1836,7 +1838,7 @@ export default function DestinationDetail({
                           : 'border-stone-200 hover:bg-stone-50'
                       }`}
                     >
-                      <span className="text-[8px] font-mono tracking-widest text-stone-500 uppercase">International</span>
+                      <span className="text-[8px] font-mono tracking-widest text-stone-500 uppercase">{t('destination_detail.international')}</span>
                       <span className="mt-2 text-stone-900 font-bold">IDR {foreignTicketPrice}</span>
                     </button>
                   </div>
@@ -1844,7 +1846,7 @@ export default function DestinationDetail({
 
                 {/* Quantity input */}
                 <div className="space-y-2">
-                  <span className="text-[9px] font-mono text-stone-500 uppercase tracking-wider block">Quantity Tickets</span>
+                  <span className="text-[9px] font-mono text-stone-500 uppercase tracking-wider block">{t('destination_detail.quantity_tickets')}</span>
                   <div className="flex items-center space-x-3 bg-stone-50 border p-2 rounded-xl w-max">
                     <button 
                       onClick={() => setTicketQuantity(Math.max(1, ticketQuantity - 1))}
@@ -1865,21 +1867,21 @@ export default function DestinationDetail({
                 {/* Total pricing strip */}
                 <div className="border-t pt-4 flex items-center justify-between text-xs">
                   <div className="text-left">
-                    <span className="text-[8px] font-mono text-stone-500 uppercase tracking-wider">Estimated Pass Price</span>
+                    <span className="text-[8px] font-mono text-stone-500 uppercase tracking-wider">{t('destination_detail.estimated_price')}</span>
                     <span className="block font-display text-lg text-gold-700 font-extrabold mt-0.5">IDR {calculatePrice()}</span>
                   </div>
                   <button 
                     onClick={() => setTicketBooked(true)}
                     className="bg-royal-950 hover:bg-gold-500 text-white hover:text-royal-950 font-mono text-xs uppercase tracking-widest py-3 px-6 rounded-full font-bold transition-all shadow-md active:scale-97"
                   >
-                    CONFIRM & BOOK
+                    {t('destination_detail.confirm_book')}
                   </button>
                 </div>
 
                 <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-left flex items-start space-x-2">
                   <AlertTriangle className="h-4.5 w-4.5 text-amber-600 shrink-0 mt-0.5" />
                   <p className="text-[10px] text-amber-700 font-light leading-relaxed">
-                    Royal passes can be cancelled and fully refunded up to 24 hours prior to travel date. Present PDF code directly at VIP scanning gate.
+                    {t('destination_detail.royal_pass_policy')}
                   </p>
                 </div>
 
@@ -1972,7 +1974,7 @@ export default function DestinationDetail({
                     className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-stone-200 text-stone-700 hover:bg-stone-50 transition-colors text-xs font-semibold"
                   >
                     <Phone className="h-3.5 w-3.5" />
-                    Call
+                    {t('destination_detail.call')}
                   </a>
                 )}
                 <a
@@ -1986,7 +1988,7 @@ export default function DestinationDetail({
                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-royal-950 text-white hover:bg-royal-900 transition-colors text-xs font-semibold"
                 >
                   <Map className="h-3.5 w-3.5" />
-                  Get Directions
+                  {t('destination_detail.get_directions')}
                 </a>
               </div>
             </div>

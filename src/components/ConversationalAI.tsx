@@ -4,6 +4,7 @@ import { Destination } from '../types';
 import DestinationCard from './DestinationCard';
 import { ai, destinations as destinationApi } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocale } from '@/contexts/LocaleContext';
 import AuthModal from './AuthModal';
 
 interface Message {
@@ -28,57 +29,6 @@ interface ConversationalAIProps {
   isSaved: (id: string) => boolean;
 }
 
-const QUICK_PROMPTS = [
-  {
-    text: "Where can I watch the best sunset near the ocean?",
-    label: "Beach Sunset",
-    subtitle: "Best sunset spots in Yogyakarta",
-    emoji: "🌅",
-    bg: "bg-orange-50",
-    ring: "ring-orange-100",
-  },
-  {
-    text: "Show me a vertical hidden cave with a heavenly light column",
-    label: "Hidden Gems",
-    subtitle: "Underrated places only locals know",
-    emoji: "🪨",
-    bg: "bg-green-50",
-    ring: "ring-green-100",
-  },
-  {
-    text: "Where should I eat legendary local Gudeg or traditional volcano coffee?",
-    label: "Culinary & Coffee",
-    subtitle: "Local food & cozy coffee places",
-    emoji: "☕",
-    bg: "bg-amber-50",
-    ring: "ring-amber-100",
-  },
-  {
-    text: "Suggest a thrilling volcano adventure with mountain views",
-    label: "Volcano Jeep Tour",
-    subtitle: "Adventure around Mount Merapi",
-    emoji: "🚙",
-    bg: "bg-blue-50",
-    ring: "ring-blue-100",
-  },
-  {
-    text: "Where should I take my family for royal culture and heritage?",
-    label: "Royal Heritage",
-    subtitle: "Culture, history & heritage sites",
-    emoji: "🏛️",
-    bg: "bg-purple-50",
-    ring: "ring-purple-100",
-  },
-];
-
-const LOADING_PHRASES = [
-  "Boiling some hot local wedang uwuh ginger tea while consulting the maps...",
-  "Politely asking the ancient Mount Merapi spirits for safe passage tips...",
-  "Wandering the subterranean mosque of Taman Sari to retrieve local legends...",
-  "Consulting the royal Javanese scrolls for Yogyakarta's finest secrets...",
-  "Checking with a local becak trishaw driver for today's golden sunset spots...",
-];
-
 function formatTime(date: Date) {
   return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
@@ -92,13 +42,70 @@ export default function ConversationalAI({
   isSaved,
 }: ConversationalAIProps) {
   const { isAuthenticated } = useAuth();
+  const { t } = useLocale();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [pendingQuery, setPendingQuery] = useState<string | null>(null);
+  const [freePromptsUsed, setFreePromptsUsed] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    return parseInt(localStorage.getItem('ai_free_prompts_used') ?? '0', 10);
+  });
+  const FREE_PROMPT_LIMIT = 5;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingPhraseIdx, setLoadingPhraseIdx] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const QUICK_PROMPTS = [
+    {
+      text: "Where can I watch the best sunset near the ocean?",
+      label: t('conversational_ai.quick_prompt_beach_sunset_label'),
+      subtitle: t('conversational_ai.quick_prompt_beach_sunset_subtitle'),
+      emoji: "🌅",
+      bg: "bg-orange-50",
+      ring: "ring-orange-100",
+    },
+    {
+      text: "Show me a vertical hidden cave with a heavenly light column",
+      label: t('conversational_ai.quick_prompt_hidden_gems_label'),
+      subtitle: t('conversational_ai.quick_prompt_hidden_gems_subtitle'),
+      emoji: "🪨",
+      bg: "bg-green-50",
+      ring: "ring-green-100",
+    },
+    {
+      text: "Where should I eat legendary local Gudeg or traditional volcano coffee?",
+      label: t('conversational_ai.quick_prompt_culinary_label'),
+      subtitle: t('conversational_ai.quick_prompt_culinary_subtitle'),
+      emoji: "☕",
+      bg: "bg-amber-50",
+      ring: "ring-amber-100",
+    },
+    {
+      text: "Suggest a thrilling volcano adventure with mountain views",
+      label: t('conversational_ai.quick_prompt_volcano_label'),
+      subtitle: t('conversational_ai.quick_prompt_volcano_subtitle'),
+      emoji: "🚙",
+      bg: "bg-blue-50",
+      ring: "ring-blue-100",
+    },
+    {
+      text: "Where should I take my family for royal culture and heritage?",
+      label: t('conversational_ai.quick_prompt_royal_label'),
+      subtitle: t('conversational_ai.quick_prompt_royal_subtitle'),
+      emoji: "🏛️",
+      bg: "bg-purple-50",
+      ring: "ring-purple-100",
+    },
+  ];
+
+  const LOADING_PHRASES = [
+    t('conversational_ai.loading_phrase_1'),
+    t('conversational_ai.loading_phrase_2'),
+    t('conversational_ai.loading_phrase_3'),
+    t('conversational_ai.loading_phrase_4'),
+    t('conversational_ai.loading_phrase_5'),
+  ];
 
   // Load welcome message
   useEffect(() => {
@@ -106,7 +113,7 @@ export default function ConversationalAI({
       const welcomeMsg: Message = {
         id: 'welcome',
         role: 'model',
-        text: 'Sugeng rawuh! 👋\n\nWelcome to Yogyakarta, the land of ancient kings, roaring oceans, and warm hospitality.\n\nI am your local guide and advisor. Ask me anything—whether you want a scenic mountain cafe, a romantic seaside sunset, or vertical hidden cave rappelling, I will tell you where to go!',
+        text: t('conversational_ai.welcome_message'),
         timestamp: formatTime(new Date()),
       };
       setMessages([welcomeMsg]);
@@ -127,7 +134,7 @@ export default function ConversationalAI({
         const userMsg: Message = {
           id: 'user-image-' + Math.random().toString(),
           role: 'user',
-          text: 'Scanned Image Context',
+          text: t('conversational_ai.image_context'),
           imageUrl: initialImageResult.imageUrl,
           timestamp: formatTime(new Date()),
         };
@@ -192,9 +199,16 @@ export default function ConversationalAI({
     if (!textToSend.trim()) return;
 
     if (!isAuthenticated) {
-      setPendingQuery(textToSend);
-      setAuthModalOpen(true);
-      return;
+      // Allow FREE_PROMPT_LIMIT prompts before requiring login
+      if (freePromptsUsed >= FREE_PROMPT_LIMIT) {
+        setPendingQuery(textToSend);
+        setAuthModalOpen(true);
+        return;
+      }
+      // Still within free tier — increment counter and allow
+      const next = freePromptsUsed + 1;
+      setFreePromptsUsed(next);
+      try { localStorage.setItem('ai_free_prompts_used', String(next)); } catch { /* ignore */ }
     }
 
     const userMsg: Message = {
@@ -249,7 +263,7 @@ export default function ConversationalAI({
       const errorMsg: Message = {
         id: Math.random().toString(),
         role: 'model',
-        text: 'Matur nuwun for your patience. I had a slight interruption crossing the volcanic lines, but I can suggest exploring Malioboro or Prambanan today. Let me know if you would like me to refresh!',
+        text: t('conversational_ai.error_fallback'),
         timestamp: formatTime(new Date()),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -329,10 +343,10 @@ export default function ConversationalAI({
           </div>
           <div>
             <h1 className="font-manrope text-2xl font-extrabold text-royal-950 leading-tight">
-              AI Local Advisor
+              {t('conversational_ai.heading')}
             </h1>
             <p className="text-xs text-stone-500 mt-0.5 max-w-xs">
-              Ask Yogyakarta questions and let your knowledgeable local friend suggest authentic places.
+              {t('conversational_ai.subtitle')}
             </p>
           </div>
         </div>
@@ -340,7 +354,7 @@ export default function ConversationalAI({
         {/* Location badge */}
         <div className="relative z-10 mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/80 backdrop-blur-sm rounded-full border border-stone-200/80 shadow-sm self-start float-right -mt-8">
           <MapPin className="h-3.5 w-3.5 text-gold-600" />
-          <span className="text-xs font-semibold text-stone-700">Yogyakarta, Indonesia</span>
+            <span className="text-xs font-semibold text-stone-700">{t('conversational_ai.location_badge')}</span>
         </div>
         <div className="clear-both" />
       </div>
@@ -386,7 +400,7 @@ export default function ConversationalAI({
                       <div className="flex items-center gap-1.5 text-gold-700">
                         <CornerDownRight className="h-3.5 w-3.5" />
                         <span className="font-mono text-[10px] uppercase tracking-wider font-bold">
-                          Suggested Itinerary Matches
+                          {t('conversational_ai.suggested_itinerary')}
                         </span>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -426,9 +440,9 @@ export default function ConversationalAI({
                   </div>
                 )}
                 <div className="bg-royal-950 text-gold-50 rounded-2xl rounded-br-none px-5 py-3.5 text-sm leading-relaxed shadow">
-                  {msg.text === 'Scanned Image Context' ? (
+                  {msg.text === t('conversational_ai.image_context') ? (
                     <span className="italic text-xs text-gold-300/80 font-mono">
-                      Searched by this image
+                      {t('conversational_ai.searched_by_image')}
                     </span>
                   ) : (
                     msg.text
@@ -466,7 +480,7 @@ export default function ConversationalAI({
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-3.5 w-3.5 text-gold-500" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-gold-600 font-mono">
-              Suggested Inquiries
+              {t('conversational_ai.suggested_inquiries')}
             </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
@@ -510,11 +524,11 @@ export default function ConversationalAI({
             </div>
             <div className="h-5 w-px bg-stone-200 shrink-0" />
             <span className="flex-1 text-sm text-stone-400 text-left">
-              Ask your local advisor friend (e.g. 'romantic dinner with sunset' or 'hidden Javanese pools')
+              {t('conversational_ai.guest_placeholder')}
             </span>
             <div className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gold-600 text-white text-xs font-semibold group-hover:bg-gold-500 transition-colors">
               <Lock className="h-3 w-3" />
-              Sign in to chat
+              {t('conversational_ai.sign_in_chat')}
             </div>
           </button>
         ) : (
@@ -537,7 +551,7 @@ export default function ConversationalAI({
             {/* Text input */}
             <input
               type="text"
-              placeholder="Ask your local advisor friend (e.g. 'romantic dinner with sunset' or 'hidden Javanese pools')"
+              placeholder={t('conversational_ai.guest_placeholder')}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={loading}
@@ -571,7 +585,7 @@ export default function ConversationalAI({
               d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
             />
           </svg>
-          AI can make mistakes. Please verify important information.
+          {t('conversational_ai.ai_disclaimer')}
         </p>
       </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import DestinationCard, { isLandscape } from '@/components/DestinationCard';
 import CategoryLinks from '@/components/CategoryLinks';
@@ -41,6 +42,7 @@ function mapApiToDestination(raw: Record<string, unknown>): Destination {
 
 function DestinationsPageInner() {
   const router = useRouter();
+  const { t } = useLocale();
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -151,19 +153,19 @@ function DestinationsPageInner() {
                 className="flex items-center space-x-1.5 text-gold-400/80 hover:text-gold-300 transition-colors mb-6 group"
               >
                 <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-                <span className="text-sm font-medium">Back to Explore</span>
+                <span className="text-sm font-medium">{t('destinations_page.back_to_explore')}</span>
               </button>
 
               <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
                   <span className="font-sans text-[10px] uppercase tracking-[0.08em] text-gold-400 font-semibold mb-1 block">
-                    ALL DESTINATIONS
+                    {t('destinations_page.all_destinations')}
                   </span>
                   <h1 className="font-manrope text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                    Explore Every Corner
+                    {t('destinations_page.heading')}
                   </h1>
                   <p className="text-sm text-white/60 mt-2">
-                    {totalDestinations} curated destinations across Yogyakarta
+                    {totalDestinations} {t('destinations_page.subtitle')}
                   </p>
                 </div>
 
@@ -174,7 +176,7 @@ function DestinationsPageInner() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search destinations..."
+                    placeholder={t('destinations_page.search_placeholder')}
                     className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-gold-400/50 focus:bg-white/10 transition-all"
                   />
                 </div>
@@ -200,12 +202,12 @@ function DestinationsPageInner() {
            {/* Destinations Grid */}
           <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
             {isLoading ? (
-              <div className="text-center py-20 text-stone-500">Loading destinations...</div>
+              <div className="text-center py-20 text-stone-500">{t('destinations_page.loading')}</div>
             ) : filteredDestinations.length === 0 ? (
               <div className="text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-white">
                 <Search className="h-10 w-10 text-gold-300 mx-auto mb-4" />
-                <span className="block text-base font-semibold text-royal-950 mb-1">No destinations found</span>
-                <span className="block text-sm text-stone-500">Try a different search or category</span>
+                <span className="block text-base font-semibold text-royal-950 mb-1">{t('destinations_page.not_found')}</span>
+                <span className="block text-sm text-stone-500">{t('destinations_page.try_different')}</span>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
@@ -234,14 +236,14 @@ function DestinationsPageInner() {
               <span className="font-manrope font-bold text-sm tracking-[0.08em] uppercase text-white">Jogjagem</span>
             </div>
             <p className="text-[10px] text-gold-100/40 font-mono tracking-widest uppercase mt-1">
-              AI Tourism Discovery & Hidden Gems in Yogyakarta
+              {t('footer.tagline')}
             </p>
           </div>
 
           <div className="text-[10px] font-mono text-gold-200/40 uppercase tracking-widest space-y-1">
-            <p>&copy; 2026 Jogjagem Platform</p>
-            <p>Made with deep hospitality & Javanese cultural heritage</p>
-            <p>Build by Giwangan Studio • 085111221044</p>
+            <p>{t('footer.copyright')}</p>
+            <p>{t('footer.made_with')}</p>
+            <p>{t('footer.build_by')}</p>
           </div>
         </div>
       </footer>

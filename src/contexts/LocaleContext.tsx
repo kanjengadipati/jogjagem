@@ -1,6 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import idMessages from '@/messages/id.json';
+import enMessages from '@/messages/en.json';
 
 type Locale = 'id' | 'en';
 
@@ -10,47 +12,24 @@ interface LocaleContextType {
   t: (key: string) => string;
 }
 
-const translations: Record<Locale, Record<string, string>> = {
-  id: {
-    'common.explore':       'Jelajahi',
-    'common.ai_assistant':  'Asisten AI',
-    'common.planner':       'Perencana',
-    'common.map':           'Peta',
-    'common.saved':         'Disimpan',
-    'common.login':         'Masuk',
-    'common.register':      'Daftar',
-    'common.logout':        'Keluar',
-    'common.search':        'Cari',
-    'common.see_all':       'Lihat Semua',
-    'home.upcoming_festivals': 'Festival Mendatang',
-    'home.hero_title':      'Temukan Keajaiban Yogyakarta',
-    'home.hero_subtitle':   'Petualangan tersembunyi dan permata tersembunyi',
-  },
-  en: {
-    'common.explore':       'Explore',
-    'common.ai_assistant':  'AI Assistant',
-    'common.planner':       'Planner',
-    'common.map':           'Map',
-    'common.saved':         'Saved',
-    'common.login':         'Login',
-    'common.register':      'Register',
-    'common.logout':        'Logout',
-    'common.search':        'Search',
-    'common.see_all':       'See All',
-    'home.upcoming_festivals': 'Upcoming Festivals',
-    'home.hero_title':      'Discover the Magic of Yogyakarta',
-    'home.hero_subtitle':   'Hidden adventures and secret gems',
-  },
-};
+const messages: Record<Locale, Record<string, any>> = { id: idMessages, en: enMessages };
+
+function getNestedValue(obj: Record<string, any>, path: string): string | undefined {
+  const keys = path.split('.');
+  let current: any = obj;
+  for (const key of keys) {
+    if (current == null || typeof current !== 'object') return undefined;
+    current = current[key];
+  }
+  return typeof current === 'string' ? current : undefined;
+}
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('id');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const saved = localStorage.getItem('locale') as Locale;
     if (saved === 'id' || saved === 'en') {
       setLocaleState(saved);
@@ -62,8 +41,9 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     setLocaleState(newLocale);
   };
 
-  const t = (key: string): string =>
-    translations[locale]?.[key] ?? key;
+  const t = useCallback((key: string): string => {
+    return getNestedValue(messages[locale], key) ?? key;
+  }, [locale]);
 
   return (
     <LocaleContext.Provider value={{ locale, setLocale, t }}>

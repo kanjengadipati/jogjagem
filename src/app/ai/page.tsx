@@ -4,6 +4,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
+import I18nProvider from '@/contexts/I18nProvider';
+import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
 import ConversationalAI from '@/components/ConversationalAI';
@@ -13,6 +15,7 @@ import { Destination } from '@/types';
 function AIPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLocale();
 
   // ?q=<query> pre-fills the first message
   const initialQuery = searchParams.get('q') || '';
@@ -122,7 +125,7 @@ function AIPageContent() {
 
       <SubNav
         onBack={() => router.back()}
-        title="AI Local Advisor"
+        title={t('ai_page.title')}
         zClass="z-40"
       />
 
@@ -145,7 +148,9 @@ export default function AIPage() {
     <Suspense>
       <AuthProvider>
         <LocationProvider>
-          <AIPageContent />
+          <I18nProvider>
+            <AIPageContent />
+          </I18nProvider>
         </LocationProvider>
       </AuthProvider>
     </Suspense>

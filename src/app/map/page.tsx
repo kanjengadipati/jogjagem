@@ -4,6 +4,8 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthProvider } from '../../contexts/AuthContext';
 import { LocationProvider } from '../../contexts/LocationContext';
+import I18nProvider from '@/contexts/I18nProvider';
+import { useLocale } from '@/contexts/LocaleContext';
 import Header from '../../components/Header';
 import SubNav from '../../components/SubNav';
 import InteractiveMap from '../../components/InteractiveMap';
@@ -11,6 +13,7 @@ import { Destination } from '../../types';
 
 function MapPageContent() {
   const router = useRouter();
+  const { t } = useLocale();
 
   const toSlug = (name: string) =>
     name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -32,7 +35,7 @@ function MapPageContent() {
 
       <SubNav
         onBack={() => router.back()}
-        title="Explore Map"
+        title={t('map_page.title')}
         zClass="z-40"
       />
 
@@ -50,7 +53,9 @@ export default function MapPage() {
   return (
     <AuthProvider>
       <LocationProvider>
-        <MapPageContent />
+        <I18nProvider>
+          <MapPageContent />
+        </I18nProvider>
       </LocationProvider>
     </AuthProvider>
   );

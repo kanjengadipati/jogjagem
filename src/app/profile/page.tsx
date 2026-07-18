@@ -11,6 +11,7 @@ import ProfileHeader from '../../components/profile/ProfileHeader';
 import AuthModal from '../../components/AuthModal';
 import { AuthProvider } from '../../contexts/AuthContext';
 import { LocationProvider } from '../../contexts/LocationContext';
+import { useLocale } from '@/contexts/LocaleContext';
 import ReviewsSection from '../../components/profile/ReviewsSection';
 import MyTripsSection from '../../components/profile/MyTripsSection';
 import WishlistSection from '../../components/profile/WishlistSection';
@@ -24,6 +25,7 @@ type Tab = 'overview' | 'settings';
 
 function ProfilePageContent() {
   const router = useRouter();
+  const { t } = useLocale();
   const [profileData, setProfileData] = useState<ProfileResponse | null>(null);
   const [userDestinations, setUserDestinations] = useState<{ destination_slug: string; status: string }[]>([]);
   const [userReviews, setUserReviews] = useState<BeReview[]>([]);
@@ -114,11 +116,11 @@ function ProfilePageContent() {
     try {
       const res = await auth.updateProfile(name, phone || undefined);
       if (res.status === 'success') {
-        setProfileSuccess('Profile updated successfully');
+        setProfileSuccess(t('profile.profile_updated'));
         await loadProfile();
       } else {
         if (!auth.isLoggedIn()) { setAuthModalOpen(true); return; }
-        setProfileError(res.message || 'Failed to update profile');
+        setProfileError(res.message || t('profile.profile_update_failed'));
       }
     } catch {
       if (!auth.isLoggedIn()) { setAuthModalOpen(true); return; }
@@ -134,25 +136,25 @@ function ProfilePageContent() {
     setPasswordSuccess('');
     setPasswordError('');
     if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match');
+      setPasswordError(t('profile.passwords_no_match'));
       setPasswordSaving(false);
       return;
     }
     if (newPassword.length < 8) {
-      setPasswordError('Password must be at least 8 characters');
+      setPasswordError(t('profile.password_min_chars'));
       setPasswordSaving(false);
       return;
     }
     try {
       const res = await auth.changePassword(currentPassword, newPassword);
       if (res.status === 'success') {
-        setPasswordSuccess('Password changed successfully');
+        setPasswordSuccess(t('profile.password_changed'));
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
       } else {
         if (!auth.isLoggedIn()) { setAuthModalOpen(true); return; }
-        setPasswordError(res.message || 'Failed to change password');
+        setPasswordError(res.message || t('profile.password_change_failed'));
       }
     } catch {
       if (!auth.isLoggedIn()) { setAuthModalOpen(true); return; }
@@ -194,7 +196,7 @@ function ProfilePageContent() {
       <div className="min-h-screen bg-[#F7F3EE] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 text-gold-500 animate-spin" />
-          <p className="text-sm text-stone-400 font-medium">Loading profile…</p>
+          <p className="text-sm text-stone-400 font-medium">{t('profile.loading')}</p>
         </div>
       </div>
     );
@@ -211,7 +213,7 @@ function ProfilePageContent() {
             onClick={() => router.push('/')}
             className="mt-5 px-5 py-2.5 bg-royal-950 text-white text-sm font-semibold rounded-xl hover:bg-royal-800 transition-all"
           >
-            Back to Home
+            {t('profile.back_home')}
           </button>
         </div>
       </div>
@@ -235,8 +237,8 @@ function ProfilePageContent() {
         title={profileData?.name}
         zClass="z-40"
         centerLinks={[
-          { label: 'Profile',  onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
-          { label: 'Settings', onClick: () => setActiveTab('settings'), active: activeTab === 'settings' },
+          { label: t('profile.tab_profile'),  onClick: () => setActiveTab('overview'), active: activeTab === 'overview' },
+          { label: t('profile.tab_settings'), onClick: () => setActiveTab('settings'), active: activeTab === 'settings' },
         ]}
         onShare={handleShareProfile}
         copiedToast={copied}
@@ -290,23 +292,23 @@ function ProfilePageContent() {
                       <User className="w-5 h-5 text-stone-600" />
                     </div>
                     <div>
-                      <h3 className="font-manrope font-bold text-base text-royal-950">Edit Profile</h3>
-                      <p className="text-xs text-stone-400">Update your personal information</p>
+                      <h3 className="font-manrope font-bold text-base text-royal-950">{t('profile.edit_heading')}</h3>
+                      <p className="text-xs text-stone-400">{t('profile.edit_subtitle')}</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleUpdateProfile} className="space-y-4">
                     <div>
-                      <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-2">Full Name</label>
+                      <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-2">{t('profile.full_name')}</label>
                       <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Your name"
+                        placeholder={t('profile.name_placeholder')}
                         className="w-full bg-stone-50 focus:bg-white border border-stone-200 focus:border-gold-400 text-sm px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-royal-950 placeholder:text-stone-300"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-2">Email Address</label>
+                      <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-2">{t('profile.email')}</label>
                       <div className="relative">
                         <input
                           value={profileData?.email || ''}
@@ -314,16 +316,16 @@ function ProfilePageContent() {
                           className="w-full bg-stone-100 border border-stone-200 text-sm px-4 py-3 rounded-2xl outline-none text-stone-400 cursor-not-allowed pr-16"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-stone-400 bg-stone-200 px-2 py-1 rounded-lg uppercase tracking-wide">
-                          Locked
+                          {t('profile.locked')}
                         </span>
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-2">Phone Number</label>
+                      <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-2">{t('profile.phone')}</label>
                       <input
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+62 8xx-xxxx-xxxx"
+                        placeholder={t('profile.phone_placeholder')}
                         className="w-full bg-stone-50 focus:bg-white border border-stone-200 focus:border-gold-400 text-sm px-4 py-3 rounded-2xl outline-none transition-all duration-200 text-royal-950 placeholder:text-stone-300"
                       />
                     </div>
@@ -344,7 +346,7 @@ function ProfilePageContent() {
                       disabled={profileSaving}
                       className="w-full py-3 bg-royal-950 hover:bg-royal-800 disabled:opacity-50 text-white text-sm font-semibold rounded-2xl transition-all duration-200"
                     >
-                      {profileSaving ? 'Saving…' : 'Save Changes'}
+                      {profileSaving ? t('profile.saving') : t('profile.save_changes')}
                     </button>
                   </form>
                 </div>
@@ -356,16 +358,16 @@ function ProfilePageContent() {
                       <Lock className="w-5 h-5 text-stone-600" />
                     </div>
                     <div>
-                      <h3 className="font-manrope font-bold text-base text-royal-950">Change Password</h3>
-                      <p className="text-xs text-stone-400">Keep your account secure</p>
+                      <h3 className="font-manrope font-bold text-base text-royal-950">{t('profile.change_password_heading')}</h3>
+                      <p className="text-xs text-stone-400">{t('profile.change_password_subtitle')}</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleChangePassword} className="space-y-4">
                     {[
-                      { label: 'Current Password',      value: currentPassword, setter: setCurrentPassword, show: showCurrentPw, toggle: () => setShowCurrentPw((v) => !v) },
-                      { label: 'New Password',           value: newPassword,     setter: setNewPassword,     show: showNewPw,     toggle: () => setShowNewPw((v) => !v)     },
-                      { label: 'Confirm New Password',   value: confirmPassword, setter: setConfirmPassword, show: showConfirmPw, toggle: () => setShowConfirmPw((v) => !v) },
+                      { label: t('profile.current_password'),      value: currentPassword, setter: setCurrentPassword, show: showCurrentPw, toggle: () => setShowCurrentPw((v) => !v) },
+                      { label: t('profile.new_password'),           value: newPassword,     setter: setNewPassword,     show: showNewPw,     toggle: () => setShowNewPw((v) => !v)     },
+                      { label: t('profile.confirm_password'),   value: confirmPassword, setter: setConfirmPassword, show: showConfirmPw, toggle: () => setShowConfirmPw((v) => !v) },
                     ].map(({ label, value, setter, show, toggle }) => (
                       <div key={label}>
                         <label className="text-xs font-semibold text-stone-500 uppercase tracking-wide block mb-2">{label}</label>
@@ -403,7 +405,7 @@ function ProfilePageContent() {
                       disabled={passwordSaving}
                       className="w-full py-3 bg-royal-950 hover:bg-royal-800 disabled:opacity-50 text-white text-sm font-semibold rounded-2xl transition-all duration-200"
                     >
-                      {passwordSaving ? 'Changing Password…' : 'Change Password'}
+                      {passwordSaving ? t('profile.changing_password') : t('profile.change_password_btn')}
                     </button>
                   </form>
                 </div>

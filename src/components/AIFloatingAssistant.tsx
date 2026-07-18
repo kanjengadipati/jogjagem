@@ -6,6 +6,7 @@ import { Destination } from '@/types';
 import { ai } from '@/lib/api';
 import { LiveWeather } from '@/lib/weather';
 import { useLocation } from '@/contexts/LocationContext';
+import { useLocale } from '@/contexts/LocaleContext';
 
 interface AIFloatingAssistantProps {
   destination: Destination;
@@ -14,9 +15,10 @@ interface AIFloatingAssistantProps {
 }
 
 export default function AIFloatingAssistant({ destination, liveWeather, liveCrowdLevel }: AIFloatingAssistantProps) {
+  const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
-  const [advice, setAdvice] = useState<string>('Loading...');
+  const [advice, setAdvice] = useState<string>(t('ai_floating.loading'));
   const [loading, setLoading] = useState(false);
   const { coords, requestLocation } = useLocation();
 
@@ -47,7 +49,7 @@ export default function AIFloatingAssistant({ destination, liveWeather, liveCrow
           if (res.status === 'success' && res.data) {
             setAdvice((res.data as any).reply);
           } else {
-            setAdvice("Enjoy your visit to this beautiful place!");
+            setAdvice(t('ai_floating.fallback_advice'));
           }
         })
         .finally(() => setLoading(false));
@@ -69,21 +71,21 @@ export default function AIFloatingAssistant({ destination, liveWeather, liveCrow
           <div className="p-4 bg-gold-400 text-royal-950 font-bold flex items-center justify-between">
             <span className="flex items-center space-x-2">
               <Sparkles className="h-4 w-4" />
-              <span>Jogja Live Assistant</span>
+              <span>{t('ai_floating.heading')}</span>
             </span>
             <span className="text-[10px] font-mono bg-white/20 px-2 py-0.5 rounded-full">{currentTime}</span>
           </div>
           <div className="p-4 space-y-4">
-            <p className="text-sm font-light leading-relaxed">{loading ? 'Thinking...' : advice}</p>
+            <p className="text-sm font-light leading-relaxed">{loading ? t('ai_floating.thinking') : advice}</p>
             <div className="space-y-2">
               <button onClick={navigateToViewpoint} className="flex items-center space-x-2 w-full p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-xs">
                 <MapPin className="h-4 w-4 text-gold-400" />
-                <span>View on Map</span>
+                <span>{t('ai_floating.view_on_map')}</span>
               </button>
 
               <button className="flex items-center space-x-2 w-full p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-xs">
                 <Sparkles className="h-4 w-4 text-gold-400" />
-                <span>Get Local Tips</span>
+                <span>{t('ai_floating.get_tips')}</span>
               </button>
             </div>
           </div>

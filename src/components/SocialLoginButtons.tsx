@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useLocale } from '@/contexts/LocaleContext';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 export default function SocialLoginButtons({ onError, onSuccess }: { onError?: (msg: string) => void; onSuccess?: () => void }) {
   const [loading, setLoading] = useState<'google' | null>(null);
+  const { t } = useLocale();
 
   const handleGoogleClick = () => {
     if (!GOOGLE_CLIENT_ID) return;
@@ -24,7 +26,7 @@ export default function SocialLoginButtons({ onError, onSuccess }: { onError?: (
           <div className="w-full border-t border-stone-200" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-white px-3 text-stone-400">or continue with</span>
+          <span className="bg-white px-3 text-stone-400">{t('social_login.or_continue_with')}</span>
         </div>
       </div>
 

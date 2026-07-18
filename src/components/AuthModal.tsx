@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Loader2, Check, Info } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLocale } from '@/contexts/LocaleContext';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -19,16 +20,17 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
   const [success, setSuccess] = useState('');
 
   const { login, register } = useAuth();
+  const { t } = useLocale();
 
   if (!isOpen) return null;
 
   const passwordChecks = [
-    { label: 'At least 8 characters', valid: password.length >= 8 },
-    { label: 'Uppercase letter (A-Z)', valid: /[A-Z]/.test(password) },
-    { label: 'Lowercase letter (a-z)', valid: /[a-z]/.test(password) },
-    { label: 'Number (0-9)', valid: /[0-9]/.test(password) },
-    { label: 'Symbol (!@#$%^&*)', valid: /[^A-Za-z0-9]/.test(password) },
-    { label: 'No spaces', valid: !password.includes(' ') },
+    { label: t('auth.req_min_chars'), valid: password.length >= 8 },
+    { label: t('auth.req_uppercase'), valid: /[A-Z]/.test(password) },
+    { label: t('auth.req_lowercase'), valid: /[a-z]/.test(password) },
+    { label: t('auth.req_number'), valid: /[0-9]/.test(password) },
+    { label: t('auth.req_symbol'), valid: /[^A-Za-z0-9]/.test(password) },
+    { label: t('auth.req_no_spaces'), valid: !password.includes(' ') },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,11 +42,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
     if (mode === 'register') {
       const result = await register(name, email, password);
       if (result.success) {
-        setSuccess('Account created! You can now log in.');
+        setSuccess(t('auth.account_created'));
         setMode('login');
         setPassword('');
       } else {
-        setError(result.error || 'Registration failed');
+        setError(result.error || t('auth.register_failed'));
       }
     } else {
       const result = await login(email, password);
@@ -53,7 +55,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
         onSuccess?.();
         resetForm();
       } else {
-        setError(result.error || 'Login failed');
+        setError(result.error || t('auth.login_failed'));
       }
     }
 
@@ -95,12 +97,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
               <img src="/logo-gold-new.png" alt="Jogjagem" className="h-6 w-auto" />
             </div>
             <h2 className="font-manrope text-xl font-bold text-royal-950">
-              {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+              {mode === 'login' ? t('auth.welcome_back') : t('auth.create_account')}
             </h2>
             <p className="text-xs text-stone-500 mt-1">
               {mode === 'login'
-                ? 'Sign in to access your saved destinations and trip plans'
-                : 'Join Jogjagem to bookmark and plan your trips'}
+                ? t('auth.signin_subtitle')
+                : t('auth.signup_subtitle')}
             </p>
           </div>
 
@@ -123,7 +125,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
                 <input
                   type="text"
-                  placeholder="Full name"
+                  placeholder={t('auth.full_name_placeholder')}
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -136,7 +138,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
               <input
                 type="email"
-                placeholder="Email address"
+                placeholder={t('auth.email_placeholder')}
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -149,7 +151,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
                 <input
                   type="password"
-                  placeholder="Password"
+                  placeholder={t('auth.password_placeholder')}
                   required
                   minLength={8}
                   value={password}
@@ -163,7 +165,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
                 <div className="mt-2 p-3 rounded-xl bg-stone-50 border border-stone-200 space-y-1.5">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Info className="h-3 w-3 text-stone-400" />
-                    <span className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider">Password requirements</span>
+                    <span className="text-[10px] font-semibold text-stone-500 uppercase tracking-wider">{t('auth.password_requirements')}</span>
                   </div>
                   {passwordChecks.map((check, i) => (
                     <div key={i} className="flex items-center gap-2">
@@ -185,7 +187,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
               className="w-full rounded-xl bg-royal-950 py-3 text-sm font-semibold text-gold-300 hover:bg-royal-900 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              <span>{mode === 'login' ? 'Sign In' : 'Create Account'}</span>
+              <span>{mode === 'login' ? t('auth.signin_btn') : t('auth.create_btn')}</span>
             </button>
           </form>
 
@@ -196,9 +198,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
               className="text-xs text-stone-500 hover:text-gold-700 transition-colors"
             >
               {mode === 'login' ? (
-                <>Don't have an account? <span className="font-semibold text-gold-700">Sign up</span></>
+                <>{t('auth.no_account')} <span className="font-semibold text-gold-700">{t('auth.signup_link')}</span></>
               ) : (
-                <>Already have an account? <span className="font-semibold text-gold-700">Sign in</span></>
+                <>{t('auth.has_account')} <span className="font-semibold text-gold-700">{t('auth.signin_link')}</span></>
               )}
             </button>
           </div>

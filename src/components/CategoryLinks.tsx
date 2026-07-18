@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { config } from '../lib/api';
+import { useLocale } from '@/contexts/LocaleContext';
 import {
   TuguJogjaIcon,
   HiddenGemsIcon,
@@ -56,7 +57,21 @@ interface CategoryLinksProps {
 }
 
 export default function CategoryLinks({ selectedCategory, onSelectCategory }: CategoryLinksProps) {
-  const [categories, setCategories] = useState<Category[]>(FALLBACK_CATEGORIES);
+  const { t } = useLocale();
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    config.getCategories().then(res => {
+      if (res.status === 'success' && res.data) {
+        const translated = res.data.map(cat => ({
+          ...cat,
+          name: t(`category.${cat.id}`) || cat.name,
+          description: t(`category.${cat.id}_desc`) || cat.description,
+        }));
+        setCategories(translated);
+      }
+    }).catch(() => {});
+  }, [t]);
 
   useEffect(() => {
     config.getCategories().then(res => {
@@ -91,7 +106,7 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory }: Ca
           <div className={iconContainerCls(selectedCategory === null)}>
             <TuguJogjaIcon className={iconCls} />
           </div>
-          <span className="text-xs sm:text-[11px] font-bold tracking-tight">All Journeys</span>
+          <span className="text-xs sm:text-[11px] font-bold tracking-tight">{t('category.all_journeys')}</span>
         </button>
 
         {categories.map((cat) => {

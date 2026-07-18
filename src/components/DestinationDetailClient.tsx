@@ -10,6 +10,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
 import I18nProvider from '@/contexts/I18nProvider';
+import { useLocale } from '@/contexts/LocaleContext';
 
 function mapApiToDestination(raw: any): Destination {
   return {
@@ -52,6 +53,7 @@ function toSlug(name: string): string {
 }
 
 export default function DestinationDetailClient({ slug }: { slug: string[] }) {
+  const { t } = useLocale();
   const router = useRouter();
   const destinationId = slug.join('/');
   const [destination, setDestination] = useState<Destination | null>(null);
@@ -87,7 +89,7 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
         }
       } catch {}
 
-      setError('Destination not found');
+      setError(t('destination_detail_client.not_found'));
       setLoading(false);
     };
     fetchDestination();
@@ -173,9 +175,9 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-3" />
-              <p className="text-royal-950 font-medium">{error || 'Destination not found'}</p>
+              <p className="text-royal-950 font-medium">{error || t('destination_detail_client.not_found')}</p>
               <button onClick={() => router.push('/destinations')} className="mt-4 text-sm text-gold-600 hover:text-gold-700 underline">
-                Browse all destinations
+                {t('destination_detail_client.browse_all')}
               </button>
             </div>
           </div>

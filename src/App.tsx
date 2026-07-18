@@ -5,12 +5,14 @@ import AuthModal from './components/AuthModal';
 import Hero from './components/Hero';
 import CategoryLinks from './components/CategoryLinks';
 import DestinationCard, { isLandscape } from './components/DestinationCard';
+import { useLocale } from '@/contexts/LocaleContext';
 
 import { Destination, Festival } from './types';
 import { destinations, events, config, auth, ai, APIResponse } from '@/lib/api';
 import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, RefreshCw } from 'lucide-react';
 
 export default function App() {
+  const { t } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') || 'discover';
@@ -303,12 +305,12 @@ export default function App() {
                   <div className="flex items-end justify-between mb-6">
                     <div className="flex flex-col">
                       <span className="font-sans text-[10px] uppercase tracking-[0.08em] text-gold-600 font-semibold mb-1 block">
-                        {selectedCategory ? 'CURATED COLLECTION' : 'LOCAL FAVORITES'}
+                        {selectedCategory ? t('home.curated_label') : t('home.local_label')}
                       </span>
                       <h2 className="font-manrope text-2xl sm:text-3xl font-bold tracking-tight text-royal-950">
                         {selectedCategory 
                           ? `Curated ${selectedCategory.replace('-', ' ')}` 
-                          : 'Popular Destinations'
+                          : t('home.popular_destinations')
                         }
                       </h2>
                     </div>
@@ -316,14 +318,14 @@ export default function App() {
                       onClick={() => router.push('/destinations')}
                       className="text-xs sm:text-sm font-semibold text-royal-700/80 hover:text-gold-600 transition-colors flex items-center space-x-0.5 border-b border-royal-700/10 hover:border-gold-600 pb-0.5 cursor-pointer"
                     >
-                      <span>See all</span>
+                      <span>{t('common.see_all')}</span>
                       <span>&gt;</span>
                     </button>
                   </div>
 
                   {displayDestinations.length === 0 ? (
                     <div className="text-center py-12 border border-dashed border-gold-200 rounded-3xl bg-[#FCFAF8] p-6">
-                      <span className="block text-sm font-medium text-royal-950">No matches found for this category</span>
+                      <span className="block text-sm font-medium text-royal-950">{t('home.no_matches')}</span>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6">
@@ -353,26 +355,27 @@ export default function App() {
                       <div className="flex items-end justify-between mb-5 border-b border-[#E8E0D5] pb-3">
                         <div className="text-left">
                           <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
-                            Upcoming Festivals
+                            {t('home.upcoming_festivals')}
                           </h2>
-                          <p className="text-xs text-stone-500/80 mt-0.5">Don't miss what's happening</p>
+                          <p className="text-xs text-stone-500/80 mt-0.5">{t('home.don_t_miss')}</p>
                         </div>
                         <button
-                          onClick={() => router.push('/destinations')}
+                          onClick={() => router.push('/events')}
                           className="text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 cursor-pointer"
                         >
-                          <span>See all</span>
+                          <span>{t('common.see_all')}</span>
                           <span>→</span>
                         </button>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {allEvents.slice(0, 3).map((fest, idx) => {
-                          const badges = ["Limited", "Popular", "Live Tonight"];
-                          const subBadge = ["Starts in 5 Days", "Starts in 18 Days", "Tonight • 7 PM"];
+                          const badges = [t('common.badge_limited'), t('common.badge_popular'), t('common.badge_live_tonight')];
+                          const subBadge = [t('common.badge_starts_5'), t('common.badge_starts_18'), t('common.badge_tonight_7')];
                           return (
                             <div
                               key={fest.id}
+                              onClick={() => router.push(`/events/${fest.id}`)}
                               className="group relative aspect-[3/4] w-full overflow-hidden rounded-[24px] bg-royal-950 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer border border-stone-200/10"
                             >
                               <img 
@@ -396,7 +399,7 @@ export default function App() {
                               <div className="absolute bottom-0 inset-x-0 p-4 flex flex-col justify-end text-left">
                                 {/* Sub badge time */}
                                 <span className="text-[9px] font-sans font-semibold text-gold-400 mb-1 tracking-[0.08em] uppercase">
-                                  {subBadge[idx] || "Upcoming"}
+                                  {subBadge[idx] || t('common.badge_upcoming')}
                                 </span>
                                 
                                 <h3 className="font-manrope text-sm font-bold tracking-tight text-white leading-tight mb-2 group-hover:text-gold-300 transition-colors">
@@ -425,15 +428,15 @@ export default function App() {
                       <div className="flex items-end justify-between mb-5 border-b border-[#E8E0D5] pb-3">
                         <div className="text-left">
                           <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
-                            AI Picks Just for You
+                            {t('home.ai_picks_title')}
                           </h2>
-                          <p className="text-xs text-stone-500/80 mt-0.5">Personalized for today's vibes</p>
+                          <p className="text-xs text-stone-500/80 mt-0.5">{t('home.personalized_vibes')}</p>
                         </div>
                         <button
                           onClick={() => router.push('/destinations')}
                           className="text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 cursor-pointer"
                         >
-                          <span>See all</span>
+                          <span>{t('common.see_all')}</span>
                           <span>→</span>
                         </button>
                       </div>
@@ -442,10 +445,10 @@ export default function App() {
                         {(aiPicks.length > 0
                           ? aiPicks.slice(0, 4)
                           : [
-                              { destinationId: 'merapi',     badge: 'AI Pick Today', headline: 'Merapi Sunrise Jeep Tour', crowd: 'Low',  rating: 4.8 },
-                              { destinationId: 'goajomblang', badge: 'Hidden Gem',   headline: 'Celestial Beam Cave',      crowd: 'Low',  rating: 4.9 },
-                              { destinationId: 'prambanan',  badge: 'Heritage Gem',  headline: 'Prambanan Temple',         crowd: 'Medium', rating: 4.7 },
-                              { destinationId: 'parangtritis', badge: 'Sunset Spot', headline: 'Parangtritis Beach',       crowd: 'High', rating: 4.5 },
+                              { destinationId: 'merapi',     badge: t('home.ai_pick_badge'), headline: 'Merapi Sunrise Jeep Tour', crowd: 'Low',  rating: 4.8 },
+                              { destinationId: 'goajomblang', badge: t('category.hidden_gem'),   headline: 'Celestial Beam Cave',      crowd: 'Low',  rating: 4.9 },
+                              { destinationId: 'prambanan',  badge: t('category.heritage'),  headline: 'Prambanan Temple',         crowd: 'Medium', rating: 4.7 },
+                              { destinationId: 'parangtritis', badge: t('hero.cta_beach_sunset').split('{name}')[0].trim() || 'Sunset Spot', headline: 'Parangtritis Beach',       crowd: 'High', rating: 4.5 },
                             ]
                         ).map((pick) => {
                           const dest = allDestinations.find(d => d.id === pick.destinationId);
@@ -485,7 +488,7 @@ export default function App() {
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-1.5">
                                     <span className="text-[10px] font-mono text-gold-400 font-bold">★ {(pick.rating || dest.rating || 0).toFixed(1)}</span>
-                                    <span className="text-[9px] font-mono font-bold text-white/50 bg-white/10 px-1.5 py-0.5 rounded">{pick.crowd} Crowd</span>
+                                    <span className="text-[9px] font-mono font-bold text-white/50 bg-white/10 px-1.5 py-0.5 rounded">{pick.crowd} {t('home.crowd_label')}</span>
                                   </div>
                                   <div className="h-6 w-6 rounded-full bg-gold-400 text-royal-950 flex items-center justify-center shadow-md group-hover:bg-gold-300 transition-colors shrink-0">
                                     <svg className="h-3 w-3 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3">
@@ -508,15 +511,15 @@ export default function App() {
                   <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-6 border-b border-[#E8E0D5] pb-4">
                     <div className="text-left">
                       <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
-                        AI Suggested Journey
+                        {t('home.ai_suggested_journey')}
                       </h2>
-                      <p className="text-xs text-stone-500/80 mt-0.5">One perfect day in Jogja</p>
+                      <p className="text-xs text-stone-500/80 mt-0.5">{t('home.one_perfect_day')}</p>
                     </div>
                     <button 
                       onClick={() => router.push('/planner')}
                       className="mt-2 sm:mt-0 text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 border-b border-gold-700/10 hover:border-gold-900 pb-0.5 cursor-pointer w-fit"
                     >
-                      <span>Customize with AI</span>
+                      <span>{t('home.customize_ai')}</span>
                       <span>→</span>
                     </button>
                   </div>
@@ -524,12 +527,12 @@ export default function App() {
                   {/* Timeline Cards Row */}
                   <div className="flex items-center space-x-2.5 sm:space-x-3.5 overflow-x-auto pb-4 scrollbar-none -mx-4 px-4 lg:mx-0 lg:px-0">
                     {(() => {
-                      const journeySlots = [
-                        { label: 'Morning', time: '07.00 AM', icon: Sun, color: '#B18A5E', categories: ['heritage', 'adventure'] },
-                        { label: 'Lunch', time: '12.00 PM', icon: Utensils, color: '#5F713D', categories: ['culinary'] },
-                        { label: 'Afternoon', time: '02.30 PM', icon: Leaf, color: '#4F6F52', categories: ['nature', 'heritage', 'hidden-gem'] },
-                        { label: 'Sunset', time: '05.30 PM', icon: Sunset, color: '#BC6C25', categories: ['beach', 'nature'] },
-                      ];
+                        const journeySlots = [
+                          { label: t('home.morning'), time: '07.00 AM', icon: Sun, color: '#B18A5E', categories: ['heritage', 'adventure'] },
+                          { label: t('home.lunch'), time: '12.00 PM', icon: Utensils, color: '#5F713D', categories: ['culinary'] },
+                          { label: t('home.afternoon'), time: '02.30 PM', icon: Leaf, color: '#4F6F52', categories: ['nature', 'heritage', 'hidden-gem'] },
+                          { label: t('home.sunset'), time: '05.30 PM', icon: Sunset, color: '#BC6C25', categories: ['beach', 'nature'] },
+                        ];
 
                       return journeySlots.map((slot, idx) => {
                         const dest = allDestinations
@@ -589,15 +592,15 @@ export default function App() {
                 <div className="flex flex-col space-y-1 mb-8 border-b border-stone-200 pb-5">
                   <div className="flex items-center space-x-2.5">
                     <Calendar className="h-5 w-5 text-gold-600" />
-                    <h2 className="font-manrope text-2xl font-bold text-royal-950">Upcoming Events</h2>
+                    <h2 className="font-manrope text-2xl font-bold text-royal-950">{t('home.upcoming_events')}</h2>
                   </div>
-                  <p className="text-sm text-royal-700/70 font-light">Festivals, cultural shows, and seasonal highlights in Yogyakarta.</p>
+                  <p className="text-sm text-royal-700/70 font-light">{t('home.events_desc')}</p>
                 </div>
                 {allEvents.length === 0 ? (
                   <div className="text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-[#FCFAF8] p-6 max-w-md mx-auto">
                     <Calendar className="h-10 w-10 text-gold-400 mx-auto mb-3" />
-                    <h3 className="font-manrope text-base font-bold text-royal-950">No Events Found</h3>
-                    <p className="text-xs text-royal-700/60 font-light mt-1 max-w-xs mx-auto">Check back soon for upcoming festivals and events.</p>
+                    <h3 className="font-manrope text-base font-bold text-royal-950">{t('home.no_events_title')}</h3>
+                    <p className="text-xs text-royal-700/60 font-light mt-1 max-w-xs mx-auto">{t('home.no_events_desc')}</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -648,9 +651,9 @@ export default function App() {
                 <div className="flex flex-col space-y-1 mb-8 border-b border-stone-200 pb-5">
                   <div className="flex items-center space-x-2.5">
                     <Sparkles className="h-5 w-5 text-gold-600" />
-                    <h2 className="font-manrope text-2xl font-bold text-royal-950">Experiences</h2>
+                    <h2 className="font-manrope text-2xl font-bold text-royal-950">{t('home.experiences')}</h2>
                   </div>
-                  <p className="text-sm text-royal-700/70 font-light">Adventure, nature, and hidden gems across Yogyakarta.</p>
+                  <p className="text-sm text-royal-700/70 font-light">{t('home.experiences_desc')}</p>
                 </div>
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {allDestinations
@@ -671,7 +674,7 @@ export default function App() {
                   {allDestinations.filter(d => ['adventure', 'nature', 'hidden-gem', 'beach'].includes(d.category?.toLowerCase())).length === 0 && (
                     <div className="col-span-full text-center py-20 border border-dashed border-gold-200 rounded-3xl bg-[#FCFAF8] p-6">
                       <Leaf className="h-10 w-10 text-gold-400 mx-auto mb-3" />
-                      <h3 className="font-manrope text-base font-bold text-royal-950">Loading Experiences...</h3>
+                      <h3 className="font-manrope text-base font-bold text-royal-950">{t('home.loading_experiences')}</h3>
                     </div>
                   )}
                 </div>
@@ -699,14 +702,14 @@ export default function App() {
               <span className="font-manrope font-bold text-sm tracking-[0.08em] uppercase text-white">Jogjagem</span>
             </div>
             <p className="text-[10px] text-gold-100/40 font-mono tracking-widest uppercase mt-1">
-              AI Tourism Discovery & Hidden Gems in Yogyakarta
+              {t('footer.tagline')}
             </p>
           </div>
 
           <div className="text-[10px] font-mono text-gold-200/40 uppercase tracking-widest space-y-1">
-            <p>© 2026 Jogjagem Platform</p>
-            <p>Made with deep hospitality & Javanese cultural heritage</p>
-            <p>Build by Giwangan Studio • 085111221044</p>
+            <p>{t('footer.copyright')}</p>
+            <p>{t('footer.made_with')}</p>
+            <p>{t('footer.build_by')}</p>
           </div>
         </div>
       </footer>
@@ -720,7 +723,7 @@ export default function App() {
           }`}
         >
           <Compass className="h-5 w-5" />
-          <span className="text-[10px]">Explore</span>
+          <span className="text-[10px]">{t('common.explore')}</span>
         </button>
 
         <button
@@ -730,7 +733,7 @@ export default function App() {
           }`}
         >
           <Brain className="h-5 w-5" />
-          <span className="text-[10px]">AI Assistant</span>
+          <span className="text-[10px]">{t('common.ai_assistant')}</span>
         </button>
 
         <button
@@ -740,7 +743,7 @@ export default function App() {
           }`}
         >
           <CalendarDays className="h-5 w-5" />
-          <span className="text-[10px]">Planner</span>
+          <span className="text-[10px]">{t('common.planner')}</span>
         </button>
 
         <button
@@ -750,7 +753,7 @@ export default function App() {
           }`}
         >
           <Map className="h-5 w-5" />
-          <span className="text-[10px]">Map</span>
+          <span className="text-[10px]">{t('common.map')}</span>
         </button>
 
         <button
@@ -765,7 +768,7 @@ export default function App() {
               {savedDestinations.length}
             </span>
           )}
-          <span className="text-[10px]">Saved</span>
+          <span className="text-[10px]">{t('common.saved')}</span>
         </button>
       </div>
     </div>

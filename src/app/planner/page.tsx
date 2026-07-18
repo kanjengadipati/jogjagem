@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
+import I18nProvider from '@/contexts/I18nProvider';
+import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
 import TripPlanner from '@/components/TripPlanner';
@@ -15,6 +17,7 @@ import { Loader2 } from 'lucide-react';
 function PlannerPageContent() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
+  const { t } = useLocale();
 
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
   const [savedDestinations, setSavedDestinations] = useState<Destination[]>([]);
@@ -113,7 +116,7 @@ function PlannerPageContent() {
 
       <SubNav
         onBack={() => router.back()}
-        title="Trip Planner"
+        title={t('planner_page.title')}
         zClass="z-40"
       />
 
@@ -138,7 +141,9 @@ export default function PlannerPage() {
   return (
     <AuthProvider>
       <LocationProvider>
-        <PlannerPageContent />
+        <I18nProvider>
+          <PlannerPageContent />
+        </I18nProvider>
       </LocationProvider>
     </AuthProvider>
   );

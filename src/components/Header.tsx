@@ -63,7 +63,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             </div>
             <div className="flex flex-col">
               <span className="font-manrope text-[17px] font-bold tracking-widest text-white">Jogjagem</span>
-              <span className="font-sans text-[8px] uppercase tracking-[0.08em] text-gold-300/90 font-semibold">Hidden Gems of Yogyakarta</span>
+              <span className="font-sans text-[8px] uppercase tracking-[0.08em] text-gold-300/90 font-semibold">{t('header.tagline')}</span>
             </div>
           </div>
 
@@ -141,16 +141,16 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                     <div className="fixed inset-0 z-40" onClick={() => setBellOpen(false)} />
                     <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden z-50 animate-fade-in">
                       <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
-                        <span className="text-sm font-bold text-royal-950">Notifikasi</span>
+                        <span className="text-sm font-bold text-royal-950">{t('common.notifications')}</span>
                         <button onClick={() => setBellOpen(false)} className="text-xs text-stone-400 hover:text-stone-600">
-                          Tandai sudah dibaca
+                          {t('common.mark_read')}
                         </button>
                       </div>
                       <div className="max-h-80 overflow-y-auto">
                         {[
-                          { title: 'Prambanan Temple Festival', desc: 'Festival budaya dimulai 5 hari lagi', time: '2 jam lalu', unread: true },
-                          { title: 'Rekomendasi AI Hari Ini', desc: '3 tempat wisata baru dekat Anda', time: '5 jam lalu', unread: true },
-                          { title: 'Trip Planner Update', desc: 'Rute perjalanan Anda sudah siap', time: 'Kemarin', unread: false },
+                          { title: t('header.notification_festival_title'), desc: t('header.notification_festival_desc'), time: t('header.notification_festival_time'), unread: true },
+                          { title: t('header.notification_ai_title'), desc: t('header.notification_ai_desc'), time: t('header.notification_ai_time'), unread: true },
+                          { title: t('header.notification_trip_title'), desc: t('header.notification_trip_desc'), time: t('header.notification_trip_time'), unread: false },
                         ].map((n, i) => (
                           <div key={i} className={`px-4 py-3 border-b border-stone-50 hover:bg-stone-50 transition-colors cursor-pointer ${n.unread ? 'bg-gold-50/50' : ''}`}>
                             <div className="flex items-start gap-2.5">
@@ -179,7 +179,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-gold-400 hover:text-gold-300"
-                    title="Admin Panel"
+                    title={t('common.admin_panel')}
                   >
                     <ShieldCheck className="h-4.5 w-4.5" />
                   </a>
@@ -189,18 +189,18 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                   className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer"
                 >
                   <img
-                    src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || 'User')}`}
+                    src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || t('common.user'))}`}
                     className="h-5 w-5 rounded-full bg-stone-200"
-                    alt={user?.name || 'User'}
+                    alt={user?.name || t('common.user')}
                   />
                   <span className="text-xs font-medium text-white/90 max-w-[100px] truncate">
-                    {user?.name || 'User'}
+                    {user?.name || t('common.user')}
                   </span>
                 </button>
                 <button
                   onClick={logout}
                   className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-white/70 hover:text-white"
-                  title="Logout"
+                  title={t('common.logout')}
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
@@ -212,13 +212,13 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                   className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-white/40 transition-colors text-xs font-medium"
                 >
                   <LogIn className="h-3.5 w-3.5" />
-                  <span>Sign In</span>
+                  <span>{t('common.sign_in')}</span>
                 </button>
                 <button
                   onClick={openRegister}
                   className="px-3 py-1.5 rounded-full bg-gold-600 text-white hover:bg-gold-500 transition-colors text-xs font-semibold"
                 >
-                  Sign Up
+                  {t('common.sign_up')}
                 </button>
               </div>
             )}
@@ -282,7 +282,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             <Image src="/logo-gold-new.png" alt="Jogjagem Logo" width={34} height={34} className="object-contain" />
             <div>
               <span className="block font-manrope text-[15px] font-bold tracking-widest text-white">Jogjagem</span>
-              <span className="block font-sans text-[8px] uppercase tracking-widest text-gold-300/80">Hidden Gems of Yogyakarta</span>
+              <span className="block font-sans text-[8px] uppercase tracking-widest text-gold-300/80">{t('header.tagline')}</span>
             </div>
           </div>
           <button onClick={() => setDrawerOpen(false)} className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors">
@@ -328,13 +328,13 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             <button onClick={() => { router.push('/profile'); setDrawerOpen(false); }} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-white/5 transition-all">
               <div className="flex items-center gap-3">
                 <img
-                  src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || 'User')}`}
+                  src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || t('common.user'))}`}
                   className="h-9 w-9 rounded-full object-cover ring-2 ring-gold-500/30"
-                  alt={user?.name || 'User'}
+                  alt={user?.name || t('common.user')}
                 />
                 <div className="text-left">
-                  <span className="block text-sm font-semibold text-white truncate max-w-[150px]">{user?.name || 'User'}</span>
-                  <span className="block text-[10px] text-gold-400 font-medium">Level 1 Explorer</span>
+                  <span className="block text-sm font-semibold text-white truncate max-w-[150px]">{user?.name || t('common.user')}</span>
+                  <span className="block text-[10px] text-gold-400 font-medium">{t('common.level_1_explorer')}</span>
                 </div>
               </div>
               <ChevronRight className="h-4 w-4 text-white/30" />
@@ -342,10 +342,10 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
           ) : (
             <div className="space-y-2 px-1 py-2">
               <button onClick={() => { openLogin(); setDrawerOpen(false); }} className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/20 px-4 py-2.5 text-sm font-medium text-white/80 hover:bg-white/5 transition-colors">
-                <LogIn className="h-4 w-4" /><span>Sign In</span>
+                <LogIn className="h-4 w-4" /><span>{t('common.sign_in')}</span>
               </button>
               <button onClick={() => { openRegister(); setDrawerOpen(false); }} className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gold-500 transition-colors">
-                Sign Up
+                {t('common.sign_up')}
               </button>
             </div>
           )}
@@ -356,7 +356,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             >
               <div className="flex items-center gap-3">
                 <div className="p-1.5 rounded-lg bg-gold-500/20 text-gold-400"><ShieldCheck className="h-4 w-4" /></div>
-                <span className="text-sm font-semibold text-gold-400">Business Partner</span>
+                <span className="text-sm font-semibold text-gold-400">{t('common.business_partner')}</span>
               </div>
               <ChevronRight className="h-4 w-4 text-gold-400/50" />
             </a>
@@ -366,10 +366,10 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
         {/* Footer links */}
         <div className="px-3 pb-8 pt-1 border-t border-white/10 flex items-center gap-1">
           <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors text-xs font-medium">
-            <Settings className="h-4 w-4" /><span>Settings</span>
+            <Settings className="h-4 w-4" /><span>{t('common.settings')}</span>
           </button>
           <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors text-xs font-medium">
-            <HelpCircle className="h-4 w-4" /><span>Help</span>
+            <HelpCircle className="h-4 w-4" /><span>{t('common.help')}</span>
           </button>
         </div>
       </div>

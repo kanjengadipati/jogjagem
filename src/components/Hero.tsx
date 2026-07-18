@@ -1,31 +1,32 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, ChevronLeft, ChevronRight, Mic, MicOff, Camera, Loader2, Bookmark, X, Star, CalendarDays } from 'lucide-react';
 import { Destination } from '../types';
 import { ai } from '../lib/api';
 import NearbyMapCard from './NearbyMapCard';
 import { useLocale } from '@/contexts/LocaleContext';
 
-function getCtaText(destName: string, category: string): string {
+function getCtaText(destName: string, category: string, t: (key: string) => string): string {
   const hour = new Date().getHours();
   const firstName = destName.split(' ')[0];
   if (category === 'adventure' || category === 'nature') {
-    if (hour < 11) return `Jelajahi ${firstName} Pagi Ini`;
-    if (hour < 15) return `Petualangan di ${firstName}`;
-    return `Sore Seru di ${firstName}`;
+    if (hour < 11) return t('hero.cta_adventure_morning').replace('{name}', firstName);
+    if (hour < 15) return t('hero.cta_adventure_afternoon').replace('{name}', firstName);
+    return t('hero.cta_adventure_evening').replace('{name}', firstName);
   }
   if (category === 'heritage' || category === 'culture') {
-    if (hour < 11) return `Eksplorasi ${firstName} di Pagi Hari`;
-    if (hour < 17) return `Wisata Budaya ke ${firstName}`;
-    return `Senja Bersejarah di ${firstName}`;
+    if (hour < 11) return t('hero.cta_culture_morning').replace('{name}', firstName);
+    if (hour < 17) return t('hero.cta_culture_afternoon').replace('{name}', firstName);
+    return t('hero.cta_culture_evening').replace('{name}', firstName);
   }
   if (category === 'beach') {
-    if (hour < 15) return `Nikmati Pantai ${firstName}`;
-    return `Sunset Spektakuler di ${firstName}`;
+    if (hour < 15) return t('hero.cta_beach_day').replace('{name}', firstName);
+    return t('hero.cta_beach_sunset').replace('{name}', firstName);
   }
-  if (category === 'hidden-gem') return `Temukan Keajaiban ${firstName}`;
-  if (hour < 11) return `Mulai Hari di ${firstName}`;
-  if (hour < 17) return `Kunjungi ${firstName} Sekarang`;
-  return `Malam Indah di ${firstName}`;
+  if (category === 'hidden-gem') return t('hero.cta_hidden_gem').replace('{name}', firstName);
+  if (hour < 11) return t('hero.cta_generic_morning').replace('{name}', firstName);
+  if (hour < 17) return t('hero.cta_generic_afternoon').replace('{name}', firstName);
+  return t('hero.cta_generic_evening').replace('{name}', firstName);
 }
 
 const BADGE_COLOR: Record<string, string> = {
@@ -71,6 +72,7 @@ const HERO_SLIDES = [
 
 export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit, onExploreDestination, onToggleSave, isSaved }: HeroProps) {
   const { t } = useLocale();
+  const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -118,13 +120,13 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
     const fallbackDest = destinations.find(d => d.id === 'merapi' || d.id === 'prambanan') || destinations[0];
     if (fallbackDest) {
       setRecommendation({
-        headline: 'Great outdoor adventure today ⛰️',
+        headline: t('hero.fallback_headline'),
         reason: fallbackDest.tagline,
         dest: fallbackDest,
         image: fallbackDest.images?.[0]?.url ?? 'https://images.unsplash.com/photo-1556375403-b96342fc0ee2?auto=format&fit=crop&w=400&q=80',
         temp: fallbackDest.weather?.temp || '26°C',
         condition: fallbackDest.weather?.condition || 'Sunny',
-        distance: '18 min', crowd: 'Low',
+        distance: '18 min', crowd: t('hero.fallback_crowd'),
       });
     }
     const fetchAIRecommendation = async () => {
@@ -180,7 +182,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { alert('Please upload an image file.'); return; }
+    if (!file.type.startsWith('image/')) { alert(t('hero.upload_image_file')); return; }
     setIsUploadingImage(true);
     try {
       const base64Data = await new Promise<string>((resolve, reject) => {
@@ -195,13 +197,13 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
         const { reply, matchedDestinationIds } = responseData.data;
         onImageSearchSubmit(previewUrl, reply, Array.isArray(matchedDestinationIds) ? matchedDestinationIds : []);
       } else { throw new Error(responseData.message || 'Failed to analyze image'); }
-    } catch (err: any) { console.error(err); alert('Error scanning image: ' + err.message); }
+    } catch (err: any) { console.error(err); alert(t('hero.error_scanning_image') + err.message); }
     finally { setIsUploadingImage(false); if (e.target) e.target.value = ''; }
   };
 
   const handleVoiceSearch = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) { alert('Voice recognition is not supported in this browser. Please try Chrome or Safari.'); return; }
+    if (!SpeechRecognition) { alert(t('hero.voice_not_supported')); return; }
     const recognition = new SpeechRecognition();
     recognition.lang = 'id-ID';
     recognition.continuous = false;
@@ -228,10 +230,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
           if (dest) {
             onExploreDestination(dest);
           } else if (item.type === 'event') {
-            const el = document.getElementById('upcoming-festivals-showcase');
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            router.push(`/events/${item.id}`);
           }
         }}
         className="shrink-0 w-[100px] lg:w-[140px] snap-start bg-stone-950/60 border border-white/10 rounded-xl overflow-hidden text-left active:scale-95 transition-transform cursor-pointer hover:border-gold-500/30"
@@ -247,7 +246,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
           </span>
           {item.type === 'event' && (
             <span className="absolute top-2 right-2 bg-black/50 text-white/80 text-[8px] px-1 py-0.5 rounded-full leading-none flex items-center gap-0.5">
-              <CalendarDays className="h-2 w-2" />Event
+              <CalendarDays className="h-2 w-2" />{t('hero.event')}
             </span>
           )}
         </div>
@@ -305,14 +304,14 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-gold-400 shrink-0"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="currentColor"/></svg>
                         <span className="text-[8px] font-bold tracking-widest uppercase text-gold-400">{t('hero.ai_pick')}</span>
                       </div>
-                      <button onClick={() => setIsRecommendationDismissed(true)} className="flex items-center justify-center h-4 w-4 hover:bg-white/10 text-white/40 hover:text-white/80 transition-all rounded-full" aria-label="Tutup">
+                      <button onClick={() => setIsRecommendationDismissed(true)} className="flex items-center justify-center h-4 w-4 hover:bg-white/10 text-white/40 hover:text-white/80 transition-all rounded-full" aria-label={t('hero.close')}>
                         <X className="h-2.5 w-2.5" />
                       </button>
                     </div>
                     <h3 className="text-[13px] sm:text-[14px] font-bold text-white leading-tight mb-1 drop-shadow">{recommendation.dest.name} 🏔️</h3>
                     <p className="text-[9px] sm:text-[10px] text-white/75 leading-relaxed line-clamp-2 mb-2 drop-shadow">{recommendation.reason}</p>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="flex items-center gap-0.5 text-[9px] text-white/70"><span>📍</span><span>{recommendation.distance} dari Anda</span></span>
+                      <span className="flex items-center gap-0.5 text-[9px] text-white/70"><span>📍</span><span>{recommendation.distance} {t('hero.distance_away')}</span></span>
                       <span className="flex items-center gap-0.5 text-[9px] font-bold text-gold-400"><Star className="h-2.5 w-2.5 fill-gold-400" />{recommendation.dest.rating?.toFixed(1) ?? '4.9'}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-auto">
@@ -321,15 +320,15 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
                           <span className="absolute left-0 top-0 bottom-0 w-2.5 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, #cb8527, transparent)' }} />
                           <span className="absolute right-0 top-0 bottom-0 w-2.5 z-10 pointer-events-none" style={{ background: 'linear-gradient(to left, #cb8527, transparent)' }} />
                           <span className="flex whitespace-nowrap" style={{ animation: 'marqueeScroll 4s linear 1 forwards', willChange: 'transform' }}>
-                            <span className="text-white pr-10">{getCtaText(recommendation.dest.name, recommendation.dest.category)}</span>
-                            <span className="text-white pr-10" aria-hidden="true">{getCtaText(recommendation.dest.name, recommendation.dest.category)}</span>
+                            <span className="text-white pr-10">{getCtaText(recommendation.dest.name, recommendation.dest.category, t)}</span>
+                            <span className="text-white pr-10" aria-hidden="true">{getCtaText(recommendation.dest.name, recommendation.dest.category, t)}</span>
                           </span>
                         </span>
                       </button>
                       {(() => {
                         const saved = isSaved(recommendation.dest.id);
                         return (
-                          <button onClick={() => onToggleSave(recommendation.dest)} className="cursor-pointer transition-colors shrink-0" aria-label={saved ? 'Tersimpan' : 'Simpan'}>
+                          <button onClick={() => onToggleSave(recommendation.dest)} className="cursor-pointer transition-colors shrink-0" aria-label={saved ? t('hero.saved') : t('hero.save')}>
                             <Bookmark className={`h-3.5 w-3.5 drop-shadow ${saved ? 'fill-gold-400 text-gold-400' : 'text-white/70 hover:text-white'}`} />
                           </button>
                         );
@@ -367,13 +366,13 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
                 <div className="max-w-xl w-full pt-4 md:pt-5">
                   <form id="hero-conversational-search-form" onSubmit={handleSearchSubmit} className="relative flex items-center rounded-full border border-white/20 bg-black/35 hover:bg-black/45 backdrop-blur-md p-1 shadow-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400">
                     <Search className="ml-4 h-5 w-5 text-white/70 shrink-0" />
-                    <input type="text" placeholder="Where would you like to explore today?" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full bg-transparent py-3 pl-3 pr-28 text-sm text-white placeholder-white/60 focus:outline-none font-sans" />
+                    <input type="text" placeholder={t('hero.search_placeholder')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full bg-transparent py-3 pl-3 pr-28 text-sm text-white placeholder-white/60 focus:outline-none font-sans" />
                     <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                     <div className="absolute right-1 flex items-center space-x-1">
-                      <button type="button" onClick={handleImageButtonClick} disabled={isUploadingImage} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-all shrink-0 disabled:opacity-50" title="Search by image">
+                      <button type="button" onClick={handleImageButtonClick} disabled={isUploadingImage} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-all shrink-0 disabled:opacity-50" title={t('hero.search_by_image')}>
                         {isUploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
                       </button>
-                      <button type="button" onClick={handleVoiceSearch} className={`flex h-9 w-9 items-center justify-center rounded-full transition-all shrink-0 ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-white/10 text-white/70 hover:text-white'}`} title="Search by voice">
+                      <button type="button" onClick={handleVoiceSearch} className={`flex h-9 w-9 items-center justify-center rounded-full transition-all shrink-0 ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-white/10 text-white/70 hover:text-white'}`} title={t('hero.search_by_voice')}>
                         {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                       </button>
                       <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-full bg-gold-500 hover:bg-gold-600 active:scale-95 text-white transition-all shadow-md shrink-0">
@@ -392,7 +391,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
                 <span className="text-gold-400 text-xs">📍</span>
                 <div>
                   <span className="block text-xs font-bold tracking-tight text-white drop-shadow">{slide.name}</span>
-                  <span className="block text-[9px] font-mono text-white/50">Sleman, Yogyakarta</span>
+                  <span className="block text-[9px] font-mono text-white/50">{t('hero.location_sleman')}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -414,7 +413,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
             <div className="block lg:hidden pb-[82px]">
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-gold-400 text-xs">✦</span>
-                <span className="text-[11px] font-bold text-white tracking-wide">Trending Now</span>
+                <span className="text-[11px] font-bold text-white tracking-wide">{t('hero.trending')}</span>
                 <span className="text-gold-400 text-xs">✦</span>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory">
@@ -437,7 +436,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-gold-400 text-xs">✦</span>
-                <span className="text-[11px] font-bold text-white tracking-wide">Trending Now</span>
+                <span className="text-[11px] font-bold text-white tracking-wide">{t('hero.trending')}</span>
                 <span className="text-gold-400 text-xs">✦</span>
               </div>
               <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory">
@@ -461,7 +460,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
                   <span className="text-gold-400 text-sm">📍</span>
                   <div className="text-left">
                     <span className="block text-sm font-bold tracking-tight text-white">{slide.name}</span>
-                    <span className="block text-[10px] font-mono text-white/50 tracking-wider">Sleman, Yogyakarta</span>
+                    <span className="block text-[10px] font-mono text-white/50 tracking-wider">{t('hero.location_sleman')}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -478,7 +477,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
                       <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
-                  <div className="text-[10px] font-mono text-white/40">Photo: {HERO_SLIDES[currentSlide].credit} / Unsplash</div>
+                  <div className="text-[10px] font-mono text-white/40">{t('common.photo')} {HERO_SLIDES[currentSlide].credit} / Unsplash</div>
                 </div>
               </div>
             </div>
