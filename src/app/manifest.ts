@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Jogjagem — Jelajahi Yogyakarta dengan AI',
+    name: 'Jogjagem — Jelajahi Yogyakarta Lebih Dalam',
     short_name: 'Jogjagem',
     description: 'Panduan wisata AI untuk Yogyakarta. Temukan 100+ destinasi wisata terbaik.',
     start_url: '/',

@@ -89,7 +89,7 @@
     "no_events_found_empty": "Tidak Ada Acara"
   },
   "hero": {
-    "good_morning": "☀ SELAMAT PAGI, PENJELAJAH",
+    "good_morning": "SELAMAT PAGI, TRAVELER",
     "trending": "Trending Sekarang",
     "ai_pick": "Pilihan AI Untukmu",
     "search_placeholder": "Ke mana Anda ingin menjelajah hari ini?",
@@ -637,8 +637,8 @@
     "all_destinations": "Semua Destinasi"
   },
   "layout": {
-    "title": "Jogjagem — Jelajahi Yogyakarta dengan AI",
-    "description": "Temukan destinasi wisata terbaik di Yogyakarta dengan rekomendasi AI. Panduan lengkap Candi Prambanan, Malioboro, Pantai Parangtritis, Gunung Merapi, dan 100+ destinasi lainnya.",
-    "keywords": "wisata Yogyakarta, jogja, travel guide Yogyakarta, destinasi wisata jogja, Candi Prambanan, Malioboro, Pantai Parangtritis, Gunung Merapi, AI tourism, paket wisata jogja"
+    "title": "Jogjagem — Jelajahi Yogyakarta Lebih Dalam",
+    "description": "Temukan destinasi wisata terbaik di Yogyakarta. Panduan lengkap Candi Prambanan, Malioboro, Pantai Parangtritis, Gunung Merapi, hidden gems, dan 100+ destinasi lainnya.",
+    "keywords": "wisata Yogyakarta, jogja, travel guide Yogyakarta, destinasi wisata jogja, Candi Prambanan, Malioboro, Pantai Parangtritis, Gunung Merapi, hidden gems Yogyakarta"
   }
 }

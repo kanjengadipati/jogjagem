@@ -79,10 +79,10 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
   const [isListening, setIsListening] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [heroConfig, setHeroConfig] = useState({
-    title: 'Jogja is',
-    titleAccent: 'Calling You',
-    subtitle: 'Discover unforgettable places, authentic experiences, and warm Javanese hospitality.',
+  const [heroConfig] = useState({
+    title: 'Jelajahi Yogyakarta',
+    titleAccent: 'Lebih Dalam',
+    subtitle: 'Temukan hidden gems, kekayaan budaya, cita rasa lokal, dan pengalaman autentik yang membuat setiap perjalanan lebih bermakna.',
     ctaText: 'Mulai Jelajahi',
   });
   const [isRecommendationDismissed, setIsRecommendationDismissed] = useState(false);
@@ -92,27 +92,6 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
   } | null>(null);
   const [trendingItems, setTrendingItems] = useState<TrendingItem[]>([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
-
-  useEffect(() => {
-    const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
-    fetch(`${API_BASE}/config/seo?category=landing`)
-      .then(r => r.json())
-      .then(data => {
-        if (data?.data) {
-          const cfg = data.data;
-          if (cfg.landing_hero_title) {
-            const parts = cfg.landing_hero_title.split('\n');
-            setHeroConfig(prev => ({
-              title: parts[0] || prev.title,
-              titleAccent: parts[1] || prev.titleAccent,
-              subtitle: cfg.landing_hero_subtitle || prev.subtitle,
-              ctaText: cfg.landing_cta_text || prev.ctaText,
-            }));
-          }
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (destinations.length === 0) return;

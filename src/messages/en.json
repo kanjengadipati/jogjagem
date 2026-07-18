@@ -89,7 +89,7 @@
     "no_events_found_empty": "No Events"
   },
   "hero": {
-    "good_morning": "☀ GOOD MORNING, EXPLORER",
+    "good_morning": "GOOD MORNING, TRAVELER",
     "trending": "Trending Now",
     "ai_pick": "AI Pick for You",
     "search_placeholder": "Where would you like to explore today?",
@@ -637,8 +637,8 @@
     "all_destinations": "All Destinations"
   },
   "layout": {
-    "title": "Jogjagem — Explore Yogyakarta with AI",
-    "description": "Discover the best tourist destinations in Yogyakarta with AI recommendations. Complete guide to Prambanan Temple, Malioboro, Parangtritis Beach, Mount Merapi, and 100+ other destinations.",
-    "keywords": "Yogyakarta tourism, jogja, Yogyakarta travel guide, Yogyakarta tourist destinations, Prambanan Temple, Malioboro, Parangtritis Beach, Mount Merapi, AI tourism, Yogyakarta travel packages"
+    "title": "Jogjagem — Explore Yogyakarta Deeper",
+    "description": "Discover the best tourist destinations in Yogyakarta. Complete guide to Prambanan Temple, Malioboro, Parangtritis Beach, Mount Merapi, hidden gems, and 100+ other destinations.",
+    "keywords": "Yogyakarta tourism, jogja, Yogyakarta travel guide, Yogyakarta tourist destinations, Prambanan Temple, Malioboro, Parangtritis Beach, Mount Merapi, hidden gems Yogyakarta"
   }
 }

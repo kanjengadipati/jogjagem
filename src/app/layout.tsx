@@ -38,9 +38,9 @@ const SITE_NAME = 'Jogjagem';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 
 const FALLBACK = {
-  title: 'Jogjagem — Jelajahi Yogyakarta dengan AI',
-  description: 'Temukan destinasi wisata terbaik di Yogyakarta dengan rekomendasi AI. Panduan lengkap Candi Prambanan, Malioboro, Pantai Parangtritis, Gunung Merapi, dan 100+ destinasi lainnya.',
-  keywords: 'wisata Yogyakarta, jogja, travel guide Yogyakarta, destinasi wisata jogja, Candi Prambanan, Malioboro, Pantai Parangtritis, Gunung Merapi, AI tourism, paket wisata jogja',
+  title: 'Jogjagem — Jelajahi Yogyakarta Lebih Dalam',
+  description: 'Temukan destinasi wisata terbaik di Yogyakarta. Panduan lengkap Candi Prambanan, Malioboro, Pantai Parangtritis, Gunung Merapi, hidden gems, dan 100+ destinasi lainnya.',
+  keywords: 'wisata Yogyakarta, jogja, travel guide Yogyakarta, destinasi wisata jogja, Candi Prambanan, Malioboro, Pantai Parangtritis, Gunung Merapi, paket wisata jogja, hidden gems Yogyakarta',
   ogImage: '/og-default.png',
   twitterHandle: '@jogjagem',
 };
