@@ -50,23 +50,35 @@ interface ProfileResponse {
   location?: string;
 }
 
+// In-memory token — populated on login or by hydrateSession() on page load.
+// The source of truth is the httpOnly cookie managed by the server-side
+// Route Handlers in /api/auth/*. We never touch localStorage.
 let accessToken: string | null = null;
-
-if (typeof window !== 'undefined') {
-  accessToken = localStorage.getItem('pleco_access_token');
-}
 
 function setAccessToken(token: string | null) {
   accessToken = token;
-  if (token) {
-    localStorage.setItem('pleco_access_token', token);
-  } else {
-    localStorage.removeItem('pleco_access_token');
-  }
 }
 
 function getAccessToken(): string | null {
   return accessToken;
+}
+
+/**
+ * Call once on app mount to restore the access token from the httpOnly
+ * session cookie via the /api/auth/session Route Handler.
+ */
+async function hydrateSession(): Promise<void> {
+  if (accessToken) return; // already hydrated
+  try {
+    const res = await fetch('/api/auth/session');
+    if (!res.ok) return;
+    const json: APIResponse<AuthResponse> = await res.json();
+    if (json.status === 'success' && json.data?.access_token) {
+      accessToken = json.data.access_token;
+    }
+  } catch {
+    // no session — stay logged out
+  }
 }
 
 async function request<T>(
@@ -109,7 +121,8 @@ async function request<T>(
 
 async function tryRefresh(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/auth/refresh`, {
+    // Calls our Route Handler which forwards to the backend and refreshes the cookie
+    const res = await fetch('/api/auth/refresh', {
       method: 'POST',
       credentials: 'include',
     });
@@ -134,14 +147,17 @@ export const auth = {
   },
 
   async login(email: string, password: string) {
-    const res = await request<AuthResponse>('/auth/login', {
+    // Calls our Route Handler which proxies to the backend and sets the httpOnly cookie
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    if (res.status === 'success' && res.data) {
-      setAccessToken(res.data.access_token);
+    const json: APIResponse<AuthResponse> = await res.json().catch(() => ({ status: 'error', message: 'Network error' }) as any);
+    if (json.status === 'success' && json.data) {
+      setAccessToken(json.data.access_token);
     }
-    return res;
+    return json;
   },
 
   async getProfile() {
@@ -237,20 +253,24 @@ export const auth = {
   },
 
   async logout() {
-    const res = await request('/auth/logout', { method: 'POST' });
+    // Calls our Route Handler which clears the cookie and notifies the backend
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
     setAccessToken(null);
-    return res;
+    return { status: 'success' } as APIResponse;
   },
 
   async socialLogin(provider: 'google' | 'facebook', token: string) {
-    const res = await request<AuthResponse>('/auth/social-login', {
+    // Calls our Route Handler which proxies to the backend and sets the httpOnly cookie
+    const res = await fetch('/api/auth/social', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ provider, token }),
     });
-    if (res.status === 'success' && res.data) {
-      setAccessToken(res.data.access_token);
+    const json: APIResponse<AuthResponse> = await res.json().catch(() => ({ status: 'error', message: 'Network error' }) as any);
+    if (json.status === 'success' && json.data) {
+      setAccessToken(json.data.access_token);
     }
-    return res;
+    return json;
   },
 
   async refreshToken() {
@@ -262,6 +282,7 @@ export const auth = {
   },
 
   getAccessToken,
+  hydrateSession,
 };
 
 interface AIQueryResponse {

@@ -26,6 +26,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (!auth.isLoggedIn()) {
+      // Try to hydrate from the httpOnly session cookie first
+      await auth.hydrateSession();
+    }
+    if (!auth.isLoggedIn()) {
       setState({ isAuthenticated: false, isLoading: false, user: null });
       return;
     }
@@ -40,24 +44,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setState({ isAuthenticated: false, isLoading: false, user: null });
     }
   }, []);
-
-  // Handle Google OAuth redirect callback on mount
-  useEffect(() => {
-    // Google returns id_token in URL hash fragment (#id_token=...)
-    const hash = window.location.hash;
-    if (hash && hash.includes('id_token')) {
-      const hashParams = new URLSearchParams(hash.substring(1));
-      const idToken = hashParams.get('id_token');
-      if (idToken) {
-        window.history.replaceState({}, '', window.location.pathname);
-        auth.socialLogin('google', idToken).then((res) => {
-          if (res.status === 'success') {
-            refreshProfile();
-          }
-        });
-      }
-    }
-  }, [refreshProfile]);
 
   useEffect(() => {
     refreshProfile();
