@@ -70,9 +70,10 @@ export default function ProfileHeader({
 
     try {
       const { url } = await uploadToCloudinary(file, 'jogjagem/avatars');
-      await auth.updateAvatarUrl(profile.name, url);
+      const res = await auth.updateAvatarUrl(profile, url);
       setAvatarPreview(null);
-      onProfileUpdate?.({ ...profile, avatar_url: url });
+      const updatedUrl = res.status === 'success' && res.data?.avatar_url ? res.data.avatar_url : url;
+      onProfileUpdate?.({ ...profile, avatar_url: updatedUrl });
     } catch {
       setAvatarPreview(null);
     } finally {
@@ -93,9 +94,10 @@ export default function ProfileHeader({
 
     try {
       const { url } = await uploadToCloudinary(file, 'jogjagem/covers');
-      await auth.updateCoverUrl(profile.name, url);
+      const res = await auth.updateCoverUrl(profile, url);
       setCoverPreview(null);
-      onProfileUpdate?.({ ...profile, cover_image_url: url });
+      const updatedUrl = res.status === 'success' && res.data?.cover_image_url ? res.data.cover_image_url : url;
+      onProfileUpdate?.({ ...profile, cover_image_url: updatedUrl });
     } catch {
       setCoverPreview(null);
     } finally {

@@ -171,10 +171,15 @@ export const auth = {
     return res.json() as Promise<APIResponse<{ avatar_url: string }>>;
   },
 
-  async updateAvatarUrl(name: string, url: string) {
+  async updateAvatarUrl(profile: ProfileResponse, url: string) {
     return request<{ avatar_url: string }>('/auth/profile', {
       method: 'PATCH',
-      body: JSON.stringify({ name, avatar_url: url }),
+      body: JSON.stringify({
+        name: profile.name,
+        phone_number: profile.phone_number,
+        avatar_url: url,
+        cover_image_url: profile.cover_image_url,
+      }),
     });
   },
 
@@ -194,10 +199,15 @@ export const auth = {
     return res.json() as Promise<APIResponse<{ cover_image_url: string }>>;
   },
 
-  async updateCoverUrl(name: string, url: string) {
+  async updateCoverUrl(profile: ProfileResponse, url: string) {
     return request<{ cover_image_url: string }>('/auth/profile', {
       method: 'PATCH',
-      body: JSON.stringify({ name, cover_image_url: url }),
+      body: JSON.stringify({
+        name: profile.name,
+        phone_number: profile.phone_number,
+        avatar_url: profile.avatar_url,
+        cover_image_url: url,
+      }),
     });
   },
 
