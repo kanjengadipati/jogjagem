@@ -268,45 +268,46 @@ export default function MobileDiscoverView({
   return (
     <div className="md:hidden min-h-screen bg-[#0f0e0c] pb-32">
 
-      {/* ── Header ── */}
-      <div className="sticky top-0 z-40 bg-[#0f0e0c]/95 backdrop-blur-md px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <Image src="/logo-gold-new.png" alt="Jogjagem" width={24} height={24} className="h-6 w-auto" />
-          <span className="font-manrope font-bold text-white text-[16px] tracking-widest uppercase">Jogjagem</span>
+      {/* ═══ Full-bleed hero section (slideshow bg behind header → hero → search → trending) ═══ */}
+      <div className="relative">
+        {/* Background slideshow — covers entire first screen */}
+        <div className="absolute inset-0 overflow-hidden -z-0">
+          {HERO_SLIDES.map((slide, idx) => (
+            <div
+              key={slide.id}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentSlide ? 'opacity-70' : 'opacity-0'}`}
+            >
+              <Image src={slide.image} alt={slide.name} fill className="h-full w-full object-cover object-center brightness-90" referrerPolicy="no-referrer" />
+              <div className="absolute inset-0 bg-gradient-to-b from-[#0f0e0c]/40 via-[#0f0e0c]/20 to-[#0f0e0c]" />
+            </div>
+          ))}
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => permission !== 'granted' && requestLocation()}
-            className="flex items-center gap-1 text-white/60 text-[11px] font-medium active:opacity-70"
-          >
-            <MapPin className="h-3.5 w-3.5 text-gold-400 shrink-0" />
-            <span className="max-w-[100px] truncate">{locationName}</span>
-          </button>
-          <button className="relative p-1.5">
-            <Bell className="h-5 w-5 text-white/70" />
-            <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-gold-400" />
-          </button>
-        </div>
-      </div>
 
-      <div className="space-y-6 pt-4">
-
-        {/* ── Hero greeting + AI card ── */}
-        <div className="relative px-4 pt-5 pb-6 -mt-[52px]">
-          {/* Background slideshow */}
-          <div className="absolute inset-0 overflow-hidden">
-            {HERO_SLIDES.map((slide, idx) => (
-              <div
-                key={slide.id}
-                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentSlide ? 'opacity-70' : 'opacity-0'}`}
-              >
-                <Image src={slide.image} alt={slide.name} fill className="h-full w-full object-cover object-center brightness-90" referrerPolicy="no-referrer" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0f0e0c] via-[#0f0e0c]/60 to-[#0f0e0c]/30" />
-              </div>
-            ))}
+        {/* ── Header ── */}
+        <div className="sticky top-0 z-40 bg-[#0f0e0c]/70 backdrop-blur-md px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-white/5">
+          <div className="flex items-center gap-2">
+            <Image src="/logo-gold-new.png" alt="Jogjagem" width={24} height={24} className="h-6 w-auto" />
+            <span className="font-manrope font-bold text-white text-[16px] tracking-widest uppercase">Jogjagem</span>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => permission !== 'granted' && requestLocation()}
+              className="flex items-center gap-1 text-white/60 text-[11px] font-medium active:opacity-70"
+            >
+              <MapPin className="h-3.5 w-3.5 text-gold-400 shrink-0" />
+              <span className="max-w-[100px] truncate">{locationName}</span>
+            </button>
+            <button className="relative p-1.5">
+              <Bell className="h-5 w-5 text-white/70" />
+              <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-gold-400" />
+            </button>
+          </div>
+        </div>
 
-          <div className="relative z-10">
+        <div className="relative z-10 space-y-6 pt-4 pb-6">
+
+          {/* ── Hero greeting + Rec card ── */}
+          <div className="px-4">
             <p className="text-gold-400 text-[11px] font-semibold uppercase tracking-widest mb-1">
               {t('hero.good_morning', { name: isAuthenticated && user?.name ? user.name : 'Traveler' })}
             </p>
@@ -373,105 +374,110 @@ export default function MobileDiscoverView({
               ))}
             </div>
           </div>
-        </div>
 
-        {/* ── Search bar ── */}
-        <div className="px-4">
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-white/8 border border-white/10 rounded-2xl px-3 py-2">
-            <Search className="h-4 w-4 text-white/40 shrink-0" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Cari destinasi, kuliner, atau aktivitas..."
-              className="flex-1 bg-transparent text-white text-[13px] placeholder-white/35 outline-none font-medium min-w-0"
-            />
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploadingImage}
-                className="h-7 w-7 flex items-center justify-center rounded-xl text-white/50 hover:text-white transition-colors disabled:opacity-40"
-              >
-                {isUploadingImage ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-              </button>
-              <button
-                type="button"
-                onClick={handleVoiceSearch}
-                className={`h-7 w-7 flex items-center justify-center rounded-xl transition-colors ${isListening ? 'text-red-400 animate-pulse' : 'text-white/50 hover:text-white'}`}
-              >
-                {isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
-              </button>
-              <button
-                type="submit"
-                className="h-7 w-7 flex items-center justify-center rounded-xl bg-gold-500 text-royal-950"
-              >
-                <Search className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* ── Trending ── */}
-        {(trendingLoading || trendingItems.length > 0) && (
-          <div>
-            <SectionHeader title="Sedang Trending" onSeeAll={() => router.push('/destinations')} />
-            <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory">
-              {trendingLoading
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="shrink-0 snap-start w-[100px] rounded-2xl overflow-hidden bg-white/5 border border-white/8 animate-pulse">
-                      <div className="h-[72px] bg-white/10" />
-                      <div className="p-2 space-y-1.5">
-                        <div className="h-2 w-16 bg-white/10 rounded" />
-                        <div className="h-2 w-10 bg-white/10 rounded" />
-                      </div>
-                    </div>
-                  ))
-                : trendingItems.slice(0, 6).map(item => {
-                const dest = item.type === 'destination'
-                  ? allDestinations.find(d => d.id === item.id)
-                  : null;
-                return (
-                  <button
-                    key={`trend-${item.id}`}
-                    onClick={() => {
-                      if (dest) router.push(`/destinations/${toSlug(dest.name)}`);
-                      else if (item.type === 'event') router.push(`/events/${item.id}`);
-                    }}
-                    className="shrink-0 snap-start w-[100px] rounded-2xl overflow-hidden bg-white/5 border border-white/8 text-left active:scale-95 transition-transform"
-                  >
-                    <div className="relative h-[72px]">
-                      {item.imageUrl
-                        ? <Image src={item.imageUrl} alt={item.headline} fill className="object-cover" referrerPolicy="no-referrer" />
-                        : <div className="w-full h-full bg-white/10" />
-                      }
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <span className="absolute bottom-1.5 left-2 text-white/50 text-[8px] font-mono">
-                        {item.location}
-                      </span>
-                    </div>
-                    <div className="p-2">
-                      <p className="text-white text-[10px] font-bold leading-tight line-clamp-2">{item.headline}</p>
-                      {item.rating > 0 && (
-                        <div className="flex items-center gap-0.5 mt-1">
-                          <Star className="h-2.5 w-2.5 fill-gold-400 text-gold-400" />
-                          <span className="text-gold-400 text-[9px] font-bold">{item.rating.toFixed(1)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+          {/* ── Search bar ── */}
+          <div className="px-4">
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-white/8 border border-white/10 rounded-2xl px-3 py-2">
+              <Search className="h-4 w-4 text-white/40 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Cari destinasi, kuliner, atau aktivitas..."
+                className="flex-1 bg-transparent text-white text-[13px] placeholder-white/35 outline-none font-medium min-w-0"
+              />
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                  className="h-7 w-7 flex items-center justify-center rounded-xl text-white/50 hover:text-white transition-colors disabled:opacity-40"
+                >
+                  {isUploadingImage ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleVoiceSearch}
+                  className={`h-7 w-7 flex items-center justify-center rounded-xl transition-colors ${isListening ? 'text-red-400 animate-pulse' : 'text-white/50 hover:text-white'}`}
+                >
+                  {isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                </button>
+                <button
+                  type="submit"
+                  className="h-7 w-7 flex items-center justify-center rounded-xl bg-gold-500 text-royal-950"
+                >
+                  <Search className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </form>
           </div>
-        )}
+
+          {/* ── Trending ── */}
+          {(trendingLoading || trendingItems.length > 0) && (
+            <div>
+              <SectionHeader title="Sedang Trending" onSeeAll={() => router.push('/destinations')} />
+              <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory">
+                {trendingLoading
+                  ? Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="shrink-0 snap-start w-[100px] rounded-2xl overflow-hidden bg-white/5 border border-white/8 animate-pulse">
+                        <div className="h-[72px] bg-white/10" />
+                        <div className="p-2 space-y-1.5">
+                          <div className="h-2 w-16 bg-white/10 rounded" />
+                          <div className="h-2 w-10 bg-white/10 rounded" />
+                        </div>
+                      </div>
+                    ))
+                  : trendingItems.slice(0, 6).map(item => {
+                  const dest = item.type === 'destination'
+                    ? allDestinations.find(d => d.id === item.id)
+                    : null;
+                  return (
+                    <button
+                      key={`trend-${item.id}`}
+                      onClick={() => {
+                        if (dest) router.push(`/destinations/${toSlug(dest.name)}`);
+                        else if (item.type === 'event') router.push(`/events/${item.id}`);
+                      }}
+                      className="shrink-0 snap-start w-[100px] rounded-2xl overflow-hidden bg-white/5 border border-white/8 text-left active:scale-95 transition-transform"
+                    >
+                      <div className="relative h-[72px]">
+                        {item.imageUrl
+                          ? <Image src={item.imageUrl} alt={item.headline} fill className="object-cover" referrerPolicy="no-referrer" />
+                          : <div className="w-full h-full bg-white/10" />
+                        }
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <span className="absolute bottom-1.5 left-2 text-white/50 text-[8px] font-mono">
+                          {item.location}
+                        </span>
+                      </div>
+                      <div className="p-2">
+                        <p className="text-white text-[10px] font-bold leading-tight line-clamp-2">{item.headline}</p>
+                        {item.rating > 0 && (
+                          <div className="flex items-center gap-0.5 mt-1">
+                            <Star className="h-2.5 w-2.5 fill-gold-400 text-gold-400" />
+                            <span className="text-gold-400 text-[9px] font-bold">{item.rating.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+
+      {/* ═══ Rest of the page (no slideshow bg) ═══ */}
+      <div className="space-y-6 pt-6">
 
         {/* ── Category pills ── */}
         <div>
           <SectionHeader title="Jelajahi Kategori" />
           {/* Main category pills row */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-none px-4">
+          <div className="grid grid-cols-5 gap-2 px-4">
             {MOBILE_CATS.map(({ id, label, Icon }) => {
               const active = id === '__more__' ? showMoreCats : selectedCat === id;
               return (
@@ -482,22 +488,22 @@ export default function MobileDiscoverView({
                     setShowMoreCats(false);
                     setSelectedCat(active ? null : (id as string | null));
                   }}
-                  className={`shrink-0 flex flex-col items-center gap-1.5 px-3.5 py-2.5 rounded-2xl border transition-all duration-200 min-w-[64px] ${
+                  className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
                     active
                       ? 'bg-gold-500 border-gold-500 text-royal-950'
                       : 'bg-white/6 border-white/10 text-white/70'
                   }`}
                 >
                   <Icon className={`h-5 w-5 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
-                  <span className="text-[10px] font-bold whitespace-nowrap">{label}</span>
+                  <span className="text-[9px] font-bold text-center leading-tight px-0.5">{label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Expanded "Lainnya" row — same pill style as main row */}
+          {/* Expanded "Lainnya" row — same pill style, 5-col grid to match main row */}
           {showMoreCats && (
-            <div className="flex gap-2 overflow-x-auto scrollbar-none px-4 mt-2">
+            <div className="grid grid-cols-5 gap-2 px-4 mt-2">
               {MORE_CATS.map(cat => {
                 const active = selectedCat === cat.id;
                 return (
@@ -507,14 +513,14 @@ export default function MobileDiscoverView({
                       setSelectedCat(active ? null : cat.id);
                       setShowMoreCats(false);
                     }}
-                    className={`shrink-0 flex flex-col items-center gap-1.5 px-3.5 py-2.5 rounded-2xl border transition-all duration-200 min-w-[64px] ${
+                    className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
                       active
                         ? 'bg-gold-500 border-gold-500 text-royal-950'
                         : 'bg-white/6 border-white/10 text-white/70'
                     }`}
                   >
                     <span className="text-[18px] leading-none">{cat.emoji}</span>
-                    <span className={`text-[10px] font-bold whitespace-nowrap ${active ? 'text-royal-950' : ''}`}>
+                    <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : ''}`}>
                       {cat.label}
                     </span>
                   </button>
