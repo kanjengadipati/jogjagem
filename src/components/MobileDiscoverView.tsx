@@ -370,7 +370,7 @@ export default function MobileDiscoverView({
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-1">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-gold-400 shrink-0"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="currentColor"/></svg>
-                        <span className="text-[7px] font-bold tracking-widest uppercase text-gold-400">AI Pick</span>
+                        <span className="text-[7px] font-bold tracking-widest uppercase text-gold-400">Jogjagem Rekom</span>
                       </div>
                       <button
                         onClick={(e) => handleToggleSave(e, recommendation.dest)}
@@ -529,16 +529,16 @@ export default function MobileDiscoverView({
                   }}
                   className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
                     active
-                      ? 'bg-[#1C1A17] border-[#1C1A17]'
+                      ? 'bg-gold-500 border-gold-500'
                       : 'bg-white/6 border-white/10'
                   }`}
                 >
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                    active ? 'bg-gold-500/20 text-gold-400' : 'bg-white/10 text-gold-400'
+                    active ? 'bg-royal-950/20 text-royal-950' : 'bg-white/10 text-gold-400'
                   }`}>
                     <Icon className="h-5 w-5" />
                   </div>
-                  <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-white' : 'text-white/60'}`}>
+                  <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
                     {label}
                   </span>
                 </button>
@@ -559,15 +559,15 @@ export default function MobileDiscoverView({
                       setShowMoreCats(false);
                     }}
                     className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
-                      active ? 'bg-[#1C1A17] border-[#1C1A17]' : 'bg-white/6 border-white/10'
+                      active ? 'bg-gold-500 border-gold-500' : 'bg-white/6 border-white/10'
                     }`}
                   >
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                      active ? 'bg-gold-500/20 text-gold-400' : 'bg-white/10 text-gold-400'
+                      active ? 'bg-royal-950/20 text-royal-950' : 'bg-white/10 text-gold-400'
                     }`}>
                       <cat.Icon className="h-5 w-5" />
                     </div>
-                    <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-white' : 'text-white/60'}`}>
+                    <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
                       {cat.label}
                     </span>
                   </button>
