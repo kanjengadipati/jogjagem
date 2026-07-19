@@ -88,14 +88,22 @@ function toSlug(name: string) {
 }
 
 const HERO_SLIDES = [
-  { id: 'prambanan',    name: 'Candi Prambanan',   tagline: 'Candi Hindu abad ke-9 yang megah.',         image: 'https://images.unsplash.com/photo-1578469550956-0e16b69c6a3d?auto=format&fit=crop&w=1200&q=80' },
-  { id: 'parangtritis', name: 'Pantai Parangtritis', tagline: 'Pasir vulkanik hitam dan sunset mistis.',  image: 'https://images.unsplash.com/photo-1602137704924-9a038cfb5253?auto=format&fit=crop&w=1200&q=80' },
-  { id: 'merapi',       name: 'Gunung Merapi',       tagline: 'Petualangan jeep lava tour.',             image: 'https://images.unsplash.com/photo-1556375403-b96342fc0ee2?auto=format&fit=crop&w=1200&q=80' },
-  { id: 'tamansari',    name: 'Taman Sari',          tagline: 'Istana air kerajaan yang tersembunyi.',   image: 'https://images.unsplash.com/photo-1625506276715-76ad63823181?auto=format&fit=crop&w=1200&q=80' },
-  { id: 'goajomblang',  name: 'Goa Jomblang',        tagline: 'Cahaya surga di dalam gua.',             image: 'https://images.unsplash.com/photo-1628047563315-d1e8b8d222b9?auto=format&fit=crop&w=1200&q=80' },
+  { id: 'prambanan',    name: 'Candi Prambanan',   tagline: 'Candi Hindu abad ke-9 yang megah.',         image: 'https://images.unsplash.com/photo-1578469550956-0e16b69c6a3d?auto=format&fit=crop&w=1200&q=80', subRegion: 'Sleman',    latitude: -7.7520, longitude: 110.4914 },
+  { id: 'parangtritis', name: 'Pantai Parangtritis', tagline: 'Pasir vulkanik hitam dan sunset mistis.',  image: 'https://images.unsplash.com/photo-1602137704924-9a038cfb5253?auto=format&fit=crop&w=1200&q=80', subRegion: 'Bantul',    latitude: -8.0257, longitude: 110.3348 },
+  { id: 'merapi',       name: 'Gunung Merapi',       tagline: 'Petualangan jeep lava tour.',             image: 'https://images.unsplash.com/photo-1556375403-b96342fc0ee2?auto=format&fit=crop&w=1200&q=80', subRegion: 'Sleman',    latitude: -7.5400, longitude: 110.4460 },
+  { id: 'tamansari',    name: 'Taman Sari',          tagline: 'Istana air kerajaan yang tersembunyi.',   image: 'https://images.unsplash.com/photo-1625506276715-76ad63823181?auto=format&fit=crop&w=1200&q=80', subRegion: 'Yogyakarta', latitude: -7.8106, longitude: 110.3593 },
+  { id: 'goajomblang',  name: 'Goa Jomblang',        tagline: 'Cahaya surga di dalam gua.',             image: 'https://images.unsplash.com/photo-1628047563315-d1e8b8d222b9?auto=format&fit=crop&w=1200&q=80', subRegion: 'Gunungkidul', latitude: -7.9356, longitude: 110.6505 },
 ];
 
 const MAX_SLIDES = 10;
+
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 function parseEventDate(raw: string): { day: string; month: string } {
   const ISO_RE = /(\d{4})-(\d{2})-(\d{2})/;
@@ -162,7 +170,7 @@ export default function MobileDiscoverView({
 
   const heroSlides = allDestinations.length > 0
     ? [...allDestinations]
-        .filter(d => d.images?.[0]?.url)
+        .filter(d => d.images?.[0]?.url && d.category !== 'event' && d.category !== 'weekend')
         .sort((a, b) => b.rating - a.rating)
         .slice(0, MAX_SLIDES)
         .map(d => ({
@@ -170,6 +178,9 @@ export default function MobileDiscoverView({
           name: d.name,
           tagline: d.tagline || d.description?.slice(0, 80) || '',
           image: d.images[0].url,
+          subRegion: d.subRegion || (d as any).sub_region || '',
+          latitude: d.latitude,
+          longitude: d.longitude,
         }))
     : HERO_SLIDES;
 
@@ -422,6 +433,22 @@ export default function MobileDiscoverView({
             <p className="text-white/50 text-[11px] mt-5 leading-relaxed">
               {heroSlides[currentSlide].tagline}
             </p>
+            <div className="flex items-center gap-2 mt-1">
+              {heroSlides[currentSlide].subRegion && (
+                <button
+                  onClick={() => router.push(`/destinations/${toSlug(heroSlides[currentSlide].name)}#interactive-map-section`)}
+                  className="flex items-center gap-0.5 text-white/50 text-[9px] font-medium active:opacity-70"
+                >
+                  <MapPin className="h-3 w-3 text-gold-400 shrink-0 animate-bounce" />
+                  <span>{heroSlides[currentSlide].subRegion}</span>
+                </button>
+              )}
+              {coords && heroSlides[currentSlide].latitude && heroSlides[currentSlide].longitude && (
+                <span className="text-white/40 text-[9px] font-mono">
+                  · {Math.round(haversineKm(coords.lat, coords.lng, heroSlides[currentSlide].latitude, heroSlides[currentSlide].longitude))} km
+                </span>
+              )}
+            </div>
 
             {/* Slide indicators */}
             <div className="flex items-center gap-1.5 mt-3">
