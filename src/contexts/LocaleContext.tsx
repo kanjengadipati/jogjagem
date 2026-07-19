@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import idMessages from '@/messages/id.json';
 import enMessages from '@/messages/en.json';
+import { setApiLocale } from '@/lib/api';
 
 type Locale = 'id' | 'en';
 
@@ -31,14 +32,15 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('locale') as Locale;
-    if (saved === 'id' || saved === 'en') {
-      setLocaleState(saved);
-    }
+    const initial = saved === 'en' ? 'en' : 'id';
+    setLocaleState(initial);
+    setApiLocale(initial);
   }, []);
 
   const setLocale = (newLocale: Locale) => {
     localStorage.setItem('locale', newLocale);
     setLocaleState(newLocale);
+    setApiLocale(newLocale);
   };
 
   const t = useCallback((key: string, params?: Record<string, string | number>): string => {
