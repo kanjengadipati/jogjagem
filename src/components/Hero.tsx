@@ -6,6 +6,7 @@ import { Destination } from '../types';
 import { ai } from '../lib/api';
 import NearbyMapCard from './NearbyMapCard';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 function getCtaText(destName: string, category: string, t: (key: string) => string): string {
   const hour = new Date().getHours();
@@ -73,6 +74,7 @@ const HERO_SLIDES = [
 
 export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit, onExploreDestination, onToggleSave, isSaved }: HeroProps) {
   const { t } = useLocale();
+  const { isAuthenticated, user } = useAuth();
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -336,7 +338,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
             <div className="flex-1 flex items-center lg:block lg:flex-none lg:items-start">
               <div className="max-w-2xl space-y-0.5 sm:space-y-1 text-left animate-fade-in pr-36 sm:pr-0">
                 <span className="inline-flex items-center space-x-2 font-sans text-[10px] uppercase tracking-[0.08em] text-gold-400 font-semibold drop-shadow-md">
-                  <span>{t('hero.good_morning')}</span>
+                  <span>{t('hero.good_morning', { name: isAuthenticated && user?.name ? user.name : 'Traveler' })}</span>
                 </span>
                 <h1 className="font-display text-4xl xs:text-5xl sm:text-6xl lg:text-7xl font-medium tracking-tight text-white drop-shadow-lg leading-[1.1]">
                   {heroConfig.title} <br />

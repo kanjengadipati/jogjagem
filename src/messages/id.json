@@ -89,7 +89,7 @@
     "no_events_found_empty": "Tidak Ada Acara"
   },
   "hero": {
-    "good_morning": "SELAMAT PAGI, TRAVELER",
+    "good_morning": "Selamat Pagi, {name} 👋",
     "trending": "Trending Sekarang",
     "ai_pick": "Pilihan AI Untukmu",
     "search_placeholder": "Ke mana Anda ingin menjelajah hari ini?",

@@ -8,11 +8,12 @@ import AuthModal from './components/AuthModal';
 import Hero from './components/Hero';
 import CategoryLinks from './components/CategoryLinks';
 import DestinationCard, { isLandscape } from './components/DestinationCard';
+import MobileDiscoverView from './components/MobileDiscoverView';
 import { useLocale } from '@/contexts/LocaleContext';
 
 import { Destination, Festival } from './types';
 import { destinations, events, config, auth, ai, APIResponse } from '@/lib/api';
-import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, RefreshCw, User } from 'lucide-react';
+import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, RefreshCw, User, ChevronRight } from 'lucide-react';
 
 export default function App() {
   const { t } = useLocale();
@@ -28,6 +29,11 @@ export default function App() {
     destinationId: string; headline: string; reason: string;
     badge: string; crowd: string; imageUrl: string; rating: number; location: string;
   }>>([]);
+  const [trendingItems, setTrendingItems] = useState<Array<{
+    type: 'destination' | 'event'; id: string; badge: string;
+    headline: string; imageUrl: string; rating: number; location: string;
+  }>>([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
@@ -197,6 +203,18 @@ export default function App() {
       .catch(() => {});
   }, [allDestinations]);
 
+  // Fetch trending items for mobile view
+  useEffect(() => {
+    ai.trending()
+      .then((res: APIResponse<{ items: any[] }>) => {
+        if (res.status === 'success' && res.data?.items?.length) {
+          setTrendingItems(res.data.items);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setTrendingLoading(false));
+  }, []);
+
   // Quick helper to choose random quote
   const [quoteIdx, setQuoteIdx] = useState(0);
   useEffect(() => {
@@ -228,7 +246,8 @@ export default function App() {
   return (
     <div id="explore-jogja-app-root" className="min-h-screen bg-[#F7F3EE] flex flex-col justify-between">
       
-      {/* Premium Header */}
+      {/* Premium Header — desktop only (mobile has its own in MobileDiscoverView) */}
+      <div className="hidden md:block">
       <Header 
         activeTab={activeTab} 
         setActiveTab={(tab) => {
@@ -269,6 +288,7 @@ export default function App() {
         savedCount={savedDestinations.length}
         onOpenAuth={openAuth}
       />
+      </div>{/* end hidden md:block header */}
 
       {/* Main Core Content container */}
       <main id="main-content-layout" className="flex-1 pb-16">
@@ -276,6 +296,21 @@ export default function App() {
         <>
             {/* Active Tab: Discover (Homepage) */}
             {(activeTab === 'discover' || activeTab.startsWith('discover-')) && (
+              <>
+                {/* ── Mobile-only dark redesign ── */}
+                <MobileDiscoverView
+                  allDestinations={allDestinations}
+                  allEvents={allEvents}
+                  trendingItems={trendingItems}
+                  trendingLoading={trendingLoading}
+                  aiPicks={aiPicks}
+                  onToggleSave={handleToggleSave}
+                  isSaved={isSaved}
+                  onOpenAuth={openAuth}
+                />
+
+                {/* ── Desktop layout (unchanged) ── */}
+                <div className="hidden md:block">
               <div className="space-y-4 animate-fade-in">
                 {/* Visual Fullscreen Hero Section */}
                 <Hero
@@ -586,6 +621,8 @@ export default function App() {
                   </section>
                 )}
               </div>
+                </div>{/* end hidden md:block desktop wrapper */}
+              </>
             )}
 
             {/* Active Tab: Events */}
@@ -695,23 +732,81 @@ export default function App() {
         defaultMode={authModalMode}
       />
 
-      {/* Editorial polished footer */}
-      <footer id="editorial-luxury-footer" className="bg-royal-950 text-white border-t border-royal-900 py-12 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
-        <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-          <div>
-            <div className="flex items-center justify-center md:justify-start space-x-2">
-              <Image src="/logo-gold-new.png" alt="Jogjagem" width={24} height={24} className="h-6 w-auto" />
-              <span className="font-manrope font-bold text-sm tracking-[0.08em] uppercase text-white">Jogjagem</span>
-            </div>
-            <p className="text-[10px] text-gold-100/40 font-mono tracking-widest uppercase mt-1">
-              {t('footer.tagline')}
-            </p>
-          </div>
+      {/* Footer */}
+      <footer id="editorial-luxury-footer" className="bg-[#F7F3EE] md:bg-royal-950 text-white border-t border-stone-200 md:border-royal-900">
 
-          <div className="text-[10px] font-mono text-gold-200/40 uppercase tracking-widest space-y-1">
-            <p>{t('footer.copyright')}</p>
-            <p>{t('footer.made_with')}</p>
-            <p>{t('footer.build_by')}</p>
+        {/* Quote card — mobile only */}
+        <div className="md:hidden mx-4 mt-6 mb-0 bg-[#F5EDD8] rounded-3xl p-5 flex items-start gap-4 border border-[#E8D9B8]">
+          <span className="text-gold-500 text-4xl font-serif leading-none mt-1">"</span>
+          <div className="flex-1">
+            <p className="text-royal-950 font-manrope font-semibold text-[13px] leading-relaxed">
+              Jogja bukan sekadar tempat, tapi rasa yang selalu ingin kembali.
+            </p>
+            <p className="text-gold-600 text-[11px] font-semibold mt-2">— Jogjagem</p>
+          </div>
+          <div className="shrink-0 opacity-30">
+            <Image src="/logo-gold-new.png" alt="" width={48} height={48} className="h-12 w-auto" />
+          </div>
+        </div>
+
+        {/* Main footer body */}
+        <div className="bg-royal-950 mt-4 md:mt-0 rounded-t-3xl md:rounded-none px-5 pt-7 pb-[calc(90px+env(safe-area-inset-bottom,0px))] md:pb-12">
+          <div className="mx-auto max-w-7xl">
+
+            {/* Logo + tagline + social */}
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Image src="/logo-gold-new.png" alt="Jogjagem" width={22} height={22} className="h-[22px] w-auto" />
+                  <span className="font-manrope font-bold text-[16px] tracking-widest text-white uppercase">Jogjagem</span>
+                </div>
+                <p className="text-white/50 text-[11px] leading-snug max-w-[180px]">
+                  Teman perjalananmu terbaik menjelajahi keindahan Yogyakarta.
+                </p>
+              </div>
+            </div>
+
+            {/* Social icons */}
+            <div className="flex items-center gap-4 mb-7">
+              {[
+                { icon: 'IG', href: 'https://instagram.com' },
+                { icon: 'TK', href: 'https://tiktok.com' },
+                { icon: 'YT', href: 'https://youtube.com' },
+                { icon: 'FB', href: 'https://facebook.com' },
+              ].map(s => (
+                <a
+                  key={s.icon}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-9 w-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/15 transition-colors text-[10px] font-bold"
+                >
+                  {s.icon}
+                </a>
+              ))}
+            </div>
+
+            {/* Nav links */}
+            <div className="border-t border-white/10 divide-y divide-white/8">
+              {['Tentang Kami', 'Bantuan', 'Syarat & Ketentuan', 'Kebijakan Privasi'].map(link => (
+                <button
+                  key={link}
+                  className="w-full flex items-center justify-between py-3.5 text-left"
+                >
+                  <span className="text-white/80 text-[13px] font-medium">{link}</span>
+                  <ChevronRight className="h-4 w-4 text-white/30" />
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop copyright */}
+            <div className="hidden md:block mt-6 pt-4 border-t border-white/10">
+              <div className="text-[10px] font-mono text-gold-200/40 uppercase tracking-widest space-y-1">
+                <p>{t('footer.copyright')}</p>
+                <p>{t('footer.build_by')}</p>
+              </div>
+            </div>
+
           </div>
         </div>
       </footer>

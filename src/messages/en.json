@@ -89,7 +89,7 @@
     "no_events_found_empty": "No Events"
   },
   "hero": {
-    "good_morning": "GOOD MORNING, TRAVELER",
+    "good_morning": "Good Morning, {name} 👋",
     "trending": "Trending Now",
     "ai_pick": "AI Pick for You",
     "search_placeholder": "Where would you like to explore today?",
