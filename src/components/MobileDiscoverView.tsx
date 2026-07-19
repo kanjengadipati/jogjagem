@@ -60,21 +60,21 @@ interface MobileDiscoverViewProps {
 // ─── Category pill config ─────────────────────────────────────────────────────
 
 const MOBILE_CATS = [
-  { id: null,         label: 'Semua',       Icon: TuguJogjaIcon },
-  { id: 'hidden-gem', label: 'Hidden Gems', Icon: HiddenGemsIcon },
-  { id: 'culinary',   label: 'Kuliner',     Icon: CulinaryLegendsIcon },
-  { id: 'adventure',  label: 'Petualangan', Icon: AdventureIcon },
-  { id: '__more__',   label: 'Lainnya',     Icon: MoreHorizontal },
+  { id: null,         tKey: 'category.all_journeys', Icon: TuguJogjaIcon },
+  { id: 'hidden-gem', tKey: 'category.hidden_gem',   Icon: HiddenGemsIcon },
+  { id: 'culinary',   tKey: 'category.culinary',     Icon: CulinaryLegendsIcon },
+  { id: 'adventure',  tKey: 'category.adventure',    Icon: AdventureIcon },
+  { id: '__more__',   tKey: 'category.more',         Icon: MoreHorizontal },
 ] as const;
 
 // ─── All categories for "Lainnya" expanded row ───────────────────────────────
 
 const MORE_CATS = [
-  { id: 'heritage', label: 'Destinasi',  Icon: HeritageIcon },
-  { id: 'nature',   label: 'Alam',       Icon: NatureEscapesIcon },
-  { id: 'beach',    label: 'Pantai',     Icon: BeachesIcon },
-  { id: 'family',   label: 'Keluarga',   Icon: FamilyFriendlyIcon },
-  { id: 'weekend',  label: 'Akhir Pekan',Icon: WeekendIdeasIcon },
+  { id: 'heritage', tKey: 'category.heritage', Icon: HeritageIcon },
+  { id: 'nature',   tKey: 'category.nature',   Icon: NatureEscapesIcon },
+  { id: 'beach',    tKey: 'category.beach',    Icon: BeachesIcon },
+  { id: 'family',   tKey: 'category.family',   Icon: FamilyFriendlyIcon },
+  { id: 'weekend',  tKey: 'category.weekend',  Icon: WeekendIdeasIcon },
 ] as const;
 
 const DEFAULT_ORDER = [
@@ -325,10 +325,10 @@ export default function MobileDiscoverView({
     .filter((x): x is { pick: AIPick; dest: Destination } => x.dest !== undefined);
 
   return (
-    <div className="md:hidden min-h-screen bg-[#0f0e0c] pb-32">
+    <div className="md:hidden min-h-screen bg-[#1a1814] pb-32">
 
       {/* ═══ Full-bleed hero section (slideshow bg behind header → hero → search → trending) ═══ */}
-      <div className="relative">
+      <div className="relative bg-[#0f0e0c]">
         {/* Background slideshow — covers entire first screen */}
         <div className="absolute inset-0 overflow-hidden -z-0">
           {heroSlides.map((slide, idx) => (
@@ -467,37 +467,39 @@ export default function MobileDiscoverView({
 
           {/* ── Search bar ── */}
           <div className="px-4">
-            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-white/8 border border-white/10 rounded-2xl px-3 py-2">
-              <Search className="h-4 w-4 text-white/40 shrink-0" />
+            <form onSubmit={handleSearchSubmit} className="relative flex items-center rounded-full border border-white/20 bg-black/35 hover:bg-black/45 backdrop-blur-md p-1 shadow-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400">
+              <Search className="ml-3 h-4 w-4 text-white/70 shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder={t('hero.search_placeholder_mobile')}
-                className="flex-1 bg-transparent text-white text-[13px] placeholder-white/35 outline-none font-medium min-w-0 pr-2 overflow-hidden text-ellipsis"
+                placeholder={t('hero.search_placeholder')}
+                className="flex-1 bg-transparent py-2.5 pl-2 pr-2 text-sm text-white placeholder-white/60 focus:outline-none font-sans min-w-0"
               />
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-              <div className="flex items-center shrink-0">
+              <div className="flex items-center gap-0.5 shrink-0 mr-1">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingImage}
-                  className="h-7 w-7 flex items-center justify-center rounded-xl text-white/50 hover:text-white transition-colors disabled:opacity-40"
+                  className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-50"
+                  title={t('hero.search_by_image')}
                 >
-                  {isUploadingImage ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                  {isUploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
                 </button>
                 <button
                   type="button"
                   onClick={handleVoiceSearch}
-                  className={`h-7 w-7 flex items-center justify-center rounded-xl transition-colors ${isListening ? 'text-red-400 animate-pulse' : 'text-white/50 hover:text-white'}`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full transition-all ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-white/10 text-white/70 hover:text-white'}`}
+                  title={t('hero.search_by_voice')}
                 >
-                  {isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </button>
                 <button
                   type="submit"
-                  className="h-7 w-7 flex items-center justify-center rounded-xl bg-gold-500 text-royal-950"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-500 hover:bg-gold-600 active:scale-95 text-white transition-all shadow-md"
                 >
-                  <Search className="h-3.5 w-3.5" />
+                  <Search className="h-4 w-4" />
                 </button>
               </div>
             </form>
@@ -568,7 +570,7 @@ export default function MobileDiscoverView({
           <SectionHeader title="Jelajahi Kategori" />
           {/* Main category pills row */}
           <div className="grid grid-cols-5 gap-2 px-4">
-            {MOBILE_CATS.map(({ id, label, Icon }) => {
+            {MOBILE_CATS.map(({ id, tKey, Icon }) => {
               const active = id === '__more__' ? showMoreCats : selectedCat === id;
               return (
                 <button
@@ -586,7 +588,7 @@ export default function MobileDiscoverView({
                 >
                   <Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
                   <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
-                    {label}
+                    {t(tKey)}
                   </span>
                 </button>
               );
@@ -611,7 +613,7 @@ export default function MobileDiscoverView({
                   >
                     <cat.Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
                     <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
-                      {cat.label}
+                      {t(cat.tKey)}
                     </span>
                   </button>
                 );
