@@ -340,7 +340,7 @@ export default function MobileDiscoverView({
         <div className="relative z-10 space-y-6 pt-4 pb-6">
 
           {/* ── Hero greeting + Rec card ── */}
-          <div className="px-4 flex items-start justify-between gap-3">
+          <div className="px-4 flex items-center justify-between gap-3">
             {/* Left: greeting + headline */}
             <div className="flex-1">
               <p className="text-gold-400 text-[11px] font-semibold uppercase tracking-widest mb-1">
@@ -351,6 +351,9 @@ export default function MobileDiscoverView({
                 Yogyakarta <br />
                 <span className="text-gold-400">Lebih Dalam</span>
               </h1>
+              <p className="text-white/50 text-[11px] mt-1.5 leading-relaxed max-w-[180px]">
+                Temukan destinasi terbaik, kuliner, event seru dan pengalaman tak terlupakan.
+              </p>
             </div>
 
             {/* Right: AI recommendation card */}
@@ -362,7 +365,7 @@ export default function MobileDiscoverView({
                   tabIndex={0}
                   onClick={() => router.push(`/destinations/${toSlug(recommendation.dest.name)}`)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/destinations/${toSlug(recommendation.dest.name)}`); }}
-                  className="relative w-[156px] h-[169px] rounded-2xl overflow-hidden shrink-0 border border-gold-500/30 shadow-lg cursor-pointer"
+                  className="relative w-[156px] aspect-[2/3] rounded-2xl overflow-hidden shrink-0 border border-gold-500/30 shadow-lg cursor-pointer"
                 >
                   {img && <Image src={img} alt={recommendation.dest.name} fill className="object-cover object-center" referrerPolicy="no-referrer" />}
                   <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/80" />
@@ -370,7 +373,7 @@ export default function MobileDiscoverView({
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-1">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-gold-400 shrink-0"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="currentColor"/></svg>
-                        <span className="text-[7px] font-bold tracking-widest uppercase text-gold-400">Jogjagem Rekom</span>
+                        <span className="text-[7px] font-bold tracking-widest uppercase text-gold-400">{t('hero.jogjagem_rekom')}</span>
                       </div>
                       <button
                         onClick={(e) => handleToggleSave(e, recommendation.dest)}
@@ -385,7 +388,7 @@ export default function MobileDiscoverView({
                       <span className="flex items-center gap-0.5 text-[8px] font-bold text-gold-400">
                         <Star className="h-2 w-2 fill-gold-400" />{recommendation.dest.rating?.toFixed(1) ?? '4.9'}
                       </span>
-                      <span className="text-[7px] text-white/40 font-mono">📍 {recommendation.headline ? 'AI Rekomendasi' : recommendation.dest.subRegion || recommendation.dest.location}</span>
+                      <span className="text-[7px] text-white/40 font-mono">📍 {recommendation.headline ? t('hero.ai_recommendation') : recommendation.dest.subRegion || recommendation.dest.location}</span>
                     </div>
                   </div>
                 </div>
@@ -422,7 +425,7 @@ export default function MobileDiscoverView({
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Cari destinasi, kuliner, atau aktivitas..."
+                placeholder={t('hero.search_placeholder_mobile')}
                 className="flex-1 bg-transparent text-white text-[13px] placeholder-white/35 outline-none font-medium min-w-0"
               />
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
@@ -533,11 +536,7 @@ export default function MobileDiscoverView({
                       : 'bg-white/6 border-white/10'
                   }`}
                 >
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                    active ? 'bg-royal-950/20 text-royal-950' : 'bg-white/10 text-gold-400'
-                  }`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
+                  <Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
                   <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
                     {label}
                   </span>
@@ -562,11 +561,7 @@ export default function MobileDiscoverView({
                       active ? 'bg-gold-500 border-gold-500' : 'bg-white/6 border-white/10'
                     }`}
                   >
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                      active ? 'bg-royal-950/20 text-royal-950' : 'bg-white/10 text-gold-400'
-                    }`}>
-                      <cat.Icon className="h-5 w-5" />
-                    </div>
+                    <cat.Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
                     <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
                       {cat.label}
                     </span>
