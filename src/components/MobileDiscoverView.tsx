@@ -64,7 +64,7 @@ const MOBILE_CATS = [
   { id: 'heritage',  label: 'Destinasi',  Icon: HeritageIcon },
   { id: 'culinary',  label: 'Kuliner',    Icon: CulinaryLegendsIcon },
   { id: 'adventure', label: 'Petualangan',Icon: AdventureIcon },
-  { id: '__more__',  label: 'Lainnya',    Icon: WeekendIdeasIcon },
+  { id: '__more__',  label: 'Lainnya',    Icon: MoreHorizontal },
 ] as const;
 
 // ─── All categories for "Lainnya" expanded row ───────────────────────────────
@@ -346,12 +346,12 @@ export default function MobileDiscoverView({
               <p className="text-gold-400 text-[11px] font-semibold uppercase tracking-widest mb-1">
                 {t('hero.good_morning', { name: isAuthenticated && user?.name ? user.name : 'Traveler' })}
               </p>
-              <h1 className="font-manrope text-[26px] font-extrabold leading-tight text-white">
+              <h1 className="font-manrope text-[22px] sm:text-[26px] font-extrabold leading-tight text-white">
                 Jelajahi <br />
                 Yogyakarta <br />
                 <span className="text-gold-400">Lebih Dalam</span>
               </h1>
-              <p className="text-white/50 text-[11px] mt-1.5 leading-relaxed max-w-[180px]">
+              <p className="text-white/50 text-[10px] sm:text-[11px] mt-1.5 leading-relaxed max-w-[150px] sm:max-w-[180px]">
                 Temukan destinasi terbaik, kuliner, event seru dan pengalaman tak terlupakan.
               </p>
             </div>
@@ -365,7 +365,7 @@ export default function MobileDiscoverView({
                   tabIndex={0}
                   onClick={() => router.push(`/destinations/${toSlug(recommendation.dest.name)}`)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/destinations/${toSlug(recommendation.dest.name)}`); }}
-                  className="relative w-[156px] aspect-[2/3] rounded-2xl overflow-hidden shrink-0 border border-gold-500/30 shadow-lg cursor-pointer"
+                  className="relative w-[130px] sm:w-[156px] aspect-[2/3] rounded-2xl overflow-hidden shrink-0 border border-gold-500/30 shadow-lg cursor-pointer"
                 >
                   {img && <Image src={img} alt={recommendation.dest.name} fill className="object-cover object-center" referrerPolicy="no-referrer" />}
                   <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/80" />
@@ -398,7 +398,7 @@ export default function MobileDiscoverView({
 
           {/* Slide tagline — below headline + card row */}
           <div className="px-4">
-            <p className="text-white/50 text-[11px] mt-3 leading-relaxed">
+            <p className="text-white/50 text-[11px] mt-5 leading-relaxed">
               {HERO_SLIDES[currentSlide].tagline}
             </p>
 
