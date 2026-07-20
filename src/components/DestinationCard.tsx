@@ -40,11 +40,12 @@ const BADGE_MAP: Record<string, string> = {
   'wonosari': 'Live Tonight'
 };
 
-export default function DestinationCard({ 
+export default React.memo(function DestinationCard({ 
   destination, onExplore, onToggleSave, onAuthRequired = () => {}, isSaved, 
   isReportPending = false, onClearPendingReport = () => {}, className = '' 
 }: DestinationCardProps) {
   const [reportOpen, setReportOpen] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const { t } = useLocale();
 
   React.useEffect(() => {
@@ -78,7 +79,33 @@ export default function DestinationCard({
     setReportOpen(true);
   };
 
-  const badgeText = BADGE_MAP[destination.id] || destination.category.replace('-', ' ').toUpperCase();
+  const apiBadge = destination.badge;
+  const rawBadgeText = apiBadge 
+    ? t(`hero.badge_${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
+    : (BADGE_MAP[destination.id] || destination.category.replace('-', ' '));
+
+  const badgeText = rawBadgeText.toUpperCase();
+
+  const badgeKey = (apiBadge || BADGE_MAP[destination.id] || destination.category)
+    .toLowerCase()
+    .replace(/-/g, '_')
+    .replace(/ /g, '_');
+
+  const BADGE_STYLES: Record<string, string> = {
+    'trending': 'bg-red-600/90 border border-red-500/30 text-white',
+    'hidden_gem': 'bg-teal-600/90 border border-teal-500/30 text-white',
+    'best_for_healing': 'bg-green-700/90 border border-green-600/30 text-white',
+    'sunset_spot': 'bg-orange-500/90 border border-orange-400/30 text-white',
+    'perfect_morning': 'bg-amber-500/90 border border-amber-400/30 text-white',
+    'night_vibes': 'bg-indigo-600/90 border border-indigo-500/30 text-white',
+    'cultural': 'bg-amber-700/90 border border-amber-600/30 text-white',
+    'adventure': 'bg-red-600/90 border border-red-500/30 text-white',
+    'instagramable': 'bg-pink-600/90 border border-pink-500/30 text-white',
+    'unesco': 'bg-blue-700/90 border border-blue-600/30 text-white',
+  };
+
+  const badgeBgClass = BADGE_STYLES[badgeKey] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white';
+
   const heightClass = 'h-[160px] sm:h-[360px] md:h-[400px]';
   const slug = destination.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -89,24 +116,35 @@ export default function DestinationCard({
       <Link
         id={`destination-card-${destination.id}`}
         href={`/destinations/${slug}`}
-        className={`group relative w-full overflow-hidden rounded-[24px] bg-[#FCFAF8] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl cursor-pointer border border-stone-200/40 ${heightClass} ${className}`}
+        className={`group relative w-full overflow-hidden rounded-[24px] bg-stone-900 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl cursor-pointer border border-stone-200/40 ${heightClass} ${className}`}
       >
+        {/* Shimmer placeholder while image loads */}
+        {!imgLoaded && (
+          <div className="absolute inset-0 bg-stone-800 animate-pulse">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-[shimmer_1.4s_infinite] -translate-x-full" />
+          </div>
+        )}
+
         {/* Immersive Destination Thumbnail */}
         {destination.images[0]?.url ? (
           <Image
             src={destination.images[0].url}
             alt={destination.name}
             fill
-            className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-108"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className={`h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
             referrerPolicy="no-referrer"
+            onLoad={() => setImgLoaded(true)}
           />
         ) : destination.ogImageUrl ? (
           <Image
             src={destination.ogImageUrl}
             alt={destination.name}
             fill
-            className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-108"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className={`h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
             referrerPolicy="no-referrer"
+            onLoad={() => setImgLoaded(true)}
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-royal-900 to-royal-950" />
@@ -117,7 +155,7 @@ export default function DestinationCard({
 
         {/* Top-Left Badge Container */}
         <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-2">
-            <div className="bg-black/40 backdrop-blur-md border border-white/10 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-sans font-semibold uppercase tracking-[0.08em] text-white">
+            <div className={`${badgeBgClass} px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-sans font-semibold uppercase tracking-[0.08em]`}>
                 {badgeText}
             </div>
             {/* Report Button */}
@@ -180,4 +218,4 @@ export default function DestinationCard({
       </Link>
     </>
   );
-}
+});

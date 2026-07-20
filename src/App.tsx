@@ -7,7 +7,7 @@ import Header from './components/Header';
 import AuthModal from './components/AuthModal';
 import Hero from './components/Hero';
 import CategoryLinks from './components/CategoryLinks';
-import DestinationCard, { isLandscape } from './components/DestinationCard';
+import DestinationCard from './components/DestinationCard';
 import MobileDiscoverView from './components/MobileDiscoverView';
 import { useLocale } from '@/contexts/LocaleContext';
 
@@ -25,6 +25,12 @@ export default function App() {
   const [allEvents, setAllEvents] = useState<Festival[]>([]);
   const [allQuotes, setAllQuotes] = useState<{ text: string; author: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [destPage, setDestPage] = useState(1);
+  const [destTotalPages, setDestTotalPages] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [eventPage, setEventPage] = useState(1);
+  const [eventTotalPages, setEventTotalPages] = useState(1);
+  const [loadingMoreEvents, setLoadingMoreEvents] = useState(false);
   const [aiPicks, setAiPicks] = useState<Array<{
     destinationId: string; headline: string; reason: string;
     badge: string; crowd: string; imageUrl: string; rating: number; location: string;
@@ -34,6 +40,7 @@ export default function App() {
     headline: string; imageUrl: string; rating: number; location: string;
   }>>([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -58,6 +65,12 @@ export default function App() {
           ogImageUrl: raw.og_image_url || raw.OgImageUrl || raw.ogImageUrl || '',
         }));
         setAllDestinations(mapped as Destination[]);
+        // Save pagination meta
+        const meta = (destRes as any).meta;
+        if (meta) {
+          setDestPage(meta.page ?? 1);
+          setDestTotalPages(meta.total_pages ?? 1);
+        }
       }
       if (eventRes.status === 'success' && eventRes.data) {
         const mapped = (eventRes.data as any[]).map(raw => ({
@@ -71,6 +84,11 @@ export default function App() {
           category: raw.category || '',
         }));
         setAllEvents(mapped);
+        const meta = (eventRes as any).meta;
+        if (meta) {
+          setEventPage(meta.page ?? 1);
+          setEventTotalPages(meta.total_pages ?? 1);
+        }
       }
       if (quoteRes.status === 'success' && quoteRes.data) {
         setAllQuotes(quoteRes.data);
@@ -81,6 +99,57 @@ export default function App() {
       setIsLoading(false);
     });
   }, []);
+
+  // Fetch when category changes — use isFilterLoading (not isLoading) to avoid full-page spinner
+  useEffect(() => {
+    // Skip on initial mount — handled by the mount Promise.all
+    if (isLoading) return;
+
+    async function loadCategory() {
+      setIsFilterLoading(true);
+      try {
+        const mapRaw = (raw: any) => ({
+          ...raw,
+          subRegion: raw.sub_region || raw.SubRegion || raw.subRegion || '',
+          ticketPrice: raw.ticket_price || raw.TicketPrice || raw.ticketPrice || '',
+          openingHours: raw.opening_hours || raw.OpeningHours || raw.openingHours || '',
+          reviewCount: raw.review_count || raw.ReviewCount || raw.reviewCount || 0,
+          travelTips: raw.travel_tips || raw.TravelTips || raw.travelTips || [],
+          bestTime: raw.best_time || raw.BestTime || raw.bestTime || '',
+          googleMapsUrl: raw.google_maps_url || raw.GoogleMapsURL || raw.googleMapsUrl || '',
+          googleReviewCount: raw.google_review_count || raw.GoogleReviewCount || raw.googleReviewCount || 0,
+          seoTitle: raw.seo_title || raw.SeoTitle || raw.seoTitle || '',
+          seoKeywords: raw.seo_keywords || raw.SeoKeywords || raw.seoKeywords || '',
+          seoDescription: raw.seo_description || raw.SeoDescription || raw.seoDescription || '',
+          ogImageUrl: raw.og_image_url || raw.OgImageUrl || raw.ogImageUrl || '',
+        });
+
+        if (selectedCategory) {
+          const res = await destinations.getByCategory(selectedCategory);
+          if (res.status === 'success' && res.data) {
+            setAllDestinations((res.data as any[]).map(mapRaw) as Destination[]);
+            setDestPage(1);
+            setDestTotalPages(1);
+          }
+        } else {
+          const res = await destinations.getAll({ limit: 15, page: 1 });
+          if (res.status === 'success' && res.data) {
+            setAllDestinations((res.data as any[]).map(mapRaw) as Destination[]);
+            const meta = (res as any).meta;
+            if (meta) {
+              setDestPage(meta.page ?? 1);
+              setDestTotalPages(meta.total_pages ?? 1);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load category destinations:', err);
+      } finally {
+        setIsFilterLoading(false);
+      }
+    }
+    loadCategory();
+  }, [selectedCategory]);
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
@@ -139,13 +208,7 @@ export default function App() {
   }, [savedDestinations, hydrated]);
 
   const handleToggleSave = async (dest: Destination) => {
-    // Check if user is logged in
-    if (!auth.isLoggedIn()) {
-      openAuth('login');
-      return;
-    }
-
-    // Optimistic update
+    // Optimistic update — always save locally first, no login required
     setSavedDestinations((prev) => {
       const exists = prev.some(d => d.id === dest.id);
       const newSaved = exists ? prev.filter(d => d.id !== dest.id) : [...prev, dest];
@@ -153,12 +216,14 @@ export default function App() {
       return newSaved;
     });
 
-    // Sync with API
-    try {
+    // Sync with API only if logged in
+    if (auth.isLoggedIn()) {
+      try {
         const isSavedNow = !savedDestinations.some(d => d.id === dest.id);
         await auth.updateDestinationStatus(dest.id, isSavedNow ? 'saved' : 'removed');
-    } catch (err) {
+      } catch (err) {
         console.error('Failed to sync save status', err);
+      }
     }
   };
 
@@ -187,6 +252,73 @@ export default function App() {
 
   const handleExploreDestination = (dest: Destination) => {
     router.push(`/destinations/${toSlug(dest.name)}`);
+  };
+
+  const loadMoreDestinations = async () => {
+    if (loadingMore || destPage >= destTotalPages) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = destPage + 1;
+      const res = await destinations.getAll({ limit: 15, page: nextPage });
+      if (res.status === 'success' && res.data) {
+        const mapped = (res.data as any[]).map(raw => ({
+          ...raw,
+          subRegion: raw.sub_region || raw.SubRegion || raw.subRegion || '',
+          ticketPrice: raw.ticket_price || raw.TicketPrice || raw.ticketPrice || '',
+          openingHours: raw.opening_hours || raw.OpeningHours || raw.openingHours || '',
+          reviewCount: raw.review_count || raw.ReviewCount || raw.reviewCount || 0,
+          travelTips: raw.travel_tips || raw.TravelTips || raw.travelTips || [],
+          bestTime: raw.best_time || raw.BestTime || raw.bestTime || '',
+          googleMapsUrl: raw.google_maps_url || raw.GoogleMapsURL || raw.googleMapsUrl || '',
+          googleReviewCount: raw.google_review_count || raw.GoogleReviewCount || raw.googleReviewCount || 0,
+          seoTitle: raw.seo_title || raw.SeoTitle || raw.seoTitle || '',
+          seoKeywords: raw.seo_keywords || raw.SeoKeywords || raw.seoKeywords || '',
+          seoDescription: raw.seo_description || raw.SeoDescription || raw.seoDescription || '',
+          ogImageUrl: raw.og_image_url || raw.OgImageUrl || raw.ogImageUrl || '',
+        }));
+        setAllDestinations(prev => [...prev, ...(mapped as Destination[])]);
+        setDestPage(nextPage);
+        const meta = (res as any).meta;
+        if (meta) {
+          setDestTotalPages(meta.total_pages ?? 1);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load more destinations:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const loadMoreEvents = async () => {
+    if (loadingMoreEvents || eventPage >= eventTotalPages) return;
+    setLoadingMoreEvents(true);
+    try {
+      const nextPage = eventPage + 1;
+      const res = await events.getAll({ limit: 15, page: nextPage });
+      if (res.status === 'success' && res.data) {
+        const mapped = (res.data as any[]).map(raw => ({
+          id: raw.id || raw.ExternalID || '',
+          name: raw.title || raw.Name || '',
+          date: raw.start_date ? `${raw.start_date} - ${raw.end_date || ''}` : (raw.date || ''),
+          location: raw.location || '',
+          image: raw.image_url || raw.image || '',
+          description: raw.description || '',
+          highlights: Array.isArray(raw.highlights) ? raw.highlights : [],
+          category: raw.category || '',
+        }));
+        setAllEvents(prev => [...prev, ...mapped]);
+        setEventPage(nextPage);
+        const meta = (res as any).meta;
+        if (meta) {
+          setEventTotalPages(meta.total_pages ?? 1);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load more events:', err);
+    } finally {
+      setLoadingMoreEvents(false);
+    }
   };
 
   // Fetch AI multi-picks when destinations are ready
@@ -223,17 +355,18 @@ export default function App() {
     }
   }, [activeTab, allQuotes]);
 
-  const filteredDestinations = selectedCategory
-    ? allDestinations.filter(d => d.category === selectedCategory)
-    : allDestinations;
+  const badgePriority = (badge?: string) =>
+    badge === 'trending' ? 0 : badge === 'hidden_gem' ? 1 : 2;
 
-  const defaultSortedIds = ['prambanan', 'parangtritis', 'malioboro', 'tamansari', 'merapi', 'kalibiru', 'keraton', 'ratuboko', 'timang', 'tebingbreksi', 'pindul', 'pinusmangunan', 'goajomblang'];
-
+  // When a category is selected, allDestinations is already populated by the
+  // API fetch in the selectedCategory useEffect — no extra client-side filter needed.
   const displayDestinations = selectedCategory
-    ? filteredDestinations
-    : defaultSortedIds
-        .map(id => allDestinations.find(d => d.id === id))
-        .filter((d): d is Destination => d !== undefined);
+    ? allDestinations
+    : [...allDestinations].sort((a, b) => {
+        const rankDiff = badgePriority(a.badge) - badgePriority(b.badge);
+        if (rankDiff !== 0) return rankDiff;
+        return (b.rating ?? 0) - (a.rating ?? 0);
+      });
 
   if (isLoading) {
     return (
@@ -307,6 +440,8 @@ export default function App() {
                   onToggleSave={handleToggleSave}
                   isSaved={isSaved}
                   onOpenAuth={openAuth}
+                  selectedCategory={selectedCategory}
+                  onSelectCategory={setSelectedCategory}
                 />
 
                 {/* ── Desktop layout (unchanged) ── */}
@@ -337,7 +472,7 @@ export default function App() {
                       </span>
                       <h2 className="font-manrope text-2xl sm:text-3xl font-bold tracking-tight text-royal-950">
                         {selectedCategory 
-                          ? t('home.curated_category', { category: selectedCategory.replace('-', ' ') }) 
+                          ? t('home.curated_category', { category: t(`category.${selectedCategory}`) }) 
                           : t('home.popular_destinations')
                         }
                       </h2>
@@ -351,13 +486,19 @@ export default function App() {
                     </button>
                   </div>
 
-                  {displayDestinations.length === 0 ? (
+                  {isFilterLoading ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6">
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <div key={i} className="rounded-3xl bg-stone-200/70 animate-pulse aspect-[3/4]" />
+                      ))}
+                    </div>
+                  ) : displayDestinations.length === 0 ? (
                     <div className="text-center py-12 border border-dashed border-gold-200 rounded-3xl bg-[#F5F0E8] p-6">
                       <span className="block text-sm font-medium text-royal-950">{t('home.no_matches')}</span>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6">
-                      {displayDestinations.map((dest) => (
+                      {displayDestinations.map((dest, index) => (
                       <DestinationCard
                           key={dest.id}
                           destination={dest}
@@ -367,9 +508,28 @@ export default function App() {
                           isSaved={isSaved(dest.id)}
                           isReportPending={pendingReportId === dest.id}
                           onClearPendingReport={() => setPendingReportId(null)}
-                          className={isLandscape(dest.id) ? 'col-span-2 lg:col-span-2' : 'col-span-1 lg:col-span-1'}
+                          className={index % 7 === 0 ? 'col-span-2 lg:col-span-2' : 'col-span-1 lg:col-span-1'}
                         />
                       ))}
+                    </div>
+                  )}
+
+                  {!selectedCategory && destPage < destTotalPages && (
+                    <div className="mt-8 flex justify-center">
+                      <button
+                        onClick={loadMoreDestinations}
+                        disabled={loadingMore}
+                        className="px-6 py-2 bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-600 hover:to-amber-700 disabled:opacity-50 text-white rounded-full font-semibold text-xs transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2 cursor-pointer"
+                      >
+                        {loadingMore ? (
+                          <>
+                            <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent animate-spin"></span>
+                            <span>{t('common.loading')}</span>
+                          </>
+                        ) : (
+                          <span>{t('common.load_more')}</span>
+                        )}
+                      </button>
                     </div>
                   )}
                 </section>
@@ -398,8 +558,32 @@ export default function App() {
 
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {allEvents.slice(0, 3).map((fest, idx) => {
-                          const badges = [t('common.badge_limited'), t('common.badge_popular'), t('common.badge_live_tonight')];
+                          const fallbackBadges = [t('common.badge_limited'), t('common.badge_popular'), t('common.badge_live_tonight')];
                           const subBadge = [t('common.badge_starts_5'), t('common.badge_starts_18'), t('common.badge_tonight_7')];
+                          
+                          const apiBadge = fest.badge;
+                          const rawBadgeText = apiBadge 
+                            ? t(`hero.badge_${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
+                            : (fallbackBadges[idx] || fest.category);
+
+                          const badgeText = rawBadgeText.toUpperCase();
+
+                          const badgeKey = (apiBadge || fallbackBadges[idx] || fest.category)
+                            .toLowerCase()
+                            .replace(/-/g, '_')
+                            .replace(/ /g, '_');
+
+                          const BADGE_STYLES: Record<string, string> = {
+                            'trending': 'bg-red-600/90 border border-red-500/30 text-white',
+                            'akan_datang': 'bg-blue-600/90 border border-blue-500/30 text-white',
+                            'spesial_hari_ini': 'bg-amber-600/90 border border-amber-500/30 text-white',
+                            'populer': 'bg-purple-600/90 border border-purple-500/30 text-white',
+                            'terbatas': 'bg-orange-600/90 border border-orange-500/30 text-white',
+                            'live_malam_ini': 'bg-green-600/90 border border-green-500/30 text-white',
+                          };
+
+                          const badgeBgClass = BADGE_STYLES[badgeKey] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white';
+
                           return (
                             <div
                               key={fest.id}
@@ -415,8 +599,8 @@ export default function App() {
                               <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
                               
                               {/* Top Badge */}
-                              <div className="absolute top-3.5 left-3.5 bg-red-600 border border-red-500/10 px-2.5 py-0.5 rounded-full text-[9px] font-sans font-semibold text-white uppercase tracking-[0.08em]">
-                                {badges[idx] || fest.category.toUpperCase()}
+                              <div className={`absolute top-3.5 left-3.5 px-2.5 py-0.5 rounded-full text-[9px] font-sans font-semibold uppercase tracking-[0.08em] ${badgeBgClass}`}>
+                                {badgeText}
                               </div>
 
                               {/* Heart button */}
@@ -679,6 +863,25 @@ export default function App() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {eventPage < eventTotalPages && (
+                  <div className="mt-8 flex justify-center">
+                    <button
+                      onClick={loadMoreEvents}
+                      disabled={loadingMoreEvents}
+                      className="px-6 py-2 bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-600 hover:to-amber-700 disabled:opacity-50 text-white rounded-full font-semibold text-xs transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2 cursor-pointer"
+                    >
+                      {loadingMoreEvents ? (
+                        <>
+                          <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent animate-spin"></span>
+                          <span>{t('common.loading')}</span>
+                        </>
+                      ) : (
+                        <span>{t('common.load_more')}</span>
+                      )}
+                    </button>
                   </div>
                 )}
               </section>

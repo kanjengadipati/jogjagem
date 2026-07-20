@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, memo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
@@ -22,7 +22,7 @@ function getBadge(dest: Destination): Badge {
   const oh = (openingHours || '').toLowerCase();
 
   // Hidden Gem — kualitas tinggi tapi belum banyak yang tahu
-  if (rating >= 4.5 && reviewCount < 100)
+  if (rating >= 4.5 && reviewCount < 2500)
     return { label: 'Hidden Gem', color: 'bg-teal-600' };
 
   // Sunset Spot — pantai + waktu terbaik sore/sunset
@@ -100,17 +100,19 @@ interface MobileDestinationCardProps {
   walkMinutes?: number;
   /** Optional: AI reason chip text */
   aiReason?: string;
+  className?: string;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export default function MobileDestinationCard({
+export default memo(function MobileDestinationCard({
   destination,
   isSaved,
   onToggleSave,
   onAuthRequired,
   walkMinutes,
   aiReason,
+  className = '',
 }: MobileDestinationCardProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -121,7 +123,32 @@ export default function MobileDestinationCard({
   const touchStartY = useRef<number | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const badge = getBadge(destination);
+  const apiBadge = destination.badge;
+  const localBadge = getBadge(destination);
+  const badgeLabel = apiBadge 
+    ? t(`hero.badge_${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
+    : localBadge.label;
+
+  const badgeKey = (apiBadge || localBadge.label)
+    .toLowerCase()
+    .replace(/-/g, '_')
+    .replace(/ /g, '_');
+
+  const BADGE_STYLES: Record<string, string> = {
+    'trending': 'bg-red-600/90 border border-red-500/30 text-white',
+    'hidden_gem': 'bg-teal-600/90 border border-teal-500/30 text-white',
+    'best_for_healing': 'bg-green-700/90 border border-green-600/30 text-white',
+    'sunset_spot': 'bg-orange-500/90 border border-orange-400/30 text-white',
+    'perfect_morning': 'bg-amber-500/90 border border-amber-400/30 text-white',
+    'night_vibes': 'bg-indigo-600/90 border border-indigo-500/30 text-white',
+    'cultural': 'bg-amber-700/90 border border-amber-600/30 text-white',
+    'adventure': 'bg-red-600/90 border border-red-500/30 text-white',
+    'instagramable': 'bg-pink-600/90 border border-pink-500/30 text-white',
+    'unesco': 'bg-blue-700/90 border border-blue-600/30 text-white',
+  };
+
+  const badgeColor = BADGE_STYLES[badgeKey] || localBadge.color;
+  const badge = { label: badgeLabel, color: badgeColor };
   const img = destination.images?.[0]?.url || destination.ogImageUrl || '';
   const totalActions = QUICK_ACTIONS.length;
   const maxSwipe = -(totalActions * ACTION_WIDTH);
@@ -211,7 +238,7 @@ export default function MobileDestinationCard({
     : true;
 
   return (
-    <div className="relative overflow-hidden rounded-[20px]" ref={cardRef}>
+    <div className={`relative overflow-hidden rounded-[20px] ${className}`} ref={cardRef}>
       {/* ── Quick action backdrop ── */}
       <div className="absolute inset-y-0 right-0 flex items-stretch" style={{ width: totalActions * ACTION_WIDTH }}>
         {QUICK_ACTIONS.map(({ id, Icon, label, bg }) => (
@@ -239,10 +266,17 @@ export default function MobileDestinationCard({
         onClick={handleExpand}
       >
         {/* Image */}
-        <div className="relative w-full h-[180px] overflow-hidden">
+        <div className="relative w-full h-[180px] overflow-hidden bg-stone-800">
           {img
-            ? <Image src={img} alt={destination.name} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover transition-transform duration-500" referrerPolicy="no-referrer" />
-            : <div className="w-full h-full bg-[#2a2724]" />
+            ? <Image
+                src={img}
+                alt={destination.name}
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover transition-all duration-500"
+                referrerPolicy="no-referrer"
+              />
+            : <div className="w-full h-full bg-[#2a2724] animate-pulse" />
           }
           <div className={`absolute inset-0 bg-gradient-to-t ${expanded ? 'from-[#1a1814] via-black/40 to-transparent' : 'from-black/80 via-black/20 to-transparent'}`} />
 
@@ -348,4 +382,4 @@ export default function MobileDestinationCard({
       </div>
     </div>
   );
-}
+});

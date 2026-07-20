@@ -12,6 +12,7 @@ import { LocationProvider } from '@/contexts/LocationContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
 import { events as eventsApi } from '@/lib/api';
+import { useLocale } from '@/contexts/LocaleContext';
 
 interface EventDetail {
   id: string;
@@ -29,6 +30,8 @@ interface EventDetail {
   ticket_price: string;
   organizer: string;
   highlights: string[];
+  badge?: string;
+  badges?: string[];
 }
 
 /** Duration label e.g. "2 Hari" */
@@ -77,6 +80,7 @@ const FEATURE_ICONS = [
 
 function EventDetailContent() {
   const router = useRouter();
+  const { t } = useLocale();
   const params = useParams();
   const id = params.id as string;
 
@@ -183,11 +187,20 @@ function EventDetailContent() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
         {/* Category badge */}
-        {event.category && (
+        {(event.badge || event.category) && (
           <div className="absolute top-6 left-6">
-            <span className="flex items-center gap-1.5 bg-gold-500/90 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
+            <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full ${
+              event.badge === 'trending' ? 'bg-red-600/90 border border-red-500/30 text-white' :
+              event.badge === 'akan_datang' ? 'bg-blue-600/90 border border-blue-500/30 text-white' :
+              event.badge === 'spesial_hari_ini' ? 'bg-amber-600/90 border border-amber-500/30 text-white' :
+              event.badge === 'populer' ? 'bg-purple-600/90 border border-purple-500/30 text-white' :
+              event.badge === 'terbatas' ? 'bg-orange-600/90 border border-orange-500/30 text-white' :
+              'bg-gold-500/90 backdrop-blur-sm text-white'
+            }`}>
               <UtensilsCrossed className="h-3 w-3" />
-              {event.category}
+              {event.badge 
+                ? t(`hero.badge_${event.badge.toLowerCase().replace(/ /g, '_')}`) 
+                : event.category.replace(/-/g, ' ')}
             </span>
           </div>
         )}

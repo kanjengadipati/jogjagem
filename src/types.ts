@@ -63,6 +63,8 @@ export interface Destination {
   seoKeywords?: string;
   seoDescription?: string;
   ogImageUrl?: string;
+  badge?: string;
+  badges?: string[];
 }
 
 export interface Festival {
@@ -74,6 +76,8 @@ export interface Festival {
   description: string;
   highlights: string[];
   category: string;
+  badge?: string;
+  badges?: string[];
 }
 
 export interface TripDay {

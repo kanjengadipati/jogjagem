@@ -353,8 +353,11 @@ interface AIQueryResponse {
 }
 
 export const destinations = {
-  async getAll() {
-    return request('/destinations');
+  async getAll(params?: { limit?: number; page?: number }) {
+    const qs = params
+      ? `?limit=${params.limit ?? 15}&page=${params.page ?? 1}`
+      : '?limit=15&page=1';
+    return request(`/destinations${qs}`);
   },
 
   async getById(id: string) {
@@ -371,8 +374,11 @@ export const destinations = {
 };
 
 export const events = {
-  async getAll() {
-    return request('/events');
+  async getAll(params?: { limit?: number; page?: number }) {
+    const qs = params
+      ? `?limit=${params.limit ?? 15}&page=${params.page ?? 1}`
+      : '?limit=15&page=1';
+    return request(`/events${qs}`);
   },
 
   async getById(id: string) {

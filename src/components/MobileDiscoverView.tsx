@@ -26,6 +26,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { AIPickCard } from './AIPickCard';
 import MobileDestinationCard from './MobileDestinationCard';
+import { MobileDestinationCardSkeleton, TrendingCardSkeleton } from './CardSkeleton';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,6 +58,8 @@ interface MobileDiscoverViewProps {
   onToggleSave: (dest: Destination) => void;
   isSaved: (id: string) => boolean;
   onOpenAuth: (mode: 'login' | 'register') => void;
+  selectedCategory: string | null;
+  onSelectCategory: (cat: string | null) => void;
 }
 
 // ─── Category pill config ─────────────────────────────────────────────────────
@@ -76,11 +79,12 @@ const ALL_CATEGORIES = [
 const PRIMARY_CATS = ALL_CATEGORIES.slice(0, 4);
 const MORE_CATS = ALL_CATEGORIES.slice(4);
 
-const DEFAULT_ORDER = [
-  'keraton', 'kalibiru', 'tebingbreksi', 'timang',
-  'pinusmangunan', 'ratuboko', 'prambanan', 'parangtritis',
-  'goajomblang', 'malioboro', 'merapi', 'tamansari',
-];
+// badge priority untuk sorting
+function badgePriority(badge?: string): number {
+  if (badge === 'trending') return 0;
+  if (badge === 'hidden_gem') return 1;
+  return 2;
+}
 
 function toSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -154,6 +158,8 @@ export default function MobileDiscoverView({
   onToggleSave,
   isSaved,
   onOpenAuth,
+  selectedCategory,
+  onSelectCategory,
 }: MobileDiscoverViewProps) {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
@@ -162,7 +168,6 @@ export default function MobileDiscoverView({
   const [recommendation, setRecommendation] = useState<{
     dest: Destination; headline: string; reason: string;
   } | null>(null);
-  const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [showMoreCats, setShowMoreCats] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -186,6 +191,8 @@ export default function MobileDiscoverView({
     : HERO_SLIDES;
 
   useEffect(() => {
+    // Reset slide index when slides change (e.g., category filter replaces allDestinations)
+    setCurrentSlide(0);
     const timer = setInterval(() => setCurrentSlide(prev => (prev + 1) % heroSlides.length), 5000);
     return () => clearInterval(timer);
   }, [heroSlides.length]);
@@ -291,14 +298,15 @@ export default function MobileDiscoverView({
   }, [coords]);
 
 
-  // Popular destinations — fixed order, filtered by category
+  // Popular destinations — sorted by trending first, then rating DESC
   const popularDests = (() => {
-    if (selectedCat && selectedCat !== '__more__') {
-      return allDestinations.filter(d => d.category === selectedCat).slice(0, 6);
-    }
-    return DEFAULT_ORDER
-      .map(id => allDestinations.find(d => d.id === id))
-      .filter((d): d is Destination => d !== undefined);
+    return [...allDestinations]
+      .sort((a, b) => {
+        const rankDiff = badgePriority(a.badge) - badgePriority(b.badge);
+        if (rankDiff !== 0) return rankDiff;
+        return (b.rating ?? 0) - (a.rating ?? 0);
+      })
+      .slice(0, 15);
   })();
 
   const handleToggleSave = (e: React.MouseEvent | undefined, dest: Destination) => {
@@ -344,7 +352,7 @@ export default function MobileDiscoverView({
         </div>
 
         {/* ── Header ── */}
-        <div className="z-40 bg-[#1a1814]/75 backdrop-blur-md px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-white/5 shrink-0">
+        <div className="z-40 bg-gradient-to-b from-black/50 to-transparent px-4 pt-3 pb-2.5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <Image src="/logo-gold-new.png" alt="Jogjagem" width={24} height={24} className="h-6 w-auto" style={{ width: 'auto' }} />
             <span className="font-manrope font-bold text-white text-[16px] tracking-widest uppercase">Jogjagem</span>
@@ -404,8 +412,8 @@ export default function MobileDiscoverView({
             <div className="px-1 flex items-center justify-between text-[10px] text-white/50">
               <div className="flex items-center gap-1.5 min-w-0">
                 <span>📍</span>
-                <span className="font-semibold text-white/75 truncate max-w-[120px]">{heroSlides[currentSlide].name}</span>
-                {coords && heroSlides[currentSlide].latitude && heroSlides[currentSlide].longitude && (
+                <span className="font-semibold text-white/75 truncate max-w-[120px]">{heroSlides[currentSlide]?.name}</span>
+                {coords && heroSlides[currentSlide]?.latitude && heroSlides[currentSlide]?.longitude && (
                   <span className="shrink-0">({Math.round(haversineKm(coords.lat, coords.lng, heroSlides[currentSlide].latitude, heroSlides[currentSlide].longitude))} km)</span>
                 )}
               </div>
@@ -445,15 +453,8 @@ export default function MobileDiscoverView({
                 <div className="flex gap-3 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-1">
                   {trendingLoading
                     ? Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="shrink-0 snap-start w-[126px] h-[166px] flex flex-col rounded-2xl overflow-hidden bg-white/5 border border-white/10 animate-pulse">
-                          <div className="h-[98px] bg-white/10" />
-                          <div className="p-2 flex-1 flex flex-col justify-between">
-                            <div className="space-y-1">
-                              <div className="h-3 w-full bg-white/10 rounded" />
-                              <div className="h-3 w-2/3 bg-white/10 rounded" />
-                            </div>
-                            <div className="h-2.5 w-10 bg-white/10 rounded" />
-                          </div>
+                        <div key={i} className="snap-start shrink-0">
+                          <TrendingCardSkeleton />
                         </div>
                       ))
                     : trendingItems.slice(0, 6).map((item, idx) => {
@@ -463,6 +464,7 @@ export default function MobileDiscoverView({
                             key={`trend-${item.type}-${item.id}-${idx}`}
                             onClick={() => {
                               if (dest) router.push(`/destinations/${toSlug(dest.name)}`);
+                              else if (item.type === 'destination') router.push(`/destinations/${item.id}`);
                               else if (item.type === 'event') router.push(`/events/${item.id}`);
                             }}
                             className="shrink-0 snap-start w-[126px] h-[166px] flex flex-col rounded-2xl overflow-hidden bg-[#1c1a17]/60 border border-white/10 text-left active:scale-95 transition-transform"
@@ -502,14 +504,14 @@ export default function MobileDiscoverView({
           <div className="grid grid-cols-5 gap-2 px-4">
             {[...PRIMARY_CATS, { id: '__more__' as const, tKey: 'category.more', Icon: MoreHorizontal }].map(({ id, tKey, Icon }) => {
               const isMore = id === '__more__';
-              const active = isMore ? showMoreCats : selectedCat === id;
+              const active = isMore ? showMoreCats : selectedCategory === id;
               return (
                 <button
                   key={String(id)}
                   onClick={() => {
                     if (isMore) { setShowMoreCats(v => !v); return; }
                     setShowMoreCats(false);
-                    setSelectedCat(active ? null : id);
+                    onSelectCategory(active ? null : id);
                   }}
                   className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
                     active ? 'bg-gold-500 border-gold-500' : 'bg-[#1C1A17] border-[#2E2A24]'
@@ -528,11 +530,11 @@ export default function MobileDiscoverView({
           {showMoreCats && (
             <div className="grid grid-cols-5 gap-2 px-4 mt-2">
               {MORE_CATS.map(cat => {
-                const active = selectedCat === cat.id;
+                const active = selectedCategory === cat.id;
                 return (
                   <button
                     key={String(cat.id)}
-                    onClick={() => { setSelectedCat(active ? null : cat.id); setShowMoreCats(false); }}
+                    onClick={() => { onSelectCategory(active ? null : cat.id); setShowMoreCats(false); }}
                     className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
                       active ? 'bg-gold-500 border-gold-500' : 'bg-[#1c1a17] border-[#2E2A24]'
                     }`}
@@ -554,9 +556,9 @@ export default function MobileDiscoverView({
           <div className="grid grid-cols-2 gap-3 px-4">
             {popularDests.length === 0
               ? Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="rounded-[20px] overflow-hidden bg-[#1a1814] animate-pulse" style={{ height: 240 }} />
+                  <MobileDestinationCardSkeleton key={i} landscape={i % 7 === 0} />
                 ))
-              : popularDests.slice(0, 6).map(dest => (
+              : popularDests.slice(0, 6).map((dest, index) => (
                   <MobileDestinationCard
                     key={dest.id}
                     destination={dest}
@@ -566,6 +568,7 @@ export default function MobileDiscoverView({
                       onToggleSave(d);
                     }}
                     onAuthRequired={() => onOpenAuth('login')}
+                    className={index % 7 === 0 ? 'col-span-2' : ''}
                   />
                 ))
             }

@@ -76,6 +76,10 @@ body::before {
   animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
 /* Ecosystem tab progress sweep animation (synced to 3s auto-rotate interval) */
 @keyframes ecosystem-progress {
   from { transform: scaleX(0); }
