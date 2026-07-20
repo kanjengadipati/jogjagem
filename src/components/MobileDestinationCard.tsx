@@ -10,37 +10,67 @@ import {
 import { Destination } from '../types';
 import { useLocale } from '@/contexts/LocaleContext';
 
-// ─── Badge config ────────────────────────────────────────────────────────────
+// ─── Badge config ─────────────────────────────────────────────────────────────
+// Badge ditentukan dari data destinasi (category, rating, reviewCount, bestTime)
+// Urutan if-else menentukan prioritas — kriteria paling spesifik di atas.
 
-const BADGE_MAP: Record<string, { label: string; color: string }> = {
-  'prambanan':      { label: 'Trending',      color: 'bg-orange-500' },
-  'keraton':        { label: 'Trending',      color: 'bg-orange-500' },
-  'parangtritis':   { label: 'Sunset Spot',   color: 'bg-purple-600' },
-  'malioboro':      { label: 'Night Vibes',   color: 'bg-blue-600' },
-  'tamansari':      { label: 'Heritage',      color: 'bg-amber-700' },
-  'goajomblang':    { label: 'Hidden Gem',    color: 'bg-teal-600' },
-  'merapi':         { label: 'Adventure',     color: 'bg-red-600' },
-  'kalibiru':       { label: 'Instagramable', color: 'bg-pink-600' },
-  'tebingbreksi':   { label: 'Coastal',       color: 'bg-cyan-700' },
-  'timang':         { label: 'Instagramable', color: 'bg-pink-600' },
-  'pinusmangunan':  { label: 'Best for Healing', color: 'bg-green-700' },
-  'ratuboko':       { label: 'Cultural',      color: 'bg-amber-700' },
-  'pindul':         { label: 'Hidden Gem',    color: 'bg-teal-600' },
-};
+interface Badge { label: string; color: string }
 
-const CATEGORY_BADGE: Record<string, { label: string; color: string }> = {
-  'hidden-gem': { label: 'Hidden Gem',  color: 'bg-teal-600' },
-  'nature':     { label: 'Nature',      color: 'bg-green-700' },
-  'heritage':   { label: 'Cultural',    color: 'bg-amber-700' },
-  'adventure':  { label: 'Adventure',   color: 'bg-red-600' },
-  'beach':      { label: 'Coastal',     color: 'bg-cyan-700' },
-  'culinary':   { label: 'Culinary',    color: 'bg-yellow-600' },
-  'family':     { label: 'Family',      color: 'bg-blue-600' },
-  'weekend':    { label: 'Weekend',     color: 'bg-purple-600' },
-};
+function getBadge(dest: Destination): Badge {
+  const { category, rating, reviewCount, bestTime, openingHours } = dest;
+  const bt = (bestTime || '').toLowerCase();
+  const oh = (openingHours || '').toLowerCase();
 
-function getBadge(dest: Destination): { label: string; color: string } {
-  return BADGE_MAP[dest.id] || CATEGORY_BADGE[dest.category] || { label: dest.category, color: 'bg-stone-600' };
+  // Hidden Gem — kualitas tinggi tapi belum banyak yang tahu
+  if (rating >= 4.5 && reviewCount < 100)
+    return { label: 'Hidden Gem', color: 'bg-teal-600' };
+
+  // Sunset Spot — pantai + waktu terbaik sore/sunset
+  if (category === 'beach' && (bt.includes('sore') || bt.includes('sunset') || bt.includes('petang')))
+    return { label: 'Sunset Spot', color: 'bg-orange-500' };
+
+  // Instagramable — pantai atau hidden-gem dengan rating tinggi
+  if ((category === 'beach' || category === 'hidden-gem') && rating >= 4.4)
+    return { label: 'Instagramable', color: 'bg-pink-600' };
+
+  // Perfect Morning — alam atau warisan, waktu terbaik pagi
+  if ((category === 'nature' || category === 'heritage') && (bt.includes('pagi') || bt.includes('morning')))
+    return { label: 'Perfect Morning', color: 'bg-amber-500' };
+
+  // Night Vibes — buka malam / waktu terbaik malam
+  if (bt.includes('malam') || bt.includes('night') || oh.includes('malam') || oh.includes('22') || oh.includes('23'))
+    return { label: 'Night Vibes', color: 'bg-indigo-600' };
+
+  // Best for Healing — alam dengan rating bagus
+  if (category === 'nature' && rating >= 4.3)
+    return { label: 'Best for Healing', color: 'bg-green-700' };
+
+  // Cultural — warisan budaya
+  if (category === 'heritage')
+    return { label: 'Cultural', color: 'bg-amber-700' };
+
+  // Adventure
+  if (category === 'adventure')
+    return { label: 'Adventure', color: 'bg-red-600' };
+
+  // Culinary
+  if (category === 'culinary')
+    return { label: 'Kuliner', color: 'bg-yellow-600' };
+
+  // Family Friendly
+  if (category === 'family')
+    return { label: 'Keluarga', color: 'bg-blue-600' };
+
+  // Pantai fallback
+  if (category === 'beach')
+    return { label: 'Pantai', color: 'bg-cyan-700' };
+
+  // Weekend Ideas
+  if (category === 'weekend')
+    return { label: 'Akhir Pekan', color: 'bg-purple-600' };
+
+  // Fallback — category saja
+  return { label: dest.category.replace(/-/g, ' '), color: 'bg-stone-600' };
 }
 
 function toSlug(name: string) {
