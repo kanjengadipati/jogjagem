@@ -508,11 +508,11 @@ export default function MobileDiscoverView({
                     setSelectedCat(active ? null : id);
                   }}
                   className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
-                    active ? 'bg-gold-500 border-gold-500' : 'bg-white/6 border-white/10'
+                    active ? 'bg-gold-500 border-gold-500' : 'bg-[#EDE7DC] border-[#D6CBBB]'
                   }`}
                 >
-                  <Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
-                  <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
+                  <Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-600'}`} />
+                  <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-[#6B5E4E]'}`}>
                     {t(tKey)}
                   </span>
                 </button>
@@ -530,11 +530,11 @@ export default function MobileDiscoverView({
                     key={String(cat.id)}
                     onClick={() => { setSelectedCat(active ? null : cat.id); setShowMoreCats(false); }}
                     className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
-                      active ? 'bg-gold-500 border-gold-500' : 'bg-white/6 border-white/10'
+                      active ? 'bg-gold-500 border-gold-500' : 'bg-[#EDE7DC] border-[#D6CBBB]'
                     }`}
                   >
-                    <cat.Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
-                    <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
+                    <cat.Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-600'}`} />
+                    <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-[#6B5E4E]'}`}>
                       {t(cat.tKey)}
                     </span>
                   </button>
