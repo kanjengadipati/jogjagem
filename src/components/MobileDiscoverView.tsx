@@ -72,6 +72,9 @@ const ALL_CATEGORIES = [
   { id: 'weekend',    tKey: 'category.weekend',      Icon: WeekendIdeasIcon },
 ] as const;
 
+const PRIMARY_CATS = ALL_CATEGORIES.slice(0, 4);
+const MORE_CATS = ALL_CATEGORIES.slice(4);
+
 const DEFAULT_ORDER = [
   'keraton', 'kalibiru', 'tebingbreksi', 'timang',
   'pinusmangunan', 'ratuboko', 'prambanan', 'parangtritis',
@@ -159,6 +162,7 @@ export default function MobileDiscoverView({
     dest: Destination; headline: string; reason: string;
   } | null>(null);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
+  const [showMoreCats, setShowMoreCats] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -490,27 +494,54 @@ export default function MobileDiscoverView({
         {/* ── Category pills ── */}
         <div>
           <SectionHeader title="Jelajahi Kategori" />
-          <div className="flex gap-2.5 overflow-x-auto scrollbar-none px-4 pb-1">
-            {ALL_CATEGORIES.map(({ id, tKey, Icon }) => {
-              const active = selectedCat === id;
+          {/* Primary row: 4 cats + Lainnya button */}
+          <div className="grid grid-cols-5 gap-2 px-4">
+            {[...PRIMARY_CATS, { id: '__more__' as const, tKey: 'category.more', Icon: MoreHorizontal }].map(({ id, tKey, Icon }) => {
+              const isMore = id === '__more__';
+              const active = isMore ? showMoreCats : selectedCat === id;
               return (
                 <button
                   key={String(id)}
-                  onClick={() => setSelectedCat(active ? null : id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-200 shrink-0 ${
-                    active
-                      ? 'bg-gold-500 border-gold-500 text-royal-950 shadow-md shadow-gold-500/20'
-                      : 'bg-white border-[#E8E0D5] text-[#1c1a17]'
+                  onClick={() => {
+                    if (isMore) { setShowMoreCats(v => !v); return; }
+                    setShowMoreCats(false);
+                    setSelectedCat(active ? null : id);
+                  }}
+                  className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
+                    active ? 'bg-gold-500 border-gold-500' : 'bg-white/6 border-white/10'
                   }`}
                 >
-                  <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-royal-950' : 'text-gold-600'}`} />
-                  <span className="text-[11px] font-extrabold tracking-tight whitespace-nowrap">
+                  <Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
+                  <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
                     {t(tKey)}
                   </span>
                 </button>
               );
             })}
           </div>
+
+          {/* Expanded "Lainnya" row */}
+          {showMoreCats && (
+            <div className="grid grid-cols-5 gap-2 px-4 mt-2">
+              {MORE_CATS.map(cat => {
+                const active = selectedCat === cat.id;
+                return (
+                  <button
+                    key={String(cat.id)}
+                    onClick={() => { setSelectedCat(active ? null : cat.id); setShowMoreCats(false); }}
+                    className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
+                      active ? 'bg-gold-500 border-gold-500' : 'bg-white/6 border-white/10'
+                    }`}
+                  >
+                    <cat.Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
+                    <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/60'}`}>
+                      {t(cat.tKey)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── Popular destinations ── */}
