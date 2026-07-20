@@ -7,29 +7,7 @@ import { ai } from '../lib/api';
 import NearbyMapCard from './NearbyMapCard';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useAuth } from '@/contexts/AuthContext';
-
-function getCtaText(destName: string, category: string, t: (key: string) => string): string {
-  const hour = new Date().getHours();
-  const firstName = destName.split(' ')[0];
-  if (category === 'adventure' || category === 'nature') {
-    if (hour < 11) return t('hero.cta_adventure_morning').replace('{name}', firstName);
-    if (hour < 15) return t('hero.cta_adventure_afternoon').replace('{name}', firstName);
-    return t('hero.cta_adventure_evening').replace('{name}', firstName);
-  }
-  if (category === 'heritage' || category === 'culture') {
-    if (hour < 11) return t('hero.cta_culture_morning').replace('{name}', firstName);
-    if (hour < 17) return t('hero.cta_culture_afternoon').replace('{name}', firstName);
-    return t('hero.cta_culture_evening').replace('{name}', firstName);
-  }
-  if (category === 'beach') {
-    if (hour < 15) return t('hero.cta_beach_day').replace('{name}', firstName);
-    return t('hero.cta_beach_sunset').replace('{name}', firstName);
-  }
-  if (category === 'hidden-gem') return t('hero.cta_hidden_gem').replace('{name}', firstName);
-  if (hour < 11) return t('hero.cta_generic_morning').replace('{name}', firstName);
-  if (hour < 17) return t('hero.cta_generic_afternoon').replace('{name}', firstName);
-  return t('hero.cta_generic_evening').replace('{name}', firstName);
-}
+import { AIPickCard } from './AIPickCard';
 
 const BADGE_COLOR: Record<string, string> = {
   'Spesial Hari Ini': 'bg-orange-500',
@@ -113,9 +91,10 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
     }
     const fetchAIRecommendation = async () => {
       try {
-        const res = await ai.recommend(timeOfDay);
-        if (res.status === 'success' && res.data) {
-          const { destinationId, headline, reason, crowd } = res.data;
+        // Use /multi endpoint (singular /recommend returns 502)
+        const res = await ai.recommendMulti(timeOfDay);
+        if (res.status === 'success' && res.data?.items?.length) {
+          const { destinationId, headline, reason, crowd } = res.data.items[0];
           const recommendedDest = destinations.find(d => d.id?.toLowerCase() === destinationId?.toLowerCase());
           if (recommendedDest) {
             setRecommendation({
@@ -219,7 +198,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
       >
         <div className="relative h-[60px] lg:h-[80px]">
           {item.imageUrl
-            ? <Image src={item.imageUrl} alt={item.headline} fill priority sizes="100vw" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            ? <Image src={item.imageUrl} alt={item.headline} fill priority sizes="140px" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
             : <div className="w-full h-full bg-white/5 flex items-center justify-center"><CalendarDays className="h-8 w-8 text-white/20" /></div>
           }
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -261,7 +240,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
               key={item.id}
               className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-70' : 'opacity-0'}`}
             >
-              <Image src={item.image} alt={item.name} fill sizes="100vw" className="h-full w-full object-cover object-center brightness-90" referrerPolicy="no-referrer" />
+              <Image src={item.image} alt={item.name} fill sizes="(max-width: 1024px) 100vw, 1200px" className="h-full w-full object-cover object-center brightness-90" referrerPolicy="no-referrer" />
               <div className="absolute inset-0 bg-gradient-to-t from-royal-950 via-royal-950/20 to-royal-950/40" />
               <div className="absolute inset-0 bg-gradient-to-r from-royal-950/40 via-transparent to-royal-950/40" />
             </div>
@@ -277,58 +256,25 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
             {/* RECOMMENDATIONS */}
             {recommendation ? (
               <div className="absolute top-[22px] right-4 sm:right-6 lg:right-8 z-20 w-[140px] sm:w-[185px] lg:w-[210px] flex flex-col gap-3">
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl animate-fade-in border border-gold-500/30">
-                  <Image src={recommendation.image} alt={recommendation.dest.name} fill sizes="33vw" className="absolute inset-0 w-full h-full object-cover object-center" referrerPolicy="no-referrer" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/30 to-black/80" />
-                  <div className="relative z-10 flex flex-col h-full px-3 pt-3 pb-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-1">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" className="text-gold-400 shrink-0"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="currentColor"/></svg>
-                        <span className="text-[8px] font-bold tracking-widest uppercase text-gold-400">{t('hero.ai_pick')}</span>
-                      </div>
-                      <button onClick={() => setIsRecommendationDismissed(true)} className="flex items-center justify-center h-4 w-4 hover:bg-white/10 text-white/40 hover:text-white/80 transition-all rounded-full" aria-label={t('hero.close')}>
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </div>
-                    <h3 className="text-[13px] sm:text-[14px] font-bold text-white leading-tight mb-1 drop-shadow">{recommendation.dest.name} 🏔️</h3>
-                    <p className="text-[9px] sm:text-[10px] text-white/75 leading-relaxed line-clamp-2 mb-2 drop-shadow">{recommendation.reason}</p>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="flex items-center gap-0.5 text-[9px] text-white/70"><span>📍</span><span>{recommendation.distance} {t('hero.distance_away')}</span></span>
-                      <span className="flex items-center gap-0.5 text-[9px] font-bold text-gold-400"><Star className="h-2.5 w-2.5 fill-gold-400" />{recommendation.dest.rating?.toFixed(1) ?? '4.9'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-auto">
-                      <button onClick={() => onExploreDestination(recommendation.dest)} className="flex-1 overflow-hidden bg-gold-500 hover:bg-gold-400 active:scale-95 font-bold text-[10px] sm:text-[11px] py-1.5 rounded-xl transition-all shadow-lg shadow-gold-500/40 cursor-pointer">
-                        <span className="block px-3 overflow-hidden relative">
-                          <span className="absolute left-0 top-0 bottom-0 w-2.5 z-10 pointer-events-none" style={{ background: 'linear-gradient(to right, #cb8527, transparent)' }} />
-                          <span className="absolute right-0 top-0 bottom-0 w-2.5 z-10 pointer-events-none" style={{ background: 'linear-gradient(to left, #cb8527, transparent)' }} />
-                          <span className="flex whitespace-nowrap" style={{ animation: 'marqueeScroll 4s linear 1 forwards', willChange: 'transform' }}>
-                            <span className="text-white pr-10">{getCtaText(recommendation.dest.name, recommendation.dest.category, t)}</span>
-                            <span className="text-white pr-10" aria-hidden="true">{getCtaText(recommendation.dest.name, recommendation.dest.category, t)}</span>
-                          </span>
-                        </span>
-                      </button>
-                      {(() => {
-                        const saved = isSaved(recommendation.dest.id);
-                        return (
-                          <button onClick={() => onToggleSave(recommendation.dest)} className="cursor-pointer transition-colors shrink-0" aria-label={saved ? t('hero.saved') : t('hero.save')}>
-                            <Bookmark className={`h-3.5 w-3.5 drop-shadow ${saved ? 'fill-gold-400 text-gold-400' : 'text-white/70 hover:text-white'}`} />
-                          </button>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                </div>
+                <AIPickCard
+                  recommendation={recommendation}
+                  isSaved={isSaved}
+                  onToggleSave={onToggleSave}
+                  onExplore={onExploreDestination}
+                  onDismiss={() => setIsRecommendationDismissed(true)}
+                  sizes="(max-width: 640px) 140px, (max-width: 1024px) 185px, 210px"
+                  className="relative w-full animate-fade-in"
+                />
                 <NearbyMapCard />
               </div>
             ) : !isRecommendationDismissed ? (
               <div className="absolute top-[22px] right-4 sm:right-6 lg:right-8 z-20 w-[140px] sm:w-[185px] lg:w-[210px] flex flex-col gap-3">
-                <div className="bg-stone-950/90 backdrop-blur-md border border-gold-500/30 rounded-2xl overflow-hidden shadow-2xl animate-pulse">
+                <div className="bg-stone-950/90 backdrop-blur-md border border-gold-500/30 rounded-2xl overflow-hidden shadow-2xl animate-pulse aspect-[2/3]">
                   <div className="px-3 pt-3 pb-2.5">
                     <div className="h-2 w-28 bg-white/10 rounded mb-2" /><div className="h-3.5 w-full bg-white/15 rounded mb-1.5" />
                     <div className="h-2.5 w-full bg-white/10 rounded mb-1" /><div className="h-2.5 w-3/4 bg-white/10 rounded mb-2.5" />
                     <div className="flex justify-between"><div className="h-2 w-16 bg-white/10 rounded" /><div className="h-2 w-12 bg-white/10 rounded" /></div>
                   </div>
-                  <div className="w-full h-[100px] bg-white/10" />
                 </div>
                 <NearbyMapCard />
               </div>

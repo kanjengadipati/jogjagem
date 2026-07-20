@@ -77,3 +77,10 @@ html, body {
   scrollbar-width: none;  /* Firefox */
 }
 
+/* Floating animation for cards */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(-1deg); }
+}
+
+
