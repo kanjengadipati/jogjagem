@@ -10,42 +10,43 @@ function toSlug(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
+const FIXED_DATE = '2025-01-01T00:00:00.000Z';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date().toISOString();
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: SITE_URL,
-      lastModified: now,
+      lastModified: FIXED_DATE,
       changeFrequency: 'daily',
       priority: 1,
     },
     {
       url: `${SITE_URL}/destinations`,
-      lastModified: now,
+      lastModified: FIXED_DATE,
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
       url: `${SITE_URL}/events`,
-      lastModified: now,
+      lastModified: FIXED_DATE,
       changeFrequency: 'weekly',
       priority: 0.7,
     },
     {
       url: `${SITE_URL}/map`,
-      lastModified: now,
+      lastModified: FIXED_DATE,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
       url: `${SITE_URL}/planner`,
-      lastModified: now,
+      lastModified: FIXED_DATE,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
       url: `${SITE_URL}/ai`,
-      lastModified: now,
+      lastModified: FIXED_DATE,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
@@ -65,7 +66,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const name = d.name || d.Name || '';
           const id = d.id || d.ExternalID || '';
           const slug = toSlug(name) || id;
-          const updated = d.updated_at || d.UpdatedAt || d.updatedAt || now;
+          const updated = d.updated_at || d.UpdatedAt || d.updatedAt || FIXED_DATE;
           return {
             url: `${SITE_URL}/destinations/${slug}`,
             lastModified: updated,
@@ -83,7 +84,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (Array.isArray(list)) {
         const eventPages: MetadataRoute.Sitemap = list.map((e: any) => {
           const id = e.id || e.Id || '';
-          const updated = e.updated_at || e.UpdatedAt || e.updatedAt || now;
+          const updated = e.updated_at || e.UpdatedAt || e.updatedAt || FIXED_DATE;
           return {
             url: `${SITE_URL}/events/${id}`,
             lastModified: updated,

@@ -120,6 +120,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: {
       canonical: SITE_URL,
+      languages: {
+        id: SITE_URL,
+        en: `${SITE_URL}/en`,
+      },
     },
   };
 }
@@ -132,6 +136,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <meta name="theme-color" content="#1a1533" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link rel="alternate" href={SITE_URL} hrefLang="id" />
+        <link rel="alternate" href={`${SITE_URL}/en`} hrefLang="en" />
+        <link rel="alternate" href={SITE_URL} hrefLang="x-default" />
         <WebsiteJsonLd />
       </head>
       <body>

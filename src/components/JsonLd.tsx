@@ -134,6 +134,83 @@ interface FAQJsonLdProps {
   items: { question: string; answer: string }[];
 }
 
+interface EventJsonLdProps {
+  name: string;
+  description: string;
+  image?: string;
+  url: string;
+  startDate: string;
+  endDate?: string;
+  location?: string;
+  latitude?: number;
+  longitude?: number;
+  offers?: {
+    price?: string;
+    priceCurrency?: string;
+    availability?: string;
+  };
+}
+
+export function EventJsonLd({
+  name,
+  description,
+  image,
+  url,
+  startDate,
+  endDate,
+  location,
+  latitude,
+  longitude,
+  offers,
+}: EventJsonLdProps) {
+  const data: Record<string, any> = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name,
+    description,
+    url,
+    startDate,
+  };
+
+  if (endDate) {
+    data.endDate = endDate;
+  }
+
+  if (image) {
+    data.image = image;
+  }
+
+  if (location) {
+    data.location = {
+      '@type': 'Place',
+      name: location,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Yogyakarta',
+        addressRegion: 'DI Yogyakarta',
+        addressCountry: 'ID',
+      },
+    };
+    if (latitude && longitude) {
+      data.location.geo = {
+        '@type': 'GeoCoordinates',
+        latitude,
+        longitude,
+      };
+    }
+  }
+
+  if (offers) {
+    data.offers = {
+      '@type': 'Offer',
+      url,
+      ...offers,
+    };
+  }
+
+  return <JsonLd data={data} />;
+}
+
 export function FAQJsonLd({ items }: FAQJsonLdProps) {
   if (!items.length) return null;
   const data = {

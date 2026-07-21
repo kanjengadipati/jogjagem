@@ -1,11 +1,17 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { MapPin, ArrowLeft, Home } from 'lucide-react';
 import { useLocale } from '@/contexts/LocaleContext';
 
 export default function NotFound() {
   const { t } = useLocale();
+
+  useEffect(() => {
+    document.title = '404 — Halaman Tidak Ditemukan | Jogjagem';
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#faf9f6] flex flex-col items-center justify-center px-4">
       <div className="text-center max-w-md">
