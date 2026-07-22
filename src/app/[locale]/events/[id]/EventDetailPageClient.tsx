@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import {
   Calendar, MapPin, Loader2, Users, Ticket,
@@ -10,6 +11,7 @@ import {
   ShoppingBag, Clock, ArrowRight, Info, Umbrella,
   RotateCcw, Star, ChevronRight,
 } from 'lucide-react';
+import YouTubePlayer from '@/components/YouTubePlayer';
 import MobileOverlayNav from '@/components/MobileOverlayNav';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
@@ -17,6 +19,7 @@ import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
 import { events as eventsApi } from '@/lib/api';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useLeafletMap } from '@/hooks/useLeafletMap';
 
 interface EventDetail {
   id: string;
@@ -34,6 +37,7 @@ interface EventDetail {
   ticket_price: string;
   organizer: string;
   highlights: string[];
+  video_url?: string;
   badge?: string;
   badges?: string[];
 }
@@ -77,20 +81,20 @@ const HIGHLIGHT_ICONS = [
   { key: ['budaya','culture','heritage','tari'], icon: ChefHat, label: 'Cultural Experience',    desc: 'Rasakan kekayaan budaya dan suasana tradisi Yogyakarta yang autentik.', color: 'bg-teal-50' },
 ];
 
-const GOOD_TO_KNOW = [
-  { icon: ShoppingBag, text: 'Parkir tersedia di area lokasi' },
-  { icon: RotateCcw,   text: 'Tiket tidak dapat dikembalikan' },
-  { icon: Users,       text: 'Semua usia diperbolehkan' },
-  { icon: Umbrella,    text: 'Event tetap berlangsung saat hujan' },
-  { icon: Info,        text: 'Bawa botol minum sendiri' },
+const GOOD_TO_KNOW_KEYS = [
+  { icon: ShoppingBag, key: 'good_to_know_parking' },
+  { icon: RotateCcw,   key: 'good_to_know_no_refund' },
+  { icon: Users,       key: 'good_to_know_all_ages' },
+  { icon: Umbrella,    key: 'good_to_know_rain' },
+  { icon: Info,        key: 'good_to_know_bottle' },
 ];
 
-const LINEUP_SCHEDULE = [
-  { time: '15:00', act: 'Gate Open' },
-  { time: '16:00', act: 'Opening Ceremony' },
-  { time: '18:30', act: 'Performance Session 1' },
-  { time: '20:00', act: 'Main Performance' },
-  { time: '22:00', act: 'Closing' },
+const LINEUP_SCHEDULE_KEYS = [
+  { time: '15:00', key: 'schedule_gate_open' },
+  { time: '16:00', key: 'schedule_opening' },
+  { time: '18:30', key: 'schedule_session_1' },
+  { time: '20:00', key: 'schedule_main' },
+  { time: '22:00', key: 'schedule_closing' },
 ];
 
 const BADGE_STYLES: Record<string, string> = {
@@ -113,6 +117,15 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
   const [notFound, setNotFound] = useState(false);
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Leaflet map
+  const { mapRef: eventMapRef, mapInstance: eventMapInstance, leafletRef: eventLeafletRef, markerGroup: eventMarkerGroup } = useLeafletMap({
+    center: [event?.latitude ?? -7.7956, event?.longitude ?? 110.3695],
+    zoom: 14,
+    scrollWheelZoom: false,
+    zoomControl: true,
+    zoomControlPosition: 'bottomright',
+  });
 
   useEffect(() => {
     if (!id) return;
@@ -142,8 +155,36 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
       }).catch(() => {});
   }, [id, initialEvent]);
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
+  // Draw event marker on map
+  useEffect(() => {
+    if (!event?.latitude || !event?.longitude) return;
+    const L = eventLeafletRef.current;
+    const markers = eventMarkerGroup.current;
+    const map = eventMapInstance.current;
+    if (!L || !markers || !map) return;
+
+    markers.clearLayers();
+    map.setView([event.latitude, event.longitude], 14);
+
+    const icon = L.divIcon({
+      className: 'custom-event-marker',
+      html: `<div style="width:36px;height:36px;background:#cb8527;border:3px solid #fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+        <div style="width:14px;height:14px;background:#fff;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)rotate(45deg);"></div>
+      </div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+    });
+
+    L.marker([event.latitude, event.longitude], { icon })
+      .bindTooltip(event.title, {
+        permanent: true,
+        direction: 'top',
+        className: 'font-manrope font-bold text-[9px] px-2 py-0.5 rounded-full border border-gold-300 shadow',
+      })
+      .addTo(markers);
+  }, [event?.latitude, event?.longitude, event?.title, eventLeafletRef.current, eventMapInstance.current, eventMarkerGroup.current]);
+
+  const handleShare = () => {    navigator.clipboard.writeText(window.location.href).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -159,11 +200,11 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
     <div className="min-h-screen bg-[#F7F3EE] flex items-center justify-center">
       <div className="text-center bg-white rounded-3xl p-10 shadow-sm border border-stone-200/50 max-w-sm mx-4">
         <Calendar className="h-12 w-12 text-stone-300 mx-auto mb-3" />
-        <p className="font-manrope font-semibold text-royal-950 mb-1">Event tidak ditemukan</p>
-        <p className="text-xs text-stone-400 mb-5">Event ini mungkin sudah berakhir atau dihapus.</p>
+        <p className="font-manrope font-semibold text-royal-950 mb-1">{t('event_detail.not_found')}</p>
+        <p className="text-xs text-stone-400 mb-5">{t('event_detail.not_found_desc')}</p>
         <button onClick={() => router.push('/events')}
           className="px-5 py-2.5 bg-royal-950 text-white text-xs font-semibold rounded-xl hover:bg-royal-800 transition-all">
-          Lihat Semua Event
+          {t('event_detail.see_all_events')}
         </button>
       </div>
     </div>
@@ -195,7 +236,7 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
         }} savedCount={0} />
       </div>
       <div className="hidden xl:block">
-        <SubNav onBack={() => router.back()} title="Kembali ke Festival" zClass="z-40"
+        <SubNav onBack={() => router.back()} title={t('event_detail.back_to_festival')} zClass="z-40"
           onToggleSave={() => setSaved(v => !v)} isSaved={saved}
           onShare={handleShare} copiedToast={copied} />
       </div>
@@ -255,12 +296,12 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 px-6 py-3 bg-gold-500 hover:bg-gold-400 active:scale-95 text-white text-sm font-bold rounded-2xl transition-all shadow-lg shadow-gold-500/30">
               <Ticket className="h-4 w-4" />
-              Beli Tiket Sekarang
+              {t('event_detail.buy_ticket')}
             </a>
             <button
               className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white text-sm font-bold rounded-2xl transition-all">
               <Clock className="h-4 w-4" />
-              Lihat Line-up
+              {t('event_detail.see_lineup')}
             </button>
           </div>
           </div>{/* end max-w-3xl */}
@@ -277,13 +318,24 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
               <div className="bg-white rounded-3xl border border-stone-200/60 shadow-sm p-6">
                 <h2 className="font-manrope font-bold text-base text-royal-950 mb-4 flex items-center gap-2">
                   <span className="w-1 h-5 rounded-full bg-gold-400 shrink-0" />
-                  Tentang Event
+                  {t('event_detail.about_event')}
                 </h2>
                 <div className="space-y-3 mb-5">
                   {event.description.split('\n\n').map((para, i) => (
                     <p key={i} className="text-sm text-stone-600 leading-relaxed">{para}</p>
                   ))}
                 </div>
+                {/* Video player — jika ada video_url */}
+                {event.video_url && (
+                  <div className="relative rounded-2xl overflow-hidden aspect-video mb-4">
+                    <YouTubePlayer
+                      videoUrl={event.video_url}
+                      thumbnailUrl={event.image_url || undefined}
+                      title={event.title}
+                      className="rounded-2xl"
+                    />
+                  </div>
+                )}
                 {event.image_url && (
                   <div className="grid grid-cols-3 gap-2 mt-4">
                     <div className="col-span-2 row-span-2 relative rounded-2xl overflow-hidden aspect-[4/3]">
@@ -366,14 +418,14 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
                       })}
                     </div>
                   )}
-                  {LINEUP_SCHEDULE.map(({ time, act }) => (
+                  {LINEUP_SCHEDULE_KEYS.map(({ time, key }) => (
                     <div key={time} className="flex items-center gap-4 py-2 border-b border-stone-100 last:border-0">
                       <span className="text-xs font-mono font-bold text-gold-600 w-12 shrink-0">{time}</span>
-                      <span className="text-sm text-stone-700">{act}</span>
+                      <span className="text-sm text-stone-700">{t(`event_detail.${key}`)}</span>
                     </div>
                   ))}
                   <button className="mt-3 flex items-center gap-1.5 text-xs font-bold text-gold-600 hover:text-gold-800 transition-colors">
-                    Lihat Semua Line-up <ArrowRight className="h-3.5 w-3.5" />
+                    {t('event_detail.see_all_lineup')} <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
                 {event.image_url && (
@@ -398,14 +450,14 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
 
             <div className="bg-white rounded-3xl border border-stone-200/60 shadow-sm p-5">
               <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1 flex items-center gap-1">
-                <Ticket className="h-3 w-3" /> TIKET EVENT
+                <Ticket className="h-3 w-3" /> {t('event_detail.ticket_label')}
               </p>
-              <p className="text-xs text-stone-500 mb-1">Mulai dari</p>
+              <p className="text-xs text-stone-500 mb-1">{t('event_detail.starting_from')}</p>
               <div className="flex items-baseline gap-2 mb-4">
                 <span className="text-2xl font-extrabold text-royal-950 font-manrope">
                   {isFree ? 'Gratis' : event.ticket_price}
                 </span>
-                {!isFree && <span className="text-xs text-stone-400">/ orang</span>}
+                {!isFree && <span className="text-xs text-stone-400">{t('event_detail.per_person')}</span>}
               </div>
 
               <div className="space-y-2.5 mb-5 text-sm">
@@ -432,58 +484,58 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
               <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full py-3.5 bg-gold-500 hover:bg-gold-400 active:scale-[0.98] text-white text-sm font-bold rounded-2xl transition-all shadow-md shadow-gold-500/20 mb-3">
                 <Ticket className="h-4 w-4" />
-                Beli Tiket Sekarang
+                {t('event_detail.buy_ticket')}
               </a>
               <div className="flex items-center justify-center gap-1.5 mb-4">
                 <Shield className="h-3.5 w-3.5 text-stone-400" />
-                <span className="text-[11px] text-stone-400">Pembayaran aman &amp; terjamin</span>
+                <span className="text-[11px] text-stone-400">{t('event_detail.secure_payment')}</span>
               </div>
 
               <div className="flex gap-2 border-t border-stone-100 pt-4">
                 <button onClick={() => setSaved(v => !v)}
                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-stone-200 rounded-xl text-xs font-semibold text-stone-600 hover:bg-stone-50 transition-colors">
                   <Heart className={`h-4 w-4 ${saved ? 'fill-red-500 text-red-500' : ''}`} />
-                  Simpan
+                  {t('event_detail.save')}
                 </button>
                 <button onClick={handleShare}
                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-stone-200 rounded-xl text-xs font-semibold text-stone-600 hover:bg-stone-50 transition-colors">
                   <Share2 className="h-4 w-4" />
-                  {copied ? 'Tersalin!' : 'Bagikan'}
+                  {copied ? t('event_detail.copied') : t('event_detail.share')}
                 </button>
               </div>
             </div>
 
             <div className="bg-white rounded-3xl border border-stone-200/60 shadow-sm p-5">
               <h3 className="font-manrope font-bold text-sm text-royal-950 mb-3 flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-gold-500" /> Lokasi
+                <MapPin className="h-4 w-4 text-gold-500" /> {t('event_detail.location')}
               </h3>
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                className="block relative h-32 rounded-2xl overflow-hidden bg-stone-100 mb-3 hover:opacity-90 transition-opacity">
-                <div className="absolute inset-0 bg-gradient-to-br from-stone-200 to-stone-300 flex items-center justify-center">
-                  <MapPin className="h-8 w-8 text-gold-500" />
-                </div>
-              </a>
+              <div className="relative h-36 rounded-2xl overflow-hidden mb-3">
+                <div ref={eventMapRef} className="w-full h-full z-0 bg-stone-100" />
+                {/* Tap overlay ke Google Maps */}
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                  className="absolute inset-0 z-10 cursor-pointer" aria-label="Lihat di Google Maps" />
+              </div>
               <p className="text-sm font-semibold text-royal-950 leading-tight">{event.location}</p>
               {event.location?.toLowerCase().includes(',') && (
                 <p className="text-xs text-stone-500 mt-0.5">{event.location.split(',').slice(1).join(',').trim()}</p>
               )}
               <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
                 className="mt-3 flex items-center justify-between w-full py-2.5 px-3.5 border border-stone-200 rounded-xl text-xs font-semibold text-stone-600 hover:bg-stone-50 transition-colors">
-                Lihat di Peta <ExternalLink className="h-3.5 w-3.5" />
+                {t('event_detail.see_on_map')} <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
 
             <div className="bg-white rounded-3xl border border-stone-200/60 shadow-sm p-5">
               <h3 className="font-manrope font-bold text-sm text-royal-950 mb-4 flex items-center gap-2">
-                <Info className="h-4 w-4 text-gold-500" /> Good to Know
+                <Info className="h-4 w-4 text-gold-500" /> {t('event_detail.good_to_know')}
               </h3>
               <ul className="space-y-3">
-                {GOOD_TO_KNOW.map(({ icon: Icon, text }) => (
-                  <li key={text} className="flex items-start gap-3">
+                {GOOD_TO_KNOW_KEYS.map(({ icon: Icon, key }) => (
+                  <li key={key} className="flex items-start gap-3">
                     <div className="h-7 w-7 rounded-xl bg-gold-50 flex items-center justify-center shrink-0">
                       <Icon className="h-3.5 w-3.5 text-gold-600" />
                     </div>
-                    <span className="text-xs text-stone-600 leading-relaxed pt-1">{text}</span>
+                    <span className="text-xs text-stone-600 leading-relaxed pt-1">{t(`event_detail.${key}`)}</span>
                   </li>
                 ))}
               </ul>
@@ -497,15 +549,15 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
                   <Calendar className="h-6 w-6 text-gold-400" />
                 </div>
                 <h3 className="font-manrope font-bold text-base text-white mb-2 leading-snug">
-                  Jelajahi lebih banyak festival dan event seru di Yogyakarta
+                  {t('event_detail.cta_title')}
                 </h3>
                 <p className="text-xs text-white/60 leading-relaxed mb-5">
-                  Temukan pengalaman terbaik di sekitar Yogyakarta selama perjalananmu.
+                  {t('event_detail.cta_desc')}
                 </p>
               </div>
               <button onClick={() => router.push('/events')}
                 className="relative z-10 flex items-center justify-between w-full px-5 py-3 bg-gold-500 hover:bg-gold-400 active:scale-[0.98] text-white text-sm font-bold rounded-2xl transition-all shadow-md shadow-gold-500/30">
-                Lihat Semua Festival
+                {t('event_detail.see_all_festivals')}
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
@@ -517,7 +569,7 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
         {related.length > 0 && (
           <div className="mt-8">
             <h2 className="font-manrope font-bold text-base text-royal-950 mb-4">
-              Event Seru Lainnya di Yogyakarta
+              {t('event_detail.related_events')}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {related.map(ev => {

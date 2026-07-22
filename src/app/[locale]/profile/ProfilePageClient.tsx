@@ -1,25 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import {
   ArrowLeft, Loader2, AlertCircle, Settings, User,
   Lock, ChevronRight, Eye, EyeOff,
 } from 'lucide-react';
-import { auth, reviews as reviewsApi, type ProfileResponse, type BeReview } from '../../lib/api';
-import ProfileHeader from '../../components/profile/ProfileHeader';
-import AuthModal from '../../components/AuthModal';
-import { AuthProvider } from '../../contexts/AuthContext';
-import { LocationProvider } from '../../contexts/LocationContext';
+import { auth, reviews as reviewsApi, type ProfileResponse, type BeReview } from '@/lib/api';
+import ProfileHeader from '@/components/profile/ProfileHeader';
+import AuthModal from '@/components/AuthModal';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { LocationProvider } from '@/contexts/LocationContext';
 import { useLocale } from '@/contexts/LocaleContext';
-import ReviewsSection from '../../components/profile/ReviewsSection';
-import MyTripsSection from '../../components/profile/MyTripsSection';
-import WishlistSection from '../../components/profile/WishlistSection';
-import TravelStatisticsCard from '../../components/profile/TravelStatisticsCard';
-import RecentlyViewedSection from '../../components/profile/RecentlyViewedSection';
-import AICtaBanner from '../../components/profile/AICtaBanner';
-import Header from '../../components/Header';
-import SubNav from '../../components/SubNav';
+import ReviewsSection from '@/components/profile/ReviewsSection';
+import MyTripsSection from '@/components/profile/MyTripsSection';
+import WishlistSection from '@/components/profile/WishlistSection';
+import TravelStatisticsCard from '@/components/profile/TravelStatisticsCard';
+import RecentlyViewedSection from '@/components/profile/RecentlyViewedSection';
+import AICtaBanner from '@/components/profile/AICtaBanner';
+import Header from '@/components/Header';
+import SubNav from '@/components/SubNav';
 
 type Tab = 'overview' | 'settings';
 

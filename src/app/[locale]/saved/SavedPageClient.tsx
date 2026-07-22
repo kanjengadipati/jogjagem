@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { Heart, Compass, Loader2 } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
-import I18nProvider from '@/contexts/I18nProvider';
 import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
@@ -65,8 +64,8 @@ function SavedPageContent() {
         const parsed: Destination[] = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           const refreshed = parsed
-            .map((item) => allDestinations.find((d) => d.id === item.id) ?? item)
-            .filter(Boolean) as Destination[];
+             .map((item) => allDestinations.find((d) => d.id === item.id) ?? item)
+             .filter(Boolean) as Destination[];
           setSavedDestinations(refreshed);
         }
       }
@@ -182,13 +181,13 @@ function SavedPageContent() {
   );
 }
 
-export default function SavedPage() {
+export default function SavedPageClient() {
   return (
     <AuthProvider>
       <LocationProvider>
-        <I18nProvider>
+
           <SavedPageContent />
-        </I18nProvider>
+
       </LocationProvider>
     </AuthProvider>
   );

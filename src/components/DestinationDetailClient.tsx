@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import Header from '@/components/Header';
 import DestinationDetail from '@/components/DestinationDetail';
 import { Destination } from '@/types';
@@ -9,7 +9,6 @@ import { destinations, auth } from '@/lib/api';
 import { AlertCircle } from 'lucide-react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
-import I18nProvider from '@/contexts/I18nProvider';
 import { useLocale } from '@/contexts/LocaleContext';
 
 function mapApiToDestination(raw: any): Destination {
@@ -42,6 +41,7 @@ function mapApiToDestination(raw: any): Destination {
     seoKeywords: raw.seo_keywords || raw.SeoKeywords || raw.seoKeywords || '',
     seoDescription: raw.seo_description || raw.SeoDescription || raw.seoDescription || '',
     ogImageUrl: raw.og_image_url || raw.OgImageUrl || raw.ogImageUrl || '',
+    videoUrl: raw.video_url || raw.VideoURL || raw.videoUrl || '',
   };
 }
 
@@ -167,7 +167,7 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
 
   if (loading) {
     return (
-      <I18nProvider>
+
       <AuthProvider>
       <LocationProvider>
         <div className="min-h-screen bg-[#faf9f6] flex flex-col">
@@ -203,13 +203,13 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
         </div>
       </LocationProvider>
       </AuthProvider>
-      </I18nProvider>
+
     );
   }
 
   if (error || !destination) {
     return (
-      <I18nProvider>
+
       <AuthProvider>
       <LocationProvider>
         <div className="min-h-screen bg-[#faf9f6] flex flex-col">
@@ -228,12 +228,12 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
         </div>
       </LocationProvider>
       </AuthProvider>
-      </I18nProvider>
+
     );
   }
 
   return (
-    <I18nProvider>
+
     <AuthProvider>
     <LocationProvider>
       <div className="min-h-screen bg-[#faf9f6] flex flex-col">
@@ -250,6 +250,6 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
       </div>
     </LocationProvider>
     </AuthProvider>
-    </I18nProvider>
+
   );
 }

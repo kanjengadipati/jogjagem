@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { CalendarDays, MapPin, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { trips as tripsApi, type TripResponse } from '../../lib/api';
 
 const STATUS_CONFIG = {

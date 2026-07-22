@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import Image from 'next/image';
 import Header from './components/Header';
 import AuthModal from './components/AuthModal';
@@ -13,7 +13,7 @@ import { useLocale } from '@/contexts/LocaleContext';
 
 import { Destination, Festival } from './types';
 import { destinations, events, config, auth, ai, APIResponse } from '@/lib/api';
-import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, RefreshCw, User, ChevronRight } from 'lucide-react';
+import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, RefreshCw, User, ChevronRight, Star } from 'lucide-react';
 
 export default function App() {
   const { t } = useLocale();
@@ -536,42 +536,35 @@ export default function App() {
 
                 {/* Two Column section matching high-fidelity mockup */}
                 <section id="upcoming-festivals-showcase" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    
-                    {/* Left Column: Upcoming Festivals (7/12) */}
-                    <div className="lg:col-span-7 flex flex-col">
-                      <div className="flex items-end justify-between mb-5 border-b border-[#E8E0D5] pb-3">
-                        <div className="text-left">
-                          <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
-                            {t('home.upcoming_festivals')}
-                          </h2>
-                          <p className="text-xs text-stone-500/80 mt-0.5">{t('home.don_t_miss')}</p>
-                        </div>
-                        <button
-                          onClick={() => router.push('/events')}
-                          className="text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 cursor-pointer"
-                        >
-                          <span>{t('common.see_all')}</span>
-                          <span>→</span>
-                        </button>
-                      </div>
+                  <div className="flex items-end justify-between mb-5 border-b border-[#E8E0D5] pb-3">
+                    <div className="text-left">
+                      <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
+                        {t('home.upcoming_festivals')}
+                      </h2>
+                      <p className="text-xs text-stone-500/80 mt-0.5">{t('home.don_t_miss')}</p>
+                    </div>
+                    <button
+                      onClick={() => router.push('/events')}
+                      className="text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 cursor-pointer"
+                    >
+                      <span>{t('common.see_all')}</span>
+                      <span>→</span>
+                    </button>
+                  </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {allEvents.slice(0, 3).map((fest, idx) => {
-                          const fallbackBadges = [t('common.badge_limited'), t('common.badge_popular'), t('common.badge_live_tonight')];
-                          const subBadge = [t('common.badge_starts_5'), t('common.badge_starts_18'), t('common.badge_tonight_7')];
+                  {/* 5 events: row 1 = 3 cards, row 2 = 2 cards centered */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {allEvents.slice(0, 5).map((fest, idx) => {
+                          const fallbackBadges = [t('common.badge_limited'), t('common.badge_popular'), t('common.badge_live_tonight'), t('common.badge_upcoming'), t('common.badge_upcoming')];
+                          const subBadge = [t('common.badge_starts_5'), t('common.badge_starts_18'), t('common.badge_tonight_7'), t('common.badge_upcoming'), t('common.badge_upcoming')];
                           
                           const apiBadge = fest.badge;
                           const rawBadgeText = apiBadge 
                             ? t(`hero.badge_${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
                             : (fallbackBadges[idx] || fest.category);
-
                           const badgeText = rawBadgeText.toUpperCase();
-
                           const badgeKey = (apiBadge || fallbackBadges[idx] || fest.category)
-                            .toLowerCase()
-                            .replace(/-/g, '_')
-                            .replace(/ /g, '_');
+                            .toLowerCase().replace(/-/g, '_').replace(/ /g, '_');
 
                           const BADGE_STYLES: Record<string, string> = {
                             'trending': 'bg-red-600/90 border border-red-500/30 text-white',
@@ -581,51 +574,45 @@ export default function App() {
                             'terbatas': 'bg-orange-600/90 border border-orange-500/30 text-white',
                             'live_malam_ini': 'bg-green-600/90 border border-green-500/30 text-white',
                           };
-
                           const badgeBgClass = BADGE_STYLES[badgeKey] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white';
 
                           return (
                             <div
                               key={fest.id}
                               onClick={() => router.push(`/events/${fest.id}`)}
-                              className="group relative aspect-square sm:aspect-[3/4] w-full overflow-hidden rounded-[20px] bg-royal-950 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer border border-stone-200/10"
+                              className="group relative aspect-[3/4] w-full overflow-hidden rounded-[20px] bg-royal-950 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer border border-stone-200/10"
                             >
-                              <Image 
-                                src={fest.image} 
-                                alt={fest.name} 
-                                fill
-                                sizes="(max-width: 640px) 50vw, 25vw"
-                                className="object-cover transition-transform duration-700 ease-out group-hover:scale-108" 
-                              />
+                              {fest.image ? (
+                                <Image 
+                                  src={fest.image} 
+                                  alt={fest.name} 
+                                  fill
+                                  sizes="(max-width: 640px) 50vw, 20vw"
+                                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 bg-gradient-to-br from-royal-900 to-royal-950" />
+                              )}
                               <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
                               
-                              {/* Top Badge */}
                               <div className={`absolute top-3.5 left-3.5 px-2.5 py-0.5 rounded-full text-[9px] font-sans font-semibold uppercase tracking-[0.08em] ${badgeBgClass}`}>
                                 {badgeText}
                               </div>
-
-                              {/* Heart button */}
-                              <button className="absolute top-3.5 right-3.5 flex h-7.5 w-7.5 items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white backdrop-blur-sm border border-white/10">
+                              <button className="absolute top-3.5 right-3.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white backdrop-blur-sm border border-white/10">
                                 <Heart className="h-3.5 w-3.5 text-white" />
                               </button>
 
-                              {/* Text Overlay Details */}
                               <div className="absolute bottom-0 inset-x-0 p-4 flex flex-col justify-end text-left">
-                                {/* Sub badge time */}
                                 <span className="text-[9px] font-sans font-semibold text-gold-400 mb-1 tracking-[0.08em] uppercase">
                                   {subBadge[idx] || t('common.badge_upcoming')}
                                 </span>
-                                
-                                <h3 className="font-manrope text-sm font-bold tracking-tight text-white leading-tight mb-2 group-hover:text-gold-300 transition-colors">
+                                <h3 className="font-manrope text-sm font-bold tracking-tight text-white leading-tight mb-1.5 group-hover:text-gold-300 transition-colors line-clamp-2">
                                   {fest.name}
                                 </h3>
-                                
-                                <p className="text-[10px] text-white/60 font-light">
+                                <p className="text-[10px] text-white/60 font-light leading-snug">
                                   {fest.date} • {fest.location}
                                 </p>
-
-                                {/* Circle Arrow in Bottom Right */}
-                                <div className="absolute bottom-4 right-4 h-6.5 w-6.5 rounded-full bg-gold-400 text-royal-950 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300">
+                                <div className="absolute bottom-4 right-4 h-6 w-6 rounded-full bg-gold-400 text-royal-950 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300">
                                   <svg className="h-3 w-3 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3">
                                     <path d="M5 12h14M12 5l7 7-7 7" />
                                   </svg>
@@ -634,97 +621,6 @@ export default function App() {
                             </div>
                           );
                         })}
-                      </div>
-                    </div>
-
-                    {/* Right Column: AI Picks Just For You (5/12) */}
-                    <div className="lg:col-span-5 flex flex-col">
-                      <div className="flex items-end justify-between mb-5 border-b border-[#E8E0D5] pb-3">
-                        <div className="text-left">
-                          <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
-                            {t('home.ai_picks_title')}
-                          </h2>
-                          <p className="text-xs text-stone-500/80 mt-0.5">{t('home.personalized_vibes')}</p>
-                        </div>
-                        <button
-                          onClick={() => router.push('/destinations')}
-                          className="text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 cursor-pointer"
-                        >
-                          <span>{t('common.see_all')}</span>
-                          <span>→</span>
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        {(aiPicks.length > 0
-                          ? aiPicks.slice(0, 4)
-                          : allDestinations.length > 0
-                            ? allDestinations.slice(0, 4).map(d => ({
-                                destinationId: d.id,
-                                badge: t('home.ai_pick_badge'),
-                                headline: d.name,
-                                crowd: t('home.crowd_low'),
-                                rating: d.rating,
-                              }))
-                            : []
-                        ).map((pick) => {
-                          const dest = allDestinations.find(d => d.id === pick.destinationId);
-                          if (!dest) return null;
-                          const imgUrl = (pick as any).imageUrl || dest.images?.[0]?.url || dest.ogImageUrl || '';
-                          return (
-                            <div
-                              key={pick.destinationId}
-                              onClick={() => handleExploreDestination(dest)}
-                               className="group relative aspect-square md:aspect-[3/4] w-full overflow-hidden rounded-[24px] bg-royal-950 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer border border-stone-200/10"
-                            >
-                              {imgUrl ? (
-                                <Image
-                                  src={imgUrl}
-                                  alt={dest.name}
-                                  fill
-                                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                                />
-                              ) : (
-                                <div className="absolute inset-0 bg-gradient-to-br from-royal-900 to-royal-950" />
-                              )}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent" />
-
-                              {/* Badge */}
-                              <div className="absolute top-3.5 left-3.5 bg-amber-500/90 px-2.5 py-0.5 rounded-full text-[9px] font-sans font-semibold text-white uppercase tracking-[0.08em]">
-                                {pick.badge}
-                              </div>
-
-                              {/* Heart */}
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleToggleSave(dest); }}
-                                className="absolute top-3.5 right-3.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white backdrop-blur-sm border border-white/10"
-                              >
-                                <Heart className={`h-3.5 w-3.5 ${isSaved(dest.id) ? 'fill-gold-400 text-gold-400' : 'text-white'}`} />
-                              </button>
-
-                              {/* Bottom info */}
-                              <div className="absolute bottom-0 inset-x-0 p-3.5 flex flex-col justify-end text-left">
-                                <h3 className="font-manrope text-xs font-bold tracking-tight text-white leading-tight mb-2 group-hover:text-gold-300 transition-colors line-clamp-2">
-                                  {dest.name}
-                                </h3>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-1.5">
-                                    <span className="text-[10px] font-mono text-gold-400 font-bold">★ {(pick.rating || dest.rating || 0).toFixed(1)}</span>
-                                    <span className="text-[9px] font-mono font-bold text-white/50 bg-white/10 px-1.5 py-0.5 rounded">{pick.crowd} {t('home.crowd_label')}</span>
-                                  </div>
-                                  <div className="h-6 w-6 rounded-full bg-gold-400 text-royal-950 flex items-center justify-center shadow-md group-hover:bg-gold-300 transition-colors shrink-0">
-                                    <svg className="h-3 w-3 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3">
-                                      <path d="M5 12h14M12 5l7 7-7 7" />
-                                    </svg>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
                   </div>
                 </section>
 
@@ -739,22 +635,22 @@ export default function App() {
                     </div>
                     <button 
                       onClick={() => router.push('/planner')}
-                      className="mt-2 sm:mt-0 text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center space-x-0.5 border-b border-gold-700/10 hover:border-gold-900 pb-0.5 cursor-pointer w-fit"
+                      className="mt-2 sm:mt-0 text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center gap-1 cursor-pointer"
                     >
                       <span>{t('home.customize_ai')}</span>
                       <span>→</span>
                     </button>
                   </div>
 
-                  {/* Timeline Cards Row */}
-                  <div className="flex items-center space-x-2.5 sm:space-x-3.5 overflow-x-auto pb-4 scrollbar-none -mx-4 px-4 lg:mx-0 lg:px-0">
+                  {/* Timeline grid — 4 cards in a row */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {(() => {
-                        const journeySlots = [
-                          { label: t('home.morning'), time: '07.00 AM', icon: Sun, color: '#B18A5E', categories: ['heritage', 'adventure'] },
-                          { label: t('home.lunch'), time: '12.00 PM', icon: Utensils, color: '#5F713D', categories: ['culinary'] },
-                          { label: t('home.afternoon'), time: '02.30 PM', icon: Leaf, color: '#4F6F52', categories: ['nature', 'heritage', 'hidden-gem'] },
-                          { label: t('home.sunset'), time: '05.30 PM', icon: Sunset, color: '#BC6C25', categories: ['beach', 'nature'] },
-                        ];
+                      const journeySlots = [
+                        { label: t('home.morning'), time: '07.00 AM', icon: Sun,     color: '#B18A5E', bgColor: '#FDF6EC', categories: ['heritage', 'adventure'] },
+                        { label: t('home.lunch'),   time: '12.00 PM', icon: Utensils, color: '#5F713D', bgColor: '#F0F4EC', categories: ['culinary'] },
+                        { label: t('home.afternoon'),time:'02.30 PM', icon: Leaf,     color: '#4F6F52', bgColor: '#EEF4EF', categories: ['nature', 'heritage', 'hidden-gem'] },
+                        { label: t('home.sunset'),  time: '05.30 PM', icon: Sunset,  color: '#BC6C25', bgColor: '#FDF0E6', categories: ['beach', 'nature'] },
+                      ];
 
                       return journeySlots.map((slot, idx) => {
                         const dest = allDestinations
@@ -763,28 +659,55 @@ export default function App() {
                         if (!dest) return null;
                         const Icon = slot.icon;
                         return (
-                          <React.Fragment key={slot.label}>
-                            {idx > 0 && <div className="flex-shrink-0 text-[#A78B71]/40 font-bold text-base sm:text-lg">&rarr;</div>}
-                            <div 
-                              onClick={() => handleExploreDestination(dest)}
-                              className="flex-shrink-0 w-[275px] sm:w-[320px] lg:w-auto lg:flex-1 bg-[#F5F0E8] border border-stone-200/10 rounded-[24px] p-2.5 sm:p-3.5 flex items-center justify-between cursor-pointer hover:bg-[#FAF1E6] hover:shadow-md transition-all duration-300 group"
-                            >
-                              <div className="flex flex-col items-center justify-center flex-shrink-0 w-24 sm:w-28 text-center px-1">
-                                <div className="mb-2 w-8 h-8 rounded-full bg-white/50 flex items-center justify-center" style={{ color: slot.color }}>
-                                  <Icon className="h-4 w-4" />
-                                </div>
-                                <span className="text-xs font-bold text-[#1C1A17] tracking-tight leading-tight block">{slot.label}</span>
-                                <span className="text-[9px] sm:text-[10px] font-mono font-bold text-[#B18A5E] mt-1 tracking-wide leading-none block">{slot.time}</span>
-                                <span className="text-[9px] sm:text-[10px] text-stone-500 font-medium truncate mt-1 max-w-[85px] sm:max-w-[95px] leading-tight block">{dest.name}</span>
+                          <div
+                            key={slot.label}
+                            onClick={() => handleExploreDestination(dest)}
+                            className="group relative rounded-[20px] overflow-hidden cursor-pointer border border-stone-200/60 hover:border-gold-300 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 bg-white"
+                          >
+                            {/* Top: image */}
+                            <div className="relative h-[140px] overflow-hidden bg-stone-100">
+                              <Image
+                                src={dest.images[0]?.url || ''}
+                                fill
+                                sizes="(max-width: 640px) 50vw, 25vw"
+                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                referrerPolicy="no-referrer"
+                                alt={dest.name}
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                              {/* Time chip top-left */}
+                              <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/40 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">
+                                <Icon className="h-3 w-3" style={{ color: slot.color }} />
+                                <span className="text-[10px] font-bold text-white">{slot.time}</span>
                               </div>
-                              <div className="relative h-[80px] sm:h-[96px] w-[130px] sm:w-[155px] lg:w-[130px] xl:w-[160px] rounded-[16px] overflow-hidden flex-shrink-0 bg-stone-100">
-                                <Image src={dest.images[0]?.url || ''} fill sizes="160px" className="object-cover" referrerPolicy="no-referrer" alt={dest.name} />
-                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-2 text-left">
-                                  <span className="text-[9px] sm:text-[10px] font-bold text-white block truncate leading-none">{dest.name}</span>
+                              {/* Step number top-right */}
+                              <div className="absolute top-2.5 right-2.5 h-5 w-5 rounded-full bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                                <span className="text-[9px] font-bold text-white">{idx + 1}</span>
+                              </div>
+                            </div>
+
+                            {/* Bottom: info */}
+                            <div className="p-3" style={{ backgroundColor: slot.bgColor }}>
+                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: slot.color }}>
+                                {slot.label}
+                              </p>
+                              <h4 className="font-manrope text-sm font-bold text-royal-950 leading-tight line-clamp-1 group-hover:text-gold-700 transition-colors">
+                                {dest.name}
+                              </h4>
+                              <div className="flex items-center justify-between mt-2">
+                                <div className="flex items-center gap-1 text-[10px] text-stone-500">
+                                  <Star className="h-3 w-3 fill-gold-400 text-gold-400" />
+                                  <span className="font-bold text-gold-600">{dest.rating.toFixed(1)}</span>
+                                  <span className="text-stone-400">· {dest.subRegion || dest.location}</span>
+                                </div>
+                                <div className="h-6 w-6 rounded-full bg-gold-400 text-royal-950 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0">
+                                  <svg className="h-3 w-3 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                  </svg>
                                 </div>
                               </div>
                             </div>
-                          </React.Fragment>
+                          </div>
                         );
                       });
                     })()}

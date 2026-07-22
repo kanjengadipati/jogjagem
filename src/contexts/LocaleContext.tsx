@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useCallback } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import idMessages from '@/messages/id.json';
 import enMessages from '@/messages/en.json';
 import { setApiLocale } from '@/lib/api';
@@ -27,21 +28,45 @@ function getNestedValue(obj: Record<string, any>, path: string): string | undefi
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
-export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('id');
+interface LocaleProviderProps {
+  children: React.ReactNode;
+  locale: Locale;
+}
+
+export function LocaleProvider({ children, locale }: LocaleProviderProps) {
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const saved = localStorage.getItem('locale') as Locale;
-    const initial = saved === 'en' ? 'en' : 'id';
-    setLocaleState(initial);
-    setApiLocale(initial);
-  }, []);
+    setApiLocale(locale);
+  }, [locale]);
 
-  const setLocale = (newLocale: Locale) => {
-    localStorage.setItem('locale', newLocale);
-    setLocaleState(newLocale);
+  const setLocale = useCallback((newLocale: Locale) => {
     setApiLocale(newLocale);
-  };
+    try {
+      localStorage.setItem('locale', newLocale);
+    } catch { /* ignore */ }
+
+    let targetPath: string;
+
+    if (newLocale === 'en') {
+      if (pathname.startsWith('/en')) {
+        targetPath = pathname;
+      } else {
+        targetPath = pathname === '/' ? '/en' : `/en${pathname}`;
+      }
+    } else {
+      if (pathname === '/en' || pathname === '/en/') {
+        targetPath = '/';
+      } else if (pathname.startsWith('/en/')) {
+        targetPath = pathname.slice(3);
+      } else {
+        targetPath = pathname;
+      }
+    }
+
+    router.push(targetPath);
+  }, [router, pathname]);
 
   const t = useCallback((key: string, params?: Record<string, string | number>): string => {
     let value = getNestedValue(messages[locale], key) ?? key;

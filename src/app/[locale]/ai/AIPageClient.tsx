@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
-import I18nProvider from '@/contexts/I18nProvider';
 import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
@@ -142,9 +142,9 @@ export default function AIPageClient() {
     <Suspense>
       <AuthProvider>
         <LocationProvider>
-          <I18nProvider>
+
             <AIPageContent />
-          </I18nProvider>
+
         </LocationProvider>
       </AuthProvider>
     </Suspense>

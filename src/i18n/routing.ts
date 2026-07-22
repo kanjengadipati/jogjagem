@@ -1,5 +1,7 @@
-// Locale routing config — used by middleware
-export const routing = {
-  locales: ['id', 'en'] as const,
-  defaultLocale: 'id' as const,
-};
+import { defineRouting } from 'next-intl/routing';
+
+export const routing = defineRouting({
+  locales: ['id', 'en'],
+  defaultLocale: 'id',
+  localePrefix: 'as-needed'
+});

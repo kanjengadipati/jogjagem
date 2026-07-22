@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import Image from 'next/image';
 import { 
   ArrowLeft, Heart, Share2, Star, Clock, Ticket, Sparkles, 
@@ -10,7 +10,7 @@ import {
   Footprints, MessageSquare, Map, Camera, Video, Eye, Award, 
   ChevronRight, Calendar, Users, AlertTriangle, Play,
   ShoppingBag, Landmark, ArrowRight, Check, HeartHandshake,
-  MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle, Pencil, X
+  MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle, Pencil, X, Navigation
 } from 'lucide-react';
 import { Destination, EcosystemPartner, Review } from '@/types';
 import { events as eventsApi, reviews as reviewsApi, partners as partnersApi } from '@/lib/api';
@@ -21,6 +21,7 @@ import { fetchLiveWeather, LiveWeather } from '@/lib/weather';
 import { useLocation } from '@/contexts/LocationContext';
 import { useLeafletMap } from '@/hooks/useLeafletMap';
 import AIFloatingAssistant from '@/components/AIFloatingAssistant';
+import YouTubePlayer from '@/components/YouTubePlayer';
 import MobileOverlayNav from '@/components/MobileOverlayNav';
 import SubNav from '@/components/SubNav';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -251,7 +252,7 @@ export default function DestinationDetail({
         });
         L.marker([destination.latitude + 0.002, destination.longitude - 0.003], { icon: emergencyIcon }).addTo(markers);
       }
-  }, [destination, enrichedPartners, selectedMapFilter, selectedMapPartner, coords]);
+  }, [destination.id, destination.category, destination.latitude, destination.longitude, enrichedPartners, selectedMapFilter, selectedMapPartner, coords]);
 
 
   // Auto-rotate ecosystem tabs like a slideshow
@@ -337,7 +338,7 @@ export default function DestinationDetail({
     const sameCategory = filtered.filter(d => d.category === destination.category);
     const finalSimilar = sameCategory.length >= 3 ? sameCategory : filtered;
     setSimilarDestinations(finalSimilar.slice(0, 3));
-  }, [destination, allDestinations]);
+  }, [destination.id, destination.category, allDestinations]);
 
   // Nearby events state & fetch
   const [nearbyEvents, setNearbyEvents] = useState<any[]>([]);
@@ -352,15 +353,31 @@ export default function DestinationDetail({
           const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
           return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         };
-        const withDist = res.data
-          .filter((e: any) => e.latitude && e.longitude)
-          .map((e: any) => ({ ...e, _dist: haversine(destination.latitude, destination.longitude, e.latitude, e.longitude) }))
-          .filter((e: any) => e._dist <= 30)
-          .sort((a: any, b: any) => a._dist - b._dist);
-        setNearbyEvents(withDist.slice(0, 4));
+
+        const all = res.data as any[];
+
+        // 1. Prioritas utama: relasi langsung via destination_id
+        const byRelation = all.filter(e =>
+          e.destination_id && e.destination_id === destination.id
+        );
+
+        // 2. Fallback: punya koordinat + dalam radius 30km (exclude yg sudah ada di relasi)
+        const relatedIds = new Set(byRelation.map(e => e.id));
+        const byProximity = all
+          .filter(e => e.latitude && e.longitude && !relatedIds.has(e.id))
+          .map(e => ({ ...e, _dist: haversine(destination.latitude, destination.longitude, e.latitude, e.longitude) }))
+          .filter(e => e._dist <= 30)
+          .sort((a, b) => a._dist - b._dist);
+
+        // 3. Last resort: tidak punya koordinat dan tidak ada relasi
+        const usedIds = new Set([...byRelation, ...byProximity].map(e => e.id));
+        const noCoord = all.filter(e => !e.latitude && !e.longitude && !usedIds.has(e.id));
+
+        const combined = [...byRelation, ...byProximity, ...noCoord].slice(0, 4);
+        setNearbyEvents(combined);
       }
     }).catch(() => {});
-  }, [destination.latitude, destination.longitude]);
+  }, [destination.id, destination.latitude, destination.longitude]);
 
   // Interactive Live Journey simulated context
   const [currentAssistantTime, setCurrentAssistantTime] = useState('09:15 AM');
@@ -866,6 +883,21 @@ export default function DestinationDetail({
                   <Share2 className="h-4 w-4" />
                   {t('destination_detail.share')}
                 </button>
+                {/* Google Maps directions button */}
+                <a
+                  href={
+                    destination.googleMapsUrl ||
+                    (destination.latitude && destination.longitude
+                      ? `https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}`
+                      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination.name + ', Yogyakarta')}`)
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-white/20 text-white hover:bg-white/20 font-semibold text-sm rounded-xl transition-colors"
+                >
+                  <Navigation className="h-4 w-4 text-gold-400" />
+                  {t('destination_detail.get_directions') || 'Petunjuk Arah'}
+                </a>
               </div>
             </div>
 
@@ -880,22 +912,31 @@ export default function DestinationDetail({
               return (
                 <div className="lg:col-span-6 grid grid-cols-2 grid-rows-3 gap-3 h-[420px]">
 
-                  {/* Video thumbnail — tall, spans 2 rows left side */}
-                  <div className="col-span-1 row-span-2 relative rounded-2xl overflow-hidden bg-black/40 group cursor-pointer">
-                    {getUrl(1) && (
-                      <Image
-                        src={getUrl(1)!}
-                        alt="Video preview"
-                        fill
-                        className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-300"
+                  {/* Video — tall, spans 2 rows left side */}
+                  <div className="col-span-1 row-span-2 relative rounded-2xl overflow-hidden bg-black/40">
+                    {destination.videoUrl ? (
+                      <YouTubePlayer
+                        videoUrl={destination.videoUrl}
+                        thumbnailUrl={getUrl(1) || undefined}
+                        title={destination.name}
+                        label={t('destination_detail.media_tab_cinematic')}
+                        className="rounded-2xl"
                       />
+                    ) : getUrl(1) ? (
+                      <button
+                        onClick={() => { setActiveImageIdx(1); setSlideshowPaused(true); setTimeout(() => setSlideshowPaused(false), 8000); }}
+                        className="relative w-full h-full group"
+                      >
+                        <Image
+                          src={getUrl(1)!}
+                          alt="foto 2"
+                          fill
+                          className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </button>
+                    ) : (
+                      <div className="w-full h-full bg-royal-900" />
                     )}
-                    <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-2">
-                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                        <Play className="h-5 w-5 text-white fill-white ml-0.5" />
-                      </div>
-                      <span className="text-xs text-white/80 font-medium">{t('destination_detail.media_tab_cinematic')}</span>
-                    </div>
                   </div>
 
                   {/* Photo top-right */}
@@ -1292,7 +1333,11 @@ export default function DestinationDetail({
                       onClick={() => router.push(`/events/${event.id}`)}
                       className="shrink-0 snap-start w-[240px] sm:w-[280px] group relative aspect-[16/10] overflow-hidden rounded-2xl border border-stone-200/10 shadow-md bg-royal-950 text-left"
                     >
-                      <Image src={event.image_url} alt={event.title} sizes="280px" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-90" referrerPolicy="no-referrer" fill />
+                      {event.image_url ? (
+                        <Image src={event.image_url} alt={event.title} sizes="280px" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter brightness-90" referrerPolicy="no-referrer" fill />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-royal-900 to-royal-800" />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                       
                       <div className="absolute bottom-0 inset-x-0 p-4">

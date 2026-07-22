@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { Map, Navigation } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
 import { useLocale } from '@/contexts/LocaleContext';

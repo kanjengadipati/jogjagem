@@ -19,36 +19,72 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: FIXED_DATE,
       changeFrequency: 'daily',
       priority: 1,
+      alternates: {
+        languages: {
+          id: SITE_URL,
+          en: `${SITE_URL}/en`,
+        },
+      },
     },
     {
       url: `${SITE_URL}/destinations`,
       lastModified: FIXED_DATE,
       changeFrequency: 'daily',
       priority: 0.9,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/destinations`,
+          en: `${SITE_URL}/en/destinations`,
+        },
+      },
     },
     {
       url: `${SITE_URL}/events`,
       lastModified: FIXED_DATE,
       changeFrequency: 'weekly',
       priority: 0.7,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/events`,
+          en: `${SITE_URL}/en/events`,
+        },
+      },
     },
     {
       url: `${SITE_URL}/map`,
       lastModified: FIXED_DATE,
       changeFrequency: 'monthly',
       priority: 0.6,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/map`,
+          en: `${SITE_URL}/en/map`,
+        },
+      },
     },
     {
       url: `${SITE_URL}/planner`,
       lastModified: FIXED_DATE,
       changeFrequency: 'monthly',
       priority: 0.6,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/planner`,
+          en: `${SITE_URL}/en/planner`,
+        },
+      },
     },
     {
       url: `${SITE_URL}/ai`,
       lastModified: FIXED_DATE,
       changeFrequency: 'monthly',
       priority: 0.5,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/ai`,
+          en: `${SITE_URL}/en/ai`,
+        },
+      },
     },
   ];
 
@@ -72,6 +108,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: updated,
             changeFrequency: 'weekly' as const,
             priority: 0.8,
+            alternates: {
+              languages: {
+                id: `${SITE_URL}/destinations/${slug}`,
+                en: `${SITE_URL}/en/destinations/${slug}`,
+              },
+            },
           };
         });
         staticPages.push(...destinationPages);
@@ -90,6 +132,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: updated,
             changeFrequency: 'weekly' as const,
             priority: 0.6,
+            alternates: {
+              languages: {
+                id: `${SITE_URL}/events/${id}`,
+                en: `${SITE_URL}/en/events/${id}`,
+              },
+            },
           };
         });
         staticPages.push(...eventPages);

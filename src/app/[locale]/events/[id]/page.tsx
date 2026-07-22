@@ -36,10 +36,10 @@ async function fetchEvent(id: string): Promise<EventData | null> {
   }
 }
 
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = { params: Promise<{ id: string; locale: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { id, locale } = await params;
   const event = await fetchEvent(id);
 
   if (!event) {
@@ -56,14 +56,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     : `Informasi lengkap event ${event.title} di Yogyakarta.`;
 
   const ogImage = event.image_url || '/og.png';
+  const pageUrl = locale === 'en' ? `${SITE_URL}/en/events/${id}` : `${SITE_URL}/events/${id}`;
 
   return {
     title,
     description,
     openGraph: {
       type: 'article',
-      locale: 'id_ID',
-      url: `${SITE_URL}/events/${id}`,
+      locale: locale === 'en' ? 'en_US' : 'id_ID',
+      url: pageUrl,
       siteName: 'Jogjagem',
       title,
       description,
@@ -83,13 +84,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: [ogImage],
     },
     alternates: {
-      canonical: `${SITE_URL}/events/${id}`,
+      canonical: pageUrl,
+      languages: {
+        id: `${SITE_URL}/events/${id}`,
+        en: `${SITE_URL}/en/events/${id}`,
+      },
     },
   };
 }
 
 export default async function EventDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id, locale } = await params;
   const event = await fetchEvent(id);
 
   return (

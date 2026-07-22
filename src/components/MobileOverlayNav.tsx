@@ -21,10 +21,10 @@ export default function MobileOverlayNav({
   onShare,
   copiedToast = false,
 }: MobileOverlayNavProps) {
-  const { t } = useLocale();
+  const { t, locale, setLocale } = useLocale();
 
   return (
-    <div className="lg:hidden absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-black/60 via-black/30 to-transparent px-4 pt-3 pb-4">
+    <div className="xl:hidden absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-black/60 via-black/30 to-transparent px-4 pt-3 pb-4">
       <div className="flex items-center justify-between">
         {/* Left: back + title */}
         <div className="flex items-center gap-2 min-w-0">
@@ -36,14 +36,24 @@ export default function MobileOverlayNav({
             <ArrowLeft className="h-5 w-5" />
           </button>
           {title && (
-            <span className="font-manrope text-sm font-bold text-white truncate max-w-[180px] drop-shadow-lg">
+            <span className="font-manrope text-sm font-bold text-white truncate max-w-[140px] drop-shadow-lg">
               {title}
             </span>
           )}
         </div>
 
-        {/* Right: save + share */}
+        {/* Right: lang switch + save + share */}
         <div className="flex items-center gap-1.5">
+          {/* Language toggle */}
+          <button
+            onClick={() => setLocale(locale === 'id' ? 'en' : 'id')}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm border border-white/10 transition-all text-white/80"
+            title={locale === 'id' ? 'Switch to English' : 'Ganti ke Indonesia'}
+          >
+            <span className="text-sm leading-none">{locale === 'id' ? '🇮🇩' : '🇬🇧'}</span>
+            <span className="text-[10px] font-bold uppercase">{locale === 'id' ? 'ID' : 'EN'}</span>
+          </button>
+
           {onToggleSave && (
             <button
               onClick={onToggleSave}

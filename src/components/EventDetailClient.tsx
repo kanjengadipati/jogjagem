@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useParams } from 'next/navigation';
 import { Calendar, MapPin, Users, Ticket, ExternalLink, CheckCircle } from 'lucide-react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import Link from 'next/link';
 import {
   Calendar, MapPin, ArrowLeft, Search, ChevronLeft, ChevronRight,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, ShieldCheck, Settings, HelpCircle, Bookmark, ChevronRight, Home, Languages, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '../contexts/AuthContext';

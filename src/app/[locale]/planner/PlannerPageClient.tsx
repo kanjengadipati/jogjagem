@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useSearchParams } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
-import I18nProvider from '@/contexts/I18nProvider';
 import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
@@ -162,7 +162,7 @@ export default function PlannerPageClient() {
   return (
     <AuthProvider>
       <LocationProvider>
-        <I18nProvider>
+
           <Suspense fallback={
             <div className="min-h-screen bg-[#F7F3EE] flex items-center justify-center">
               <Loader2 className="h-8 w-8 text-gold-500 animate-spin" />
@@ -170,7 +170,7 @@ export default function PlannerPageClient() {
           }>
             <PlannerPageContent />
           </Suspense>
-        </I18nProvider>
+
       </LocationProvider>
     </AuthProvider>
   );

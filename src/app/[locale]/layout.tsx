@@ -1,6 +1,6 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Manrope, Inter, JetBrains_Mono, DM_Serif_Display } from 'next/font/google';
-import './globals.css';
+import '../globals.css';
 import { WebsiteJsonLd } from '@/components/JsonLd';
 import I18nProvider from '@/contexts/I18nProvider';
 import { Analytics } from '@vercel/analytics/next';
@@ -57,7 +57,15 @@ async function fetchSiteConfig(): Promise<Record<string, string>> {
   }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export const viewport: Viewport = {
+  themeColor: '#1a1533',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
   const config = await fetchSiteConfig();
 
   const title = config.site_title || FALLBACK.title;
@@ -67,6 +75,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const twitterHandle = config.twitter_handle || FALLBACK.twitterHandle;
 
   const keywordList = keywords.split(',').map(k => k.trim()).filter(Boolean);
+
+  const pageUrl = locale === 'en' ? `${SITE_URL}/en` : SITE_URL;
 
   return {
     metadataBase: new URL(SITE_URL),
@@ -92,9 +102,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       type: 'website',
-      locale: 'id_ID',
-      alternateLocale: 'en_US',
-      url: SITE_URL,
+      locale: locale === 'en' ? 'en_US' : 'id_ID',
+      url: pageUrl,
       siteName: SITE_NAME,
       title,
       description,
@@ -119,7 +128,7 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: '/logo-gold-new.png',
     },
     alternates: {
-      canonical: SITE_URL,
+      canonical: pageUrl,
       languages: {
         id: SITE_URL,
         en: `${SITE_URL}/en`,
@@ -128,21 +137,24 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
   return (
-    <html lang="id" className={`${manrope.variable} ${inter.variable} ${jetbrainsMono.variable} ${dmSerifDisplay.variable}`}>
+    <html lang={locale} className={`${manrope.variable} ${inter.variable} ${jetbrainsMono.variable} ${dmSerifDisplay.variable}`}>
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        <meta name="theme-color" content="#1a1533" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <link rel="alternate" href={SITE_URL} hrefLang="id" />
-        <link rel="alternate" href={`${SITE_URL}/en`} hrefLang="en" />
-        <link rel="alternate" href={SITE_URL} hrefLang="x-default" />
         <WebsiteJsonLd />
       </head>
       <body>
-        <I18nProvider>{children}</I18nProvider>
+        <I18nProvider locale={locale as 'id' | 'en'}>{children}</I18nProvider>
         <Analytics />
       </body>
     </html>

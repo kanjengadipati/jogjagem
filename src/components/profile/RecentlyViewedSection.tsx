@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Eye, Star, ArrowRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { destinations as destinationsApi } from '../../lib/api';
 import type { Destination } from '../../types';
 

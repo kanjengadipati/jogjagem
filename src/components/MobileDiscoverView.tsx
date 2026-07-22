@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import {
   Search, MapPin, Bell, Star, Heart, ChevronRight,
   Grid2x2, Compass, Utensils, Calendar, MoreHorizontal, Bookmark,
@@ -163,7 +163,7 @@ export default function MobileDiscoverView({
 }: MobileDiscoverViewProps) {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
-  const { t } = useLocale();
+  const { t, locale, setLocale } = useLocale();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [recommendation, setRecommendation] = useState<{
     dest: Destination; headline: string; reason: string;
@@ -357,13 +357,21 @@ export default function MobileDiscoverView({
             <Image src="/logo-gold-new.png" alt="Jogjagem" width={24} height={24} className="h-6 w-auto" style={{ width: 'auto' }} />
             <span className="font-manrope font-bold text-white text-[16px] tracking-widest uppercase">Jogjagem</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => permission !== 'granted' && requestLocation()}
               className="flex items-center gap-1 text-white/60 text-[11px] font-medium active:opacity-70"
             >
               <MapPin className="h-3.5 w-3.5 text-gold-500 shrink-0" />
-              <span className="max-w-[100px] truncate">{locationName}</span>
+              <span className="max-w-[80px] truncate">{locationName}</span>
+            </button>
+            {/* Language toggle */}
+            <button
+              onClick={() => setLocale(locale === 'id' ? 'en' : 'id')}
+              className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 border border-white/10 active:opacity-70 transition-all"
+            >
+              <span className="text-sm leading-none">{locale === 'id' ? '🇮🇩' : '🇬🇧'}</span>
+              <span className="text-[10px] font-bold text-white/80 uppercase">{locale === 'id' ? 'ID' : 'EN'}</span>
             </button>
             <button className="relative p-1.5">
               <Bell className="h-5 w-5 text-white/70" />
@@ -463,7 +471,7 @@ export default function MobileDiscoverView({
             {/* Trending */}
             {(trendingLoading || trendingItems.length > 0) && (
               <div className="shrink-0 mt-3">
-                <SectionHeader title="Sedang Trending" dark onSeeAll={() => router.push('/destinations')} />
+                <SectionHeader title={t('hero.trending')} dark onSeeAll={() => router.push('/destinations')} />
                 <div className="flex gap-3 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-1">
                   {trendingLoading
                     ? Array.from({ length: 4 }).map((_, i) => (
@@ -513,7 +521,7 @@ export default function MobileDiscoverView({
 
         {/* ── Category pills ── */}
         <div>
-          <SectionHeader title="Jelajahi Kategori" />
+          <SectionHeader title={t('hero.browse_categories')} />
           {/* Primary row: 4 cats + Lainnya button */}
           <div className="grid grid-cols-5 gap-2 px-4">
             {[...PRIMARY_CATS, { id: '__more__' as const, tKey: 'category.more', Icon: MoreHorizontal }].map(({ id, tKey, Icon }) => {
@@ -566,7 +574,7 @@ export default function MobileDiscoverView({
 
         {/* ── Popular destinations ── */}
         <div>
-          <SectionHeader title="Destinasi Populer" onSeeAll={() => router.push('/destinations')} />
+          <SectionHeader title={t('home.popular_destinations')} onSeeAll={() => router.push('/destinations')} />
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4">
             {popularDests.length === 0
               ? Array.from({ length: 4 }).map((_, i) => (
@@ -592,7 +600,7 @@ export default function MobileDiscoverView({
         {/* ── Event & Festival ── */}
         {(allEvents.length > 0 || trendingLoading) && (
           <div>
-            <SectionHeader title="Event & Festival" onSeeAll={() => router.push('/events')} />
+            <SectionHeader title={t('home.upcoming_events')} onSeeAll={() => router.push('/events')} />
             <div className="flex gap-3.5 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-1">
               {allEvents.length === 0
                 ? Array.from({ length: 4 }).map((_, i) => (
@@ -634,7 +642,7 @@ export default function MobileDiscoverView({
         {/* ── AI Picks ── */}
         {(aiDestinations.length > 0 || trendingLoading) && (
           <div>
-            <SectionHeader title="Pilihan AI Untukmu" onSeeAll={() => router.push('/ai')} />
+            <SectionHeader title={t('home.ai_picks')} onSeeAll={() => router.push('/ai')} />
             <div className="flex gap-3.5 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-1">
               {aiDestinations.length === 0
                 ? Array.from({ length: 3 }).map((_, i) => (

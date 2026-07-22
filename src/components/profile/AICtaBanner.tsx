@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { MapPin, Sparkles } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 
 export default function AICtaBanner() {
   const router = useRouter();

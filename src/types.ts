@@ -65,6 +65,7 @@ export interface Destination {
   ogImageUrl?: string;
   badge?: string;
   badges?: string[];
+  videoUrl?: string;
 }
 
 export interface Festival {

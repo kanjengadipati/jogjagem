@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';

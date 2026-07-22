@@ -39,23 +39,27 @@ export async function generateStaticParams() {
     const body = await res.json();
     const list = body?.data || body || [];
     if (!Array.isArray(list)) return [];
-    return list
-      .map((d: any) => {
-        const name = d.name || d.Name || '';
-        const id = d.id || d.ExternalID || '';
-        const slug = toSlug(name) || id;
-        return slug ? { slug: [slug] } : null;
-      })
-      .filter(Boolean);
+    
+    const params: { locale: string; slug: string[] }[] = [];
+    list.forEach((d: any) => {
+      const name = d.name || d.Name || '';
+      const id = d.id || d.ExternalID || '';
+      const slug = toSlug(name) || id;
+      if (slug) {
+        params.push({ locale: 'id', slug: [slug] });
+        params.push({ locale: 'en', slug: [slug] });
+      }
+    });
+    return params;
   } catch {
     return [];
   }
 }
 
-type PageProps = { params: Promise<{ slug: string[] }> };
+type PageProps = { params: Promise<{ slug: string[]; locale: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const slugStr = slug.join('/');
   const dest = await fetchDestinationBySlug(slugStr);
 
@@ -79,7 +83,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const reviewCount = dest.review_count || dest.ReviewCount || 0;
   const latitude = dest.latitude || dest.Latitude || 0;
   const longitude = dest.longitude || dest.Longitude || 0;
-  const pageUrl = `${SITE_URL}/destinations/${slugStr}`;
+  
+  const pageUrl = locale === 'en' ? `${SITE_URL}/en/destinations/${slugStr}` : `${SITE_URL}/destinations/${slugStr}`;
 
   const seoTitle = dest.seo_title || dest.SeoTitle || '';
   const seoKeywords = dest.seo_keywords || dest.SeoKeywords || '';
@@ -98,7 +103,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : [name, `wisata ${name}`, `${name} Yogyakarta`, `${name} jogja`, category, 'wisata jogja', 'tempat wisata Yogyakarta'],
     openGraph: {
       type: 'article',
-      locale: 'id_ID',
+      locale: locale === 'en' ? 'en_US' : 'id_ID',
       url: pageUrl,
       siteName: SITE_NAME,
       title,
@@ -120,6 +125,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     alternates: {
       canonical: pageUrl,
+      languages: {
+        id: `${SITE_URL}/destinations/${slugStr}`,
+        en: `${SITE_URL}/en/destinations/${slugStr}`,
+      },
     },
   };
 }
