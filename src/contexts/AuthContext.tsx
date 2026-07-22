@@ -46,7 +46,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refreshProfile();
+    const handleAuth = async () => {
+      if (typeof window !== 'undefined') {
+        let idToken = null;
+
+        // Try getting id_token from hash
+        if (window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          idToken = hashParams.get('id_token');
+        }
+
+        // Try getting id_token from search query if not found in hash
+        if (!idToken && window.location.search) {
+          const searchParams = new URLSearchParams(window.location.search);
+          idToken = searchParams.get('id_token');
+        }
+
+        if (idToken) {
+          setState(prev => ({ ...prev, isLoading: true }));
+          try {
+            const res = await auth.socialLogin('google', idToken);
+            if (res.status === 'success') {
+              // Clean up URL: remove hash and/or id_token search param
+              if (window.history && window.history.replaceState) {
+                const searchParams = new URLSearchParams(window.location.search);
+                searchParams.delete('id_token');
+                const searchStr = searchParams.toString();
+                const cleanUrl = window.location.pathname + (searchStr ? `?${searchStr}` : '');
+                window.history.replaceState(null, '', cleanUrl);
+              } else {
+                window.location.hash = '';
+              }
+            }
+          } catch (err) {
+            console.error('Error in social login callback:', err);
+          }
+        }
+      }
+      await refreshProfile();
+    };
+
+    handleAuth();
   }, [refreshProfile]);
 
   const login = async (email: string, password: string) => {
