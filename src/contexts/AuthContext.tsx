@@ -77,13 +77,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               } else {
                 window.location.hash = '';
               }
+            } else {
+              console.error('Social login failed:', res.message);
+              setState(prev => ({ ...prev, isLoading: false }));
             }
           } catch (err) {
             console.error('Error in social login callback:', err);
+            setState(prev => ({ ...prev, isLoading: false }));
           }
         }
+        await refreshProfile();
       }
-      await refreshProfile();
     };
 
     handleAuth();
