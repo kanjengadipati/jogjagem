@@ -64,6 +64,9 @@ function ProfilePageContent() {
   }, [authLoading, isAuthenticated]);
 
   const loadProfile = async () => {
+    // This is only called if isAuthenticated is true (from useEffect)
+    // or if we are already authenticated.
+    setLoading(true);
     try {
       const [profileRes, destRes] = await Promise.all([
         auth.getProfile(),
@@ -71,12 +74,11 @@ function ProfilePageContent() {
       ]);
 
       if (profileRes.status !== 'success' || !profileRes.data) {
-        if (!isAuthenticated || profileRes.message === 'Unauthorized') {
+        if (profileRes.message === 'Unauthorized') {
           setAuthModalOpen(true);
-          setLoading(false);
-          return;
+        } else {
+          setError('Failed to load profile');
         }
-        setError('Failed to load profile');
         setLoading(false);
         return;
       }
@@ -98,11 +100,6 @@ function ProfilePageContent() {
         // silently fail
       }
     } catch {
-      if (!isAuthenticated) {
-        setAuthModalOpen(true);
-        setLoading(false);
-        return;
-      }
       setError('Network error');
     } finally {
       setLoading(false);
