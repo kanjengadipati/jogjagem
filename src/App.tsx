@@ -9,7 +9,6 @@ import Hero from './components/Hero';
 import CategoryLinks from './components/CategoryLinks';
 import DestinationCard from './components/DestinationCard';
 import MobileDiscoverView from './components/MobileDiscoverView';
-import MobileFooter from './components/MobileFooter';
 import { useLocale } from '@/contexts/LocaleContext';
 
 import { Destination, Festival } from './types';
@@ -158,6 +157,7 @@ export default function App() {
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [footerOpenIdx, setFooterOpenIdx] = useState<number | null>(null);
 
   const [pendingReportId, setPendingReportId] = useState<string | null>(null);
 
@@ -873,13 +873,25 @@ export default function App() {
       {/* Footer */}
       <footer id="editorial-luxury-footer" className="bg-[#F5F0E8] md:bg-royal-950 text-white md:text-white border-t-0 md:border-t border-stone-200 md:border-royal-900">
 
-        {/* Quote card — mobile only — hidden, now in MobileFooter (layout) */}
+        {/* Quote card — mobile only */}
+        <div className="xl:hidden mx-4 mt-3 mb-0 bg-[#F5EDD8] rounded-3xl p-5 flex items-start gap-4 border border-[#E8D9B8]">
+          <span className="text-gold-500 text-4xl font-serif leading-none mt-1">"</span>
+          <div className="flex-1">
+            <p className="text-royal-950 font-manrope font-semibold text-[13px] leading-relaxed">
+              Jogja bukan sekadar tempat, tapi rasa yang selalu ingin kembali.
+            </p>
+            <p className="text-gold-600 text-[11px] font-semibold mt-2">— Jogjagem</p>
+          </div>
+          <div className="shrink-0 opacity-30">
+            <Image src="/logo-gold-new.png" alt="" width={48} height={48} className="h-12 w-auto" />
+          </div>
+        </div>
 
-        {/* Main footer body — desktop only */}
-        <div className="hidden xl:block bg-royal-950 px-5 pt-7 pb-12">
+        {/* Main footer body */}
+        <div className="bg-royal-950 mt-4 xl:mt-0 rounded-t-3xl xl:rounded-none px-5 pt-7 pb-[calc(90px+env(safe-area-inset-bottom,0px))] xl:pb-12">
           <div className="mx-auto max-w-7xl">
 
-            {/* Logo + tagline */}
+            {/* Logo + tagline + social */}
             <div className="flex items-start justify-between mb-6">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -892,11 +904,11 @@ export default function App() {
               </div>
             </div>
 
-            {/* Social icons — desktop */}
+            {/* Social icons */}
             <div className="flex items-center gap-4 mb-7">
               {[
-                { icon: 'IG', href: 'https://instagram.com/jogjagem' },
-                { icon: 'TK', href: 'https://tiktok.com/@jogjagem' },
+                { icon: 'IG', href: 'https://instagram.com' },
+                { icon: 'TK', href: 'https://tiktok.com' },
                 { icon: 'YT', href: 'https://youtube.com' },
                 { icon: 'FB', href: 'https://facebook.com' },
               ].map(s => (
@@ -912,8 +924,53 @@ export default function App() {
               ))}
             </div>
 
+            {/* Nav links — accordion */}
+            {(() => {
+              const NAV_ITEMS = [
+                {
+                  label: 'Tentang Kami',
+                  content: 'Jogjagem adalah platform perjalanan digital yang membantu kamu menjelajahi keindahan Yogyakarta — dari destinasi tersembunyi hingga warisan budaya dunia. Dibuat dengan cinta oleh anak Jogja, untuk semua yang rindu Jogja.',
+                },
+                {
+                  label: 'Bantuan',
+                  content: 'Butuh bantuan? Hubungi kami via email di hello@jogjagem.id atau DM Instagram @jogjagem. Tim kami siap membantu kamu merencanakan perjalanan terbaik ke Yogyakarta.',
+                },
+                {
+                  label: 'Syarat & Ketentuan',
+                  content: 'Dengan menggunakan Jogjagem, kamu menyetujui penggunaan layanan secara bertanggung jawab. Konten, foto, dan data destinasi hanya untuk keperluan informasi perjalanan. Jogjagem tidak bertanggung jawab atas perubahan harga atau jam operasional destinasi.',
+                },
+                {
+                  label: 'Kebijakan Privasi',
+                  content: 'Kami menghargai privasimu. Data lokasi dan preferensi perjalanan hanya digunakan untuk meningkatkan rekomendasi. Kami tidak menjual data pribadimu kepada pihak ketiga. Kamu dapat menghapus akun dan data kapan saja.',
+                },
+              ];
+
+              return (
+                <div className="border-t border-white/10 divide-y divide-white/8">
+                  {NAV_ITEMS.map((item, idx) => (
+                    <div key={item.label}>
+                      <button
+                        onClick={() => setFooterOpenIdx(footerOpenIdx === idx ? null : idx)}
+                        className="w-full flex items-center justify-between py-3.5 text-left"
+                      >
+                        <span className="text-white/80 text-[13px] font-medium">{item.label}</span>
+                        <ChevronRight
+                          className={`h-4 w-4 text-white/30 transition-transform duration-200 ${footerOpenIdx === idx ? 'rotate-90' : ''}`}
+                        />
+                      </button>
+                      {footerOpenIdx === idx && (
+                        <p className="text-white/50 text-[12px] leading-relaxed pb-3.5 -mt-1 pr-4">
+                          {item.content}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
             {/* Desktop copyright */}
-            <div className="mt-6 pt-4 border-t border-white/10">
+            <div className="hidden xl:block mt-6 pt-4 border-t border-white/10">
               <div className="text-[10px] font-mono text-gold-200/40 uppercase tracking-widest space-y-1">
                 <p>{t('footer.copyright')}</p>
                 <p>{t('footer.build_by')}</p>
@@ -923,8 +980,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-
-      <MobileFooter />
 
       {/* Mobile Sticky Bottom Tab Bar */}
       <div className="xl:hidden fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(8px+env(safe-area-inset-bottom,0px))]">

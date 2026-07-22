@@ -8,7 +8,6 @@ import {
   Star, Heart, Flame, SlidersHorizontal, X, Sparkles,
 } from 'lucide-react';
 import { EventCardSkeleton } from '@/components/CardSkeleton';
-import MobileFooter from '@/components/MobileFooter';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
 import Header from '@/components/Header';
@@ -446,7 +445,6 @@ function EventsPageContent() {
           </div>
         </div>
       </footer>
-      <MobileFooter />
     </div>
   );
 }

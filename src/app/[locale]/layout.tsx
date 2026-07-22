@@ -164,9 +164,7 @@ export default async function RootLayout({
         <WebsiteJsonLd />
       </head>
       <body>
-        <I18nProvider locale={locale as 'id' | 'en'}>
-          {children}
-        </I18nProvider>
+        <I18nProvider locale={locale as 'id' | 'en'}>{children}</I18nProvider>
         <Analytics />
       </body>
     </html>

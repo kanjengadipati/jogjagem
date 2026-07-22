@@ -20,12 +20,9 @@ export default function AIFloatingAssistant({ destination, liveWeather, liveCrow
   const [currentTime, setCurrentTime] = useState('');
   const [advice, setAdvice] = useState<string>(t('ai_floating.loading'));
   const [loading, setLoading] = useState(false);
-  const { coords, requestLocation } = useLocation();
+  const { coords } = useLocation();
 
-  useEffect(() => {
-    // Request location on mount
-    if (!coords) requestLocation();
-  }, [coords, requestLocation]);
+
 
   useEffect(() => {
     const updateTime = () => {
