@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from '@/i18n/navigation';
+import MobileFooter from '@/components/MobileFooter';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
@@ -602,6 +603,7 @@ function DestinationsPageInner() {
           </div>
         </div>
       </footer>
+      <MobileFooter />
     </div>
   );
 }

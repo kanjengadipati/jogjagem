@@ -9,6 +9,7 @@ import Hero from './components/Hero';
 import CategoryLinks from './components/CategoryLinks';
 import DestinationCard from './components/DestinationCard';
 import MobileDiscoverView from './components/MobileDiscoverView';
+import MobileFooter from './components/MobileFooter';
 import { useLocale } from '@/contexts/LocaleContext';
 
 import { Destination, Festival } from './types';
@@ -922,6 +923,8 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      <MobileFooter />
 
       {/* Mobile Sticky Bottom Tab Bar */}
       <div className="xl:hidden fixed bottom-0 left-0 right-0 z-50 px-3 pb-[calc(8px+env(safe-area-inset-bottom,0px))]">
