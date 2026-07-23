@@ -402,8 +402,8 @@ export default function BlogListClient({
             {/* Right: hero image */}
             <div className="hidden md:block relative h-64 rounded-2xl overflow-hidden">
               <Image
-                src="https://images.unsplash.com/photo-1596402184320-417e7178b2cd?w=800&q=80"
-                alt="Candi Prambanan, Yogyakarta"
+                src="/bg-blog.jpg"
+                alt="Yogyakarta"
                 fill
                 className="object-cover"
                 sizes="50vw"
