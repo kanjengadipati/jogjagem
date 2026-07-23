@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'encrypted-tbn0.gstatic.com' },
       { protocol: 'https', hostname: 'assets.yogyakarta.go.id' },
     ],
+    loaderFile: './src/lib/image-loader.ts',
   },
 };
 
