@@ -113,21 +113,23 @@ function FeaturedArticle({ article, locale, messages }: {
   return (
     <Link
       href={`/${locale}/blog/${article.slug}`}
-      className="group relative flex flex-col justify-end overflow-hidden rounded-2xl min-h-72 md:min-h-96 bg-royal-900"
+      className="group relative flex flex-col justify-end overflow-hidden rounded-2xl bg-royal-900 shadow-lg border border-white/5"
+      style={{ minHeight: '280px' }}
     >
       {imgSrc && (
         <Image
           src={imgSrc}
           alt={article.title}
           fill
-          className="object-cover opacity-70 group-hover:opacity-80 transition-opacity duration-500 group-hover:scale-105 transition-transform"
-          sizes="(max-width: 768px) 100vw, 60vw"
+          className="object-cover opacity-75 group-hover:opacity-85 group-hover:scale-105 transition-all duration-500"
+          sizes="100vw"
           priority
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+      {/* Bottom gradient — stronger */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
 
-      <div className="relative p-6 md:p-8 space-y-3">
+      <div className="relative p-6 md:p-7 space-y-2">
         {article.category && (
           <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-gold-400 text-royal-900">
             {getCatLabel(article.category, messages, locale)}
@@ -137,7 +139,7 @@ function FeaturedArticle({ article, locale, messages }: {
           {article.title}
         </h2>
         {article.excerpt && (
-          <p className="text-sm text-white/70 leading-relaxed line-clamp-2 max-w-lg">
+          <p className="text-sm text-white/70 leading-relaxed line-clamp-2 max-w-2xl">
             {article.excerpt}
           </p>
         )}
