@@ -159,19 +159,13 @@ export default function App() {
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const [footerOpenIdx, setFooterOpenIdx] = useState<number | null>(null);
 
-  const [pendingReportId, setPendingReportId] = useState<string | null>(null);
-
   const openAuth = (mode: 'login' | 'register') => {
     setAuthModalMode(mode);
     setAuthModalOpen(true);
   };
   
   const handleAuthSuccess = () => {
-    const pendingId = sessionStorage.getItem('pending_report');
-    if (pendingId) {
-      setPendingReportId(pendingId);
-      sessionStorage.removeItem('pending_report');
-    }
+    // Report flow now handled in detail page via useAuth
   };
 
   const [savedDestinations, setSavedDestinations] = useState<Destination[]>([]);
@@ -515,8 +509,6 @@ export default function App() {
                           onToggleSave={handleToggleSave}
                           onAuthRequired={() => openAuth('login')}
                           isSaved={isSaved(dest.id)}
-                          isReportPending={pendingReportId === dest.id}
-                          onClearPendingReport={() => setPendingReportId(null)}
                           className={index % 7 === 0 ? 'col-span-2 lg:col-span-2' : 'col-span-1 lg:col-span-1'}
                         />
                       ))}
@@ -843,8 +835,6 @@ export default function App() {
                         onToggleSave={handleToggleSave}
                         onAuthRequired={() => openAuth('login')}
                         isSaved={isSaved(dest.id)}
-                        isReportPending={pendingReportId === dest.id}
-                        onClearPendingReport={() => setPendingReportId(null)}
                       />
                     ))
                   }

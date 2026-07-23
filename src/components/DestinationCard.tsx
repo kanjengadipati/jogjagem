@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, Heart, Flag } from 'lucide-react';
+import { Star, Heart } from 'lucide-react';
 import { Destination } from '../types';
-import { auth } from '../lib/api';
 import { useLocale } from '@/contexts/LocaleContext';
-import ReportModal from './ReportModal';
 
 interface DestinationCardProps {
   key?: string | number;
@@ -14,8 +12,6 @@ interface DestinationCardProps {
   onToggleSave: (dest: Destination) => void;
   onAuthRequired?: () => void;
   isSaved: boolean;
-  isReportPending?: boolean;
-  onClearPendingReport?: () => void;
   className?: string;
 }
 
@@ -42,41 +38,14 @@ const BADGE_MAP: Record<string, string> = {
 
 export default React.memo(function DestinationCard({ 
   destination, onExplore, onToggleSave, onAuthRequired = () => {}, isSaved, 
-  isReportPending = false, onClearPendingReport = () => {}, className = '' 
+  className = '' 
 }: DestinationCardProps) {
-  const [reportOpen, setReportOpen] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const { t } = useLocale();
-
-  React.useEffect(() => {
-    if (isReportPending) {
-      setReportOpen(true);
-      onClearPendingReport();
-    }
-  }, [isReportPending, onClearPendingReport]);
 
   const handleToggleSave = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleSave(destination);
-  };
-
-  const handleReport = async (reason: string, details: string) => {
-    try {
-      await auth.reportDestinationImage(destination.id, reason, details);
-      alert(t('report.report_submitted'));
-    } catch {
-      alert(t('report.report_failed'));
-    }
-  };
-
-  const handleReportOpen = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!auth.isLoggedIn()) {
-      sessionStorage.setItem('pending_report', destination.id);
-      onAuthRequired();
-      return;
-    }
-    setReportOpen(true);
   };
 
   const apiBadge = destination.badge;
@@ -111,8 +80,6 @@ export default React.memo(function DestinationCard({
 
   return (
     <>
-      <ReportModal isOpen={reportOpen} onClose={() => setReportOpen(false)} destinationId={destination.id} onReport={handleReport} />
-
       <Link
         id={`destination-card-${destination.id}`}
         href={`/destinations/${slug}`}
@@ -158,14 +125,6 @@ export default React.memo(function DestinationCard({
             <div className={`${badgeBgClass} px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-sans font-semibold uppercase tracking-[0.08em]`}>
                 {badgeText}
             </div>
-            {/* Report Button */}
-            <button
-                onClick={handleReportOpen}
-                className="p-1.5 rounded-full bg-black/20 hover:bg-red-500 text-white backdrop-blur-sm transition-all"
-                title={t('destination_card.report_image_title')}
-            >
-                <Flag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            </button>
         </div>
 
         {/* Bookmark Icon */}

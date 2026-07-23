@@ -296,10 +296,10 @@ export const auth = {
     });
   },
 
-  async reportDestinationImage(destinationId: string, reason: string, details: string) {
+  async reportDestinationImage(destinationId: string, imageUrl: string, reason: string, details: string) {
     return request(`/destinations/${destinationId}/report`, {
       method: 'POST',
-      body: JSON.stringify({ reason, details }),
+      body: JSON.stringify({ image_url: imageUrl, reason, details }),
     });
   },
 
