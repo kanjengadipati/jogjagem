@@ -336,82 +336,78 @@ export default function BlogListClient({
     <div className="min-h-screen" style={{ background: '#F7F3EE' }}>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="border-b border-royal-800" style={{ background: '#1b1c16' }}>
-        <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-            {/* Left: text + search + categories */}
-            <div className="space-y-5">
-              <Link href={`/${locale}`} className="text-xs text-white/40 hover:text-gold-400 transition flex items-center gap-1">
-                ← Jogjagem
-              </Link>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight tracking-tight font-display">
-                  {isEn ? (
-                    <>Stories & Guides<br />from <span className="text-gold-400">Jogja</span></>
-                  ) : (
-                    <>Cerita & Panduan<br />dari <span className="text-gold-400">Jogja</span></>
-                  )}
-                </h1>
-                <p className="mt-4 text-sm text-white/50 leading-relaxed max-w-sm">
-                  {isEn
-                    ? 'Discover places few tourists know, flavors worth trying, and how to enjoy Yogyakarta like a local.'
-                    : 'Temukan tempat yang belum banyak diketahui, rasa yang layak dicoba, dan cara menikmati Yogyakarta seperti orang lokal.'}
-                </p>
-              </div>
+      <section className="relative overflow-hidden" style={{ minHeight: '400px' }}>
+        {/* BG image */}
+        <Image
+          src="/bg-blog.jpg"
+          alt="Yogyakarta"
+          fill
+          className="object-cover object-center"
+          sizes="100vw"
+          priority
+        />
+        {/* Gradient overlay — left dark, right transparent */}
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to right, rgba(27,28,22,0.92) 0%, rgba(27,28,22,0.75) 45%, rgba(27,28,22,0.2) 100%)' }}
+        />
 
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder={isEn ? 'Explore places, food, itinerary, or stories...' : 'Mau menjelajah apa hari ini? Cari tempat, kuliner, itinerary, atau cerita...'}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/10 focus:border-gold-400 outline-none text-sm font-medium bg-white/5 focus:bg-white/10 text-white placeholder-white/30 transition"
-                />
-              </div>
-
-              {/* Category chips */}
-              {categories.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {categories.map(cat => {
-                    const key = CATEGORY_KEYS[cat];
-                    return (
-                      <button
-                        key={cat}
-                        onClick={() => selectCategory(cat)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer capitalize border ${
-                          activeCategory === cat
-                            ? 'bg-gold-400 text-royal-900 border-gold-400'
-                            : 'bg-white/5 text-white/70 border-white/10 hover:border-gold-400 hover:text-gold-400'
-                        }`}
-                      >
-                        {CATEGORY_META[cat]?.icon && (
-                          <span className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0">{CATEGORY_META[cat].icon}</span>
-                        )}
-                        <span>{messages[key]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+        {/* Content */}
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-12 md:py-20">
+          <div className="max-w-lg space-y-5">
+            <Link href={`/${locale}`} className="text-xs text-white/40 hover:text-gold-400 transition flex items-center gap-1">
+              ← Jogjagem
+            </Link>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight tracking-tight font-display">
+                {isEn ? (
+                  <>Stories & Guides<br />from <span className="text-gold-400">Jogja</span></>
+                ) : (
+                  <>Cerita & Panduan<br />dari <span className="text-gold-400">Jogja</span></>
+                )}
+              </h1>
+              <p className="mt-4 text-sm text-white/60 leading-relaxed">
+                {isEn
+                  ? 'Discover places few tourists know, flavors worth trying, and how to enjoy Yogyakarta like a local.'
+                  : 'Temukan tempat yang belum banyak diketahui, rasa yang layak dicoba, dan cara menikmati Yogyakarta seperti orang lokal.'}
+              </p>
             </div>
 
-            {/* Right: hero image — clipped shape like mockup */}
-            <div className="hidden md:block relative h-80">
-              <div
-                className="relative w-full h-full overflow-hidden"
-                style={{ clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)', borderRadius: '0.5rem' }}
-              >
-                <Image
-                  src="/bg-blog.jpg"
-                  alt="Yogyakarta"
-                  fill
-                  className="object-cover object-center"
-                  sizes="50vw"
-                  priority
-                />
-              </div>
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={isEn ? 'Explore places, food, itinerary, or stories...' : 'Mau menjelajah apa hari ini? Cari tempat, kuliner, itinerary, atau cerita...'}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/10 focus:border-gold-400 outline-none text-sm font-medium bg-white/5 focus:bg-white/10 text-white placeholder-white/30 transition"
+              />
             </div>
+
+            {/* Category chips */}
+            {categories.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {categories.map(cat => {
+                  const key = CATEGORY_KEYS[cat];
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => selectCategory(cat)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer capitalize border ${
+                        activeCategory === cat
+                          ? 'bg-gold-400 text-royal-900 border-gold-400'
+                          : 'bg-white/5 text-white/70 border-white/10 hover:border-gold-400 hover:text-gold-400'
+                      }`}
+                    >
+                      {CATEGORY_META[cat]?.icon && (
+                        <span className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0">{CATEGORY_META[cat].icon}</span>
+                      )}
+                      <span>{messages[key]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </section>
