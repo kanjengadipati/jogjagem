@@ -113,7 +113,7 @@ function FeaturedArticle({ article, locale, messages }: {
   messages: BlogMessages;
 }) {
   const catMeta = article.category ? CATEGORY_META[article.category] : undefined;
-  const imgSrc = article.cover_image || catMeta?.fallbackImage || null;
+  const imgSrc = article.cover_image || catMeta?.fallbackImage || '/merapi.jpg';
 
   return (
     <Link
