@@ -703,5 +703,32 @@
     "schedule_session_1": "Performance Session 1",
     "schedule_main": "Main Performance",
     "schedule_closing": "Closing"
+  },
+  "blog": {
+    "title": "Blog & Travel Guides",
+    "subtitle": "Articles, tips, and complete guides to exploring Yogyakarta",
+    "all_articles": "All Articles",
+    "read_more": "Read More",
+    "min_read": "min read",
+    "by": "by",
+    "published": "Published",
+    "category": "Category",
+    "back_to_blog": "Back to Blog",
+    "loading": "Loading articles...",
+    "not_found": "Article not found",
+    "not_found_desc": "The article you are looking for may have been removed or moved.",
+    "see_all": "See All Articles",
+    "latest": "Latest Articles",
+    "related": "Related Articles",
+    "share": "Share Article",
+    "cat_panduan": "Guide",
+    "cat_itinerary": "Itinerary",
+    "cat_kuliner": "Food",
+    "cat_budaya": "Culture",
+    "cat_alam": "Nature",
+    "cat_tips": "Tips",
+    "cat_lainnya": "Other",
+    "empty": "No published articles yet.",
+    "search_placeholder": "Search articles..."
   }
 }

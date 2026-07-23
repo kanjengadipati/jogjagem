@@ -64,8 +64,7 @@ export interface Destination {
   seoDescription?: string;
   ogImageUrl?: string;
   badge?: string;
-  badges?: string[];
-  videoUrl?: string;
+  badges?: string[];  videoUrl?: string;
 }
 
 export interface Festival {
@@ -82,6 +81,7 @@ export interface Festival {
 }
 
 export interface TripDay {
+export interface TripDay {
   dayNumber: number;
   destinations: Destination[];
   notes?: string;
@@ -94,4 +94,29 @@ export interface TripPlan {
   durationDays: number;
   days: TripDay[];
   notes?: string;
+}
+
+export interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  title_en?: string;
+  excerpt?: string;
+  excerpt_en?: string;
+  content?: string;
+  content_en?: string;
+  cover_image?: string;
+  category?: string;
+  tags?: string[];
+  author?: string;
+  status?: string;
+  published_at?: string;
+  seo_title?: string;
+  seo_title_en?: string;
+  seo_description?: string;
+  seo_description_en?: string;
+  seo_keywords?: string;
+  seo_keywords_en?: string;
+  og_image?: string;
+  read_time_minutes?: number;
 }

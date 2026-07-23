@@ -570,6 +570,28 @@ interface BePartner {
   longitude?: number;
 }
 
+export const articles = {
+  async getAll(params?: { limit?: number; page?: number; category?: string }) {
+    const qs = new URLSearchParams();
+    qs.set('limit', String(params?.limit ?? 20));
+    qs.set('page', String(params?.page ?? 1));
+    if (params?.category) qs.set('category', params.category);
+    return request(`/articles?${qs.toString()}`);
+  },
+
+  async getBySlug(slug: string) {
+    return request(`/articles/slug/${encodeURIComponent(slug)}`);
+  },
+
+  async getByCategory(category: string) {
+    return request(`/articles/category/${encodeURIComponent(category)}`);
+  },
+
+  async search(query: string) {
+    return request(`/articles/search?q=${encodeURIComponent(query)}`);
+  },
+};
+
 export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BePartner };
 
 export interface TripDayPayload {

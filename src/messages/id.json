@@ -703,5 +703,33 @@
     "schedule_session_1": "Sesi Pertunjukan 1",
     "schedule_main": "Pertunjukan Utama",
     "schedule_closing": "Penutupan"
+  },
+  "blog": {
+    "title": "Blog & Panduan Wisata",
+    "subtitle": "Artikel, tips, dan panduan lengkap untuk menjelajahi Yogyakarta",
+    "all_articles": "Semua Artikel",
+    "read_more": "Baca Selengkapnya",
+    "min_read": "menit baca",
+    "by": "oleh",
+    "published": "Diterbitkan",
+    "category": "Kategori",
+    "back_to_blog": "Kembali ke Blog",
+    "loading": "Memuat artikel...",
+    "not_found": "Artikel tidak ditemukan",
+    "not_found_desc": "Artikel yang kamu cari mungkin sudah dihapus atau dipindahkan.",
+    "see_all": "Lihat Semua Artikel",
+    "latest": "Artikel Terbaru",
+    "related": "Artikel Terkait",
+    "share": "Bagikan Artikel",
+    "cat_panduan": "Panduan",
+    "cat_itinerary": "Itinerary",
+    "cat_kuliner": "Kuliner",
+    "cat_budaya": "Budaya",
+    "cat_alam": "Alam",
+    "cat_tips": "Tips",
+    "cat_lainnya": "Lainnya",
+    "empty": "Belum ada artikel yang dipublikasikan.",
+    "search_placeholder": "Cari artikel..."
   }
 }
+
