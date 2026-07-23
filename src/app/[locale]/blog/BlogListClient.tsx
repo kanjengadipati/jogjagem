@@ -53,35 +53,40 @@ const CATEGORY_META: Record<string, {
     bg: 'bg-amber-50 text-amber-700',
     descId: 'Tempat yang belum banyak diketahui wisatawan.',
     descEn: "Places most tourists haven't discovered yet.",
-    fallbackImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Prambanan_temple_compound%2C_2014-06-18.jpg/1280px-Prambanan_temple_compound%2C_2014-06-18.jpg',
+    // Prambanan temple at golden hour
+    fallbackImage: 'https://images.unsplash.com/photo-1596402184320-417e7178b2cd?w=800&q=80',
   },
   kuliner: {
     icon: <UtensilsCrossed className="w-5 h-5" />,
     bg: 'bg-orange-50 text-orange-700',
     descId: 'Rasa lokal yang wajib kamu coba saat di Jogja.',
     descEn: 'Local flavors you must try in Jogja.',
-    fallbackImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Gudeg_Jogja.jpg/1280px-Gudeg_Jogja.jpg',
+    // Indonesian food / nasi
+    fallbackImage: 'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=800&q=80',
   },
   budaya: {
     icon: <Landmark className="w-5 h-5" />,
     bg: 'bg-blue-50 text-blue-700',
     descId: 'Cerita, tradisi, dan warisan budaya Yogyakarta.',
     descEn: "Stories, traditions, and Yogyakarta's cultural heritage.",
-    fallbackImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Yogyakarta_kraton_2.jpg/1280px-Yogyakarta_kraton_2.jpg',
+    // Wayang / Javanese culture
+    fallbackImage: 'https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=800&q=80',
   },
   itinerary: {
     icon: <Calendar className="w-5 h-5" />,
     bg: 'bg-green-50 text-green-700',
     descId: 'Rencana perjalanan siap pakai untuk semua tipe traveler.',
     descEn: 'Ready-to-use itineraries for every type of traveler.',
-    fallbackImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Borobudur-Nothwest-Bird%27s-eye-view.jpg/1280px-Borobudur-Nothwest-Bird%27s-eye-view.jpg',
+    // Yogyakarta street / travel
+    fallbackImage: 'https://images.unsplash.com/photo-1620360289473-5f8e2b9d3a8a?w=800&q=80',
   },
   alam: {
     icon: <Star className="w-5 h-5" />,
     bg: 'bg-emerald-50 text-emerald-700',
     descId: 'Alam, perbukitan, dan suasana tenang untuk melepas penat.',
     descEn: 'Nature, hills, and peaceful scenery to unwind.',
-    fallbackImage: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Merapi_from_Merbabu.jpg/1280px-Merapi_from_Merbabu.jpg',
+    // Merapi / volcanic mountain Indonesia
+    fallbackImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
   },
 };
 
@@ -397,7 +402,7 @@ export default function BlogListClient({
             {/* Right: hero image */}
             <div className="hidden md:block relative h-64 rounded-2xl overflow-hidden">
               <Image
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Prambanan_temple_compound%2C_2014-06-18.jpg/1280px-Prambanan_temple_compound%2C_2014-06-18.jpg"
+                src="https://images.unsplash.com/photo-1596402184320-417e7178b2cd?w=800&q=80"
                 alt="Candi Prambanan, Yogyakarta"
                 fill
                 className="object-cover"
