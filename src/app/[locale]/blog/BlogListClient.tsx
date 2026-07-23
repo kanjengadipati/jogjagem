@@ -338,7 +338,7 @@ export default function BlogListClient({
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="border-b border-royal-800" style={{ background: '#1b1c16' }}>
         <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
             {/* Left: text + search + categories */}
             <div className="space-y-5">
               <Link href={`/${locale}`} className="text-xs text-white/40 hover:text-gold-400 transition flex items-center gap-1">
@@ -397,20 +397,19 @@ export default function BlogListClient({
             </div>
 
             {/* Right: hero image — clipped shape like mockup */}
-            <div className="hidden md:block relative h-72">
+            <div className="hidden md:block relative h-80">
               <div
                 className="relative w-full h-full overflow-hidden"
-                style={{ clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)' }}
+                style={{ clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)', borderRadius: '0.5rem' }}
               >
                 <Image
                   src="/bg-blog.jpg"
                   alt="Yogyakarta"
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                   sizes="50vw"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-l from-transparent to-royal-900/30" />
               </div>
             </div>
           </div>
