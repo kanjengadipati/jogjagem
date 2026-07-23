@@ -96,6 +96,7 @@ export default function DestinationGallery({
                 src={getUrl(1)!}
                 alt="foto 2"
                 fill
+                sizes="(max-width: 1024px) 50vw, 33vw"
                 className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-300"
               />
               <ReportButton imageUrl={getUrl(1)!} />
@@ -116,6 +117,7 @@ export default function DestinationGallery({
                 src={getUrl(2)!}
                 alt={`${destination.name} foto 3`}
                 fill
+                sizes="(max-width: 1024px) 50vw, 33vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <ReportButton imageUrl={getUrl(2)!} />
@@ -134,6 +136,7 @@ export default function DestinationGallery({
                 src={getUrl(3)!}
                 alt={`${destination.name} foto 4`}
                 fill
+                sizes="(max-width: 1024px) 50vw, 33vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <ReportButton imageUrl={getUrl(3)!} />
@@ -152,6 +155,7 @@ export default function DestinationGallery({
                 src={activeUrl}
                 alt={destination.name}
                 fill
+                sizes="(max-width: 1024px) 100vw, 66vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <ReportButton imageUrl={activeUrl} />
