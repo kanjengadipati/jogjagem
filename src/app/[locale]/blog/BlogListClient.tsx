@@ -336,35 +336,35 @@ export default function BlogListClient({
     <div className="min-h-screen" style={{ background: '#F7F3EE' }}>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="bg-white border-b border-gold-100">
+      <section className="border-b border-royal-800" style={{ background: '#1b1c16' }}>
         <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             {/* Left: text + search + categories */}
             <div className="space-y-5">
-              <Link href={`/${locale}`} className="text-xs text-royal-700/50 hover:text-gold-600 transition flex items-center gap-1">
+              <Link href={`/${locale}`} className="text-xs text-white/40 hover:text-gold-400 transition flex items-center gap-1">
                 ← Jogjagem
               </Link>
               <div>
-                <h1 className="text-3xl md:text-4xl font-extrabold text-royal-900 leading-tight tracking-tight font-display">
+                <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight tracking-tight font-display">
                   {isEn ? (
-                    <>Stories & Guides<br /><span className="text-gold-500">from Jogja</span></>
+                    <>Stories & Guides<br /><span className="text-gold-400">from Jogja</span></>
                   ) : (
-                    <>Cerita & Panduan<br /><span className="text-gold-500">dari Jogja</span></>
+                    <>Cerita & Panduan<br /><span className="text-gold-400">dari Jogja</span></>
                   )}
                 </h1>
-                <p className="mt-3 text-sm text-royal-700/60 leading-relaxed max-w-sm">
+                <p className="mt-3 text-sm text-white/50 leading-relaxed max-w-sm">
                   {messages.subtitle}
                 </p>
               </div>
 
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-royal-700/30 pointer-events-none" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder={messages.search_placeholder}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gold-200 focus:border-gold-400 outline-none text-sm font-medium bg-gold-50/50 focus:bg-white transition"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-white/10 focus:border-gold-400 outline-none text-sm font-medium bg-white/5 focus:bg-white/10 text-white placeholder-white/30 transition"
                 />
               </div>
 
@@ -380,7 +380,7 @@ export default function BlogListClient({
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer capitalize border ${
                           activeCategory === cat
                             ? 'bg-gold-400 text-royal-900 border-gold-400'
-                            : 'bg-white text-royal-700 border-gold-200 hover:border-gold-400'
+                            : 'bg-white/5 text-white/70 border-white/10 hover:border-gold-400 hover:text-gold-400'
                         }`}
                       >
                         {CATEGORY_META[cat]?.icon && (
@@ -404,7 +404,7 @@ export default function BlogListClient({
                 sizes="50vw"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-l from-transparent to-white/20" />
+              <div className="absolute inset-0 bg-gradient-to-l from-transparent to-royal-900/30" />
             </div>
           </div>
         </div>
