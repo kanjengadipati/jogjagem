@@ -104,7 +104,7 @@ function TrendingCarousel({
       >
         {isLoading
           ? Array.from({ length: 5 }).map((_, i) => <TrendingCardSkeleton key={i} />)
-          : items.map((item) => {
+          : items.map((item, idx) => {
               const badgeBg = BADGE_COLOR[item.badge] ?? 'bg-gold-500';
               return (
                 <button
@@ -126,7 +126,10 @@ function TrendingCarousel({
                       <div className="w-full h-full bg-white/5" />
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <span className={`absolute top-2 left-2 ${badgeBg} text-white text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full`}>
+                    <span className="absolute top-2 left-2 z-10 flex items-center justify-center w-5 h-5 rounded-full bg-gold-500 text-royal-950 text-[9px] font-black leading-none shadow-lg">
+                      {idx + 1}
+                    </span>
+                    <span className={`absolute top-2 left-8 ${badgeBg} text-white text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full`}>
                       {item.badge}
                     </span>
                   </div>
