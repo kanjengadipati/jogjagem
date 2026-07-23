@@ -51,7 +51,7 @@ const CATEGORY_META: Record<string, {
     icon: <MapPin className="w-5 h-5" />,
     bg: 'bg-amber-50 text-amber-700',
     descId: 'Tempat yang belum banyak diketahui wisatawan.',
-    descEn: 'Places most tourists haven't discovered yet.',
+    descEn: "Places most tourists haven't discovered yet.",
   },
   kuliner: {
     icon: <UtensilsCrossed className="w-5 h-5" />,
@@ -63,7 +63,7 @@ const CATEGORY_META: Record<string, {
     icon: <Landmark className="w-5 h-5" />,
     bg: 'bg-blue-50 text-blue-700',
     descId: 'Cerita, tradisi, dan warisan budaya Yogyakarta.',
-    descEn: 'Stories, traditions, and Yogyakarta\'s cultural heritage.',
+    descEn: "Stories, traditions, and Yogyakarta's cultural heritage.",
   },
   itinerary: {
     icon: <Calendar className="w-5 h-5" />,
@@ -538,7 +538,7 @@ export default function BlogListClient({
             <div className="rounded-2xl bg-royal-900 p-8 flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <p className="text-base font-bold text-white">
-                  {isEn ? 'Didn\'t find what you\'re looking for?' : 'Belum menemukan yang dicari?'}
+                  {isEn ? "Didn't find what you're looking for?" : 'Belum menemukan yang dicari?'}
                 </p>
                 <p className="text-sm text-white/50 mt-1">
                   {isEn
