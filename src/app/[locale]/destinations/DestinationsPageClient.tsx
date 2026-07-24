@@ -501,7 +501,7 @@ function DestinationsPageInner() {
             )}
           </div>
 
-          <div className="border-t border-white/8 mt-2">
+          <div className="border-t border-white/8 mt-2 relative z-40">
             <CategoryLinks
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
