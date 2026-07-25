@@ -621,19 +621,15 @@ export default function App() {
                               )}
                               <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
                               
-                              <div className="absolute top-3.5 left-3.5 flex flex-col items-start gap-1">
-                                <div className={`px-2.5 py-0.5 rounded-full text-[9px] font-sans font-semibold uppercase tracking-[0.08em] ${badgeBgClass}`}>
+                              <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5 flex-wrap max-w-[70%]">
+                                <div className={`px-2 sm:px-2.5 py-0.5 rounded-full text-[8px] sm:text-[9px] font-sans font-semibold uppercase tracking-[0.08em] ${badgeBgClass} truncate`}>
                                   {badgeText}
                                 </div>
-                                {festSecondary.length > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    {festSecondary.map((b, i) => (
-                                      <div key={i} className={`${b.style} px-2 py-0.5 rounded-full text-[8px] font-sans font-semibold uppercase tracking-[0.08em]`}>
-                                        {b.label}
-                                      </div>
-                                    ))}
+                                {festSecondary.map((b, i) => (
+                                  <div key={i} className={`${b.style} px-2 sm:px-2.5 py-0.5 rounded-full text-[8px] sm:text-[9px] font-sans font-semibold uppercase tracking-[0.08em] truncate opacity-80`}>
+                                    {b.label}
                                   </div>
-                                )}
+                                ))}
                               </div>
                               <button className="absolute top-3.5 right-3.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white backdrop-blur-sm border border-white/10">
                                 <Heart className="h-3.5 w-3.5 text-white" />

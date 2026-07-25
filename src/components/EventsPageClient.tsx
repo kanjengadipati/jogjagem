@@ -135,19 +135,15 @@ function EventCard({ evt, className = '' }: { evt: EventItem; className?: string
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent group-hover:from-black/100 transition-opacity duration-300" />
 
       {/* Badge top-left */}
-      <div className="absolute top-3 left-3 flex flex-col items-start gap-1">
-        <span className={`inline-flex items-center text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.08em] px-2.5 py-1 rounded-full border ${badgeStyle}`}>
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap max-w-[70%]">
+        <span className={`inline-flex items-center text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.08em] px-2 sm:px-2.5 py-0.5 sm:py-0.5 rounded-full border ${badgeStyle} truncate`}>
           {badgeLabel}
         </span>
-        {secondaryBadges.length > 0 && (
-          <div className="flex items-center gap-1">
-            {secondaryBadges.map((b, i) => (
-              <span key={i} className={`inline-flex items-center text-[8px] font-bold uppercase tracking-[0.08em] px-2 py-0.5 rounded-full border ${b.style}`}>
-                {b.label}
-              </span>
-            ))}
-          </div>
-        )}
+        {secondaryBadges.map((b, i) => (
+          <span key={i} className={`inline-flex items-center text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.08em] px-2 sm:px-2.5 py-0.5 sm:py-0.5 rounded-full border ${b.style} truncate opacity-80`}>
+            {b.label}
+          </span>
+        ))}
       </div>
 
       {/* Ticket price top-right */}

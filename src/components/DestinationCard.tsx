@@ -144,19 +144,15 @@ export default React.memo(function DestinationCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/100" />
 
         {/* Top-Left Badge Container */}
-        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col items-start gap-1">
-            <div className={`${badgeBgClass} px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-sans font-semibold uppercase tracking-[0.08em]`}>
+        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-1.5 flex-wrap max-w-[70%]">
+            <div className={`${badgeBgClass} px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-[8px] sm:text-[9px] font-sans font-semibold uppercase tracking-[0.08em] truncate`}>
                 {badgeText}
             </div>
-            {secondaryBadges.length > 0 && (
-              <div className="flex items-center gap-1">
-                {secondaryBadges.map((b, i) => (
-                  <div key={i} className={`${b.style} px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full text-[7px] sm:text-[9px] font-sans font-semibold uppercase tracking-[0.08em]`}>
-                    {b.label}
-                  </div>
-                ))}
+            {secondaryBadges.map((b, i) => (
+              <div key={i} className={`${b.style} px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-[8px] sm:text-[9px] font-sans font-semibold uppercase tracking-[0.08em] truncate opacity-80`}>
+                {b.label}
               </div>
-            )}
+            ))}
         </div>
 
         {/* Bookmark Icon */}

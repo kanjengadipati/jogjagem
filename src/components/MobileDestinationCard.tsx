@@ -327,20 +327,16 @@ export default memo(function MobileDestinationCard({
           <div className={`absolute inset-0 bg-gradient-to-t ${expanded ? 'from-black/95 via-black/50 to-black/10' : 'from-black/85 via-black/30 to-transparent'}`} />
 
           {/* Badge top-left */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
+          <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1 max-w-[70%]">
             <div className={`flex items-center gap-1 ${badge.color} px-2 py-0.5 rounded-full`}>
-              <Sparkles className="h-2.5 w-2.5 text-white" />
-              <span className="text-[9px] font-bold text-white uppercase tracking-wide">{badge.label}</span>
+              <Sparkles className="h-2.5 w-2.5 text-white shrink-0" />
+              <span className="text-[9px] font-bold text-white uppercase tracking-wide truncate">{badge.label}</span>
             </div>
-            {secondaryBadges.length > 0 && (
-              <div className="flex items-center gap-1">
-                {secondaryBadges.map((b, i) => (
-                  <span key={i} className={`${b.style} text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full`}>
-                    {b.label}
-                  </span>
-                ))}
-              </div>
-            )}
+            {secondaryBadges.map((b, i) => (
+              <span key={i} className={`${b.style} text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full truncate`}>
+                {b.label}
+              </span>
+            ))}
           </div>
 
           {/* Heart top-right */}
