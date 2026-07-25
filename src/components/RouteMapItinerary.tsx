@@ -23,6 +23,15 @@ interface RouteMapItineraryProps {
 const DEFAULT_LAT = -7.7828;
 const DEFAULT_LNG = 110.3671;
 
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function getCategoryIcon(type: string, category: string) {
   if (type === 'event') return CalendarDays;
   const cat = (category || '').toLowerCase();
@@ -55,6 +64,9 @@ interface ResolvedNode {
   subRegion: string;
   rating: number;
   distanceKm: number;
+  distanceFromPrev?: number;
+  lat?: number;
+  lng?: number;
   mood: string;
   rawItem?: Destination;
   timeWarning?: string;
@@ -67,7 +79,7 @@ type SlotState =
   | { status: 'open'; index: number }
   | { status: 'loading'; index: number; mood: string }
   | { status: 'confirming'; index: number; node: ResolvedNode }
-  | { status: 'resolved'; index: number; node: ResolvedNode }
+  | { status: 'resolved'; index: number; node: ResolvedNode; resolvedAt?: number; scheduledPeriod?: number }
   | { status: 'locked'; index: number };
 
 const BASE_SLOTS = [
@@ -154,6 +166,7 @@ export default function RouteMapItinerary({
         return {
           status: 'resolved' as const,
           index: s.slotIndex,
+          scheduledPeriod: (savedPeriod + 1 + s.slotIndex) % 4,
           node: {
             id: s.destination.id,
             title: s.destination.title,
@@ -163,6 +176,9 @@ export default function RouteMapItinerary({
             subRegion: s.destination.location,
             rating: s.destination.rating,
             distanceKm: 0,
+            distanceFromPrev: s.distanceFromPrev,
+            lat: s.lat,
+            lng: s.lng,
             mood: 'all',
             isTomorrow: s.isTomorrow,
             scheduledFor: s.scheduledFor,
@@ -180,6 +196,32 @@ export default function RouteMapItinerary({
       // ignore
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Live timer: recalculate isDone for resolved slots every 60s
+  useEffect(() => {
+    const tick = () => {
+      const now = Date.now();
+      const nowHour = new Date().getHours();
+      const nowPeriod = getCurrentPeriod(nowHour);
+
+      setSlots((prev) =>
+        prev.map((s) => {
+          if (s.status !== 'resolved' || s.node.isDone || !s.resolvedAt) return s;
+          const elapsedMs = now - s.resolvedAt;
+          const elapsedPeriods = Math.floor(elapsedMs / (1000 * 60 * 60 * 3));
+          // Slot for current period is done when 1+ periods have elapsed since creation
+          if (elapsedPeriods >= 1) {
+            return { ...s, node: { ...s.node, isDone: true } };
+          }
+          return s;
+        })
+      );
+    };
+
+    tick(); // initial check
+    const interval = setInterval(tick, 60_000);
+    return () => clearInterval(interval);
   }, []);
 
   // Auto-save + auto-sync + toast when all slots resolved by user (not on resume)
@@ -203,6 +245,9 @@ export default function RouteMapItinerary({
             timeRange: baseSlot.timeRange,
             isTomorrow: s.node.isTomorrow ?? false,
             scheduledFor: s.node.scheduledFor,
+            distanceFromPrev: s.node.distanceFromPrev,
+            lat: s.node.lat,
+            lng: s.node.lng,
             destination: {
               id: s.node.id,
               title: s.node.title,
@@ -353,11 +398,16 @@ export default function RouteMapItinerary({
       const excludeIds = getResolvedIds();
       const res = await ai.getNextStop(userLat, userLng, mood, excludeIds, currentHour);
       if (res.data) {
-        const rawDest = destinations.find((d) => d.id === res.data!.id);
+        const rawDest = destinations.find((d) => d.id === res.data!.id)
+          ?? destinations.find((d) => d.id.toLowerCase() === res.data!.id.toLowerCase());
+        const destLat = rawDest?.latitude;
+        const destLng = rawDest?.longitude;
         const resolvedData: ResolvedNode = {
           ...res.data!,
           mood,
           rawItem: rawDest,
+          lat: destLat,
+          lng: destLng,
         };
 
         const isTargetSlotTomorrow = (currentPeriod + slotIndex + 1) >= 4;
@@ -377,11 +427,42 @@ export default function RouteMapItinerary({
           // Directly resolve & unlock next node. On tomorrow slots, popup is 100% normal
           setSlots((prev) => {
             const next = [...prev];
+
+            // Calculate distance from previous resolved destination
+            let distanceFromPrev: number | undefined;
+            const newLat = resolvedData.lat;
+            const newLng = resolvedData.lng;
+            if (newLat != null && newLng != null) {
+              // Find the closest previously resolved slot with valid coordinates
+              for (let i = slotIndex - 1; i >= 0; i--) {
+                const prevSlot = next[i];
+                if (prevSlot?.status === 'resolved') {
+                  const prevLat = prevSlot.node.lat;
+                  const prevLng = prevSlot.node.lng;
+                  if (prevLat != null && prevLng != null) {
+                    distanceFromPrev = haversineKm(prevLat, prevLng, newLat, newLng);
+                    break;
+                  }
+                }
+              }
+              // If no previous resolved slot, use user location
+              if (distanceFromPrev === undefined) {
+                distanceFromPrev = haversineKm(userLat, userLng, newLat, newLng);
+              }
+            }
+            // Fallback: use API distanceKm if coordinates unavailable
+            if (distanceFromPrev === undefined && resolvedData.distanceKm > 0) {
+              distanceFromPrev = resolvedData.distanceKm;
+            }
+
             next[slotIndex] = {
               status: 'resolved',
               index: slotIndex,
+              resolvedAt: Date.now(),
+              scheduledPeriod: (currentPeriod + slotIndex + 1) % 4,
               node: {
                 ...resolvedData,
+                distanceFromPrev,
                 isTomorrow: isTargetSlotTomorrow ? false : res.data!.isTomorrow,
               },
             };
@@ -408,6 +489,41 @@ export default function RouteMapItinerary({
   // Build the 3 display nodes (index maps to slot 1,2,3 on the wave)
   const waveNodes = [null, ...slots];
 
+  // Compute trip date label from the most recent saved itinerary
+  const getTripDateLabel = (): { dateStr: string; isToday: boolean; isTomorrow: boolean } | null => {
+    try {
+      const saved = getLocalItineraries();
+      if (!saved.length) return null;
+      const latest = saved[0];
+      let tripDate: Date;
+      if (latest.tripDate) {
+        tripDate = new Date(latest.tripDate + 'T00:00:00');
+      } else {
+        const created = latest.createdAt ? new Date(latest.createdAt) : new Date();
+        const hasTomorrow = latest.slots?.some((s) => s.isTomorrow) || created.getHours() >= 19;
+        tripDate = new Date(created);
+        if (hasTomorrow) tripDate.setDate(tripDate.getDate() + 1);
+      }
+      const today = new Date();
+      const isToday =
+        tripDate.getFullYear() === today.getFullYear() &&
+        tripDate.getMonth() === today.getMonth() &&
+        tripDate.getDate() === today.getDate();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const isTomorrow =
+        tripDate.getFullYear() === tomorrow.getFullYear() &&
+        tripDate.getMonth() === tomorrow.getMonth() &&
+        tripDate.getDate() === tomorrow.getDate();
+      const dateStr = tripDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+      return { dateStr, isToday, isTomorrow };
+    } catch {
+      return null;
+    }
+  };
+
+  const tripDateInfo = getTripDateLabel();
+
   return (
     <div className={`w-full max-w-[500px] sm:max-w-[560px] ml-0 bg-transparent ${className}`}>
       {/* HEADER */}
@@ -415,14 +531,25 @@ export default function RouteMapItinerary({
         <div className="flex items-center gap-1.5">
           <Navigation className="h-3.5 w-3.5 text-gold-400 animate-pulse" />
           <h3 className="text-[11px] font-bold text-white/90 tracking-wide uppercase flex items-center gap-1">
-            <span>Rencana Perjalanan</span>
+            <span>{t('route_map.title')}</span>
+            {tripDateInfo && (
+              <span className="flex items-center gap-1">
+                <span className="text-[9px] font-mono text-gold-300/80 normal-case tracking-normal">
+                  {tripDateInfo.dateStr}
+                </span>
+                {tripDateInfo.isTomorrow && (
+                  <span className="px-1 py-px rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[8px] font-bold font-mono">
+                    {t('route_map.tomorrow')}
+                  </span>
+                )}
+                {tripDateInfo.isToday && (
+                  <span className="px-1 py-px rounded bg-green-400/20 text-green-300 border border-green-400/40 text-[8px] font-bold font-mono">
+                    {t('route_map.today')}
+                  </span>
+                )}
+              </span>
+            )}
           </h3>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold-500/20 text-gold-400 border border-gold-400/40 text-[9px] font-extrabold">
-            <Clock className="h-2.5 w-2.5" />
-            <span>Pilih Mood</span>
-          </div>
         </div>
       </div>
 
@@ -450,6 +577,36 @@ export default function RouteMapItinerary({
           />
         </svg>
 
+        {/* Distance labels — below the wave line, between each node pair */}
+        <div className="flex mt-1 px-0">
+          {/* Spacer kiri (lebar node user) */}
+          <div className="flex-1" />
+          {/* Gap user→slot0 */}
+          <div className="flex-1 flex justify-center">
+            {slots[0]?.status === 'resolved' && slots[0].node.distanceFromPrev != null && (
+              <span className="px-1.5 py-0.5 rounded-full bg-black/60 border border-gold-400/30 text-[7px] font-mono font-bold text-gold-400 whitespace-nowrap">
+                {slots[0].node.distanceFromPrev.toFixed(1)} km
+              </span>
+            )}
+          </div>
+          {/* Gap slot0→slot1 */}
+          <div className="flex-1 flex justify-center">
+            {slots[1]?.status === 'resolved' && slots[1].node.distanceFromPrev != null && (
+              <span className="px-1.5 py-0.5 rounded-full bg-black/60 border border-gold-400/30 text-[7px] font-mono font-bold text-gold-400 whitespace-nowrap">
+                {slots[1].node.distanceFromPrev.toFixed(1)} km
+              </span>
+            )}
+          </div>
+          {/* Gap slot1→slot2 */}
+          <div className="flex-1 flex justify-center">
+            {slots[2]?.status === 'resolved' && slots[2].node.distanceFromPrev != null && (
+              <span className="px-1.5 py-0.5 rounded-full bg-black/60 border border-gold-400/30 text-[7px] font-mono font-bold text-gold-400 whitespace-nowrap">
+                {slots[2].node.distanceFromPrev.toFixed(1)} km
+              </span>
+            )}
+          </div>
+        </div>
+
         {/* Nodes: pulled up on top of wave */}
         <div className="-mt-[50px] grid grid-cols-4 gap-1 relative z-10">
           {waveNodes.map((slot, waveIndex) => {
@@ -463,12 +620,7 @@ export default function RouteMapItinerary({
                   className={`relative flex flex-col items-center group ${waveTranslateY}`}
                 >
                   {/* Distance badge */}
-                  <div className="mb-0.5 flex items-center gap-1">
-                    <div className="px-1.5 py-0.5 rounded-full bg-black/75 backdrop-blur-sm border border-gold-400/40 text-[8px] font-bold text-gold-300 flex items-center gap-0.5 shadow-sm">
-                      <MapPin className="h-2 w-2 text-gold-400 shrink-0" />
-                      <span>Start</span>
-                    </div>
-                  </div>
+                  <div className="mb-0.5 flex items-center gap-1 h-5" />
                   {/* Pin */}
                   <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-gold-500 text-royal-950 ring-2 ring-gold-400/80 shadow-[0_0_12px_rgba(234,179,8,0.6)] transition-all duration-300 shadow-md">
                     <MapPin className="h-3.5 w-3.5" />
@@ -490,7 +642,11 @@ export default function RouteMapItinerary({
             }
 
             const slotIndex = slot.index;
-            const slotMeta = BASE_SLOTS[(currentPeriod + slotIndex + 1) % 4];
+            // Use stored scheduledPeriod for resolved nodes so time stays fixed
+            const slotPeriod = (slot.status === 'resolved' && slot.scheduledPeriod != null)
+              ? slot.scheduledPeriod
+              : (currentPeriod + slotIndex + 1) % 4;
+            const slotMeta = BASE_SLOTS[slotPeriod];
             const isMoodPickerOpen = activeMoodPicker === slotIndex && slot.status === 'open';
 
             // ── LOCKED ──
@@ -508,7 +664,7 @@ export default function RouteMapItinerary({
                   <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-black/40 text-white/30 border border-white/10 shadow-md">
                     <HelpCircle className="h-3.5 w-3.5" />
                     <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-white/20 text-[7px] font-mono font-bold text-white/30">
-                      {waveIndex + 1}
+                      {waveIndex}
                     </span>
                   </div>
                   <div className="mt-1 text-center max-w-[85px]">
@@ -542,7 +698,7 @@ export default function RouteMapItinerary({
                   <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-black/50 text-gold-400 border border-gold-400/50 hover:bg-gold-400 hover:text-royal-950 hover:scale-110 transition-all duration-300 shadow-md">
                     <span className="text-[13px] font-black">?</span>
                     <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-gold-400 text-[7px] font-mono font-bold text-gold-300">
-                      {waveIndex + 1}
+                      {waveIndex}
                     </span>
                     {/* Pulse ring */}
                     <span className="absolute inset-0 rounded-full bg-gold-400 opacity-20 animate-ping" />
@@ -638,7 +794,7 @@ export default function RouteMapItinerary({
                   <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-gold-500/30 text-gold-400 border border-gold-400/50 animate-pulse shadow-md">
                     <span className="text-sm">{getMoodIcon(slot.mood)}</span>
                     <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-gold-400 text-[7px] font-mono font-bold text-gold-300">
-                      {waveIndex + 1}
+                      {waveIndex}
                     </span>
                   </div>
                   <div className="mt-1 text-center max-w-[85px]">
@@ -670,7 +826,7 @@ export default function RouteMapItinerary({
                   <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-amber-500 text-royal-950 ring-2 ring-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.8)] animate-pulse">
                     <AlertTriangle className="h-4 w-4" />
                     <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-amber-400 text-[7px] font-mono font-bold text-amber-300">
-                      {waveIndex + 1}
+                      {waveIndex}
                     </span>
                   </div>
                   <div className="mt-1 text-center max-w-[85px]">
@@ -782,10 +938,6 @@ export default function RouteMapItinerary({
                     </span>
                   ) : (
                     <>
-                      <div className="px-1.5 py-0.5 rounded-full bg-black/75 backdrop-blur-sm border border-gold-400/40 text-[8px] font-bold text-gold-300 flex items-center gap-0.5 shadow-sm group-hover:scale-105 transition-transform">
-                        <MapPin className="h-2 w-2 text-gold-400 shrink-0" />
-                        <span>{node.distanceKm > 0 ? `${node.distanceKm.toFixed(1)}km` : '—'}</span>
-                      </div>
                       {node.isTomorrow && (
                         <span className="px-1 py-0.2 rounded bg-amber-500/30 text-amber-300 border border-amber-400/50 text-[7px] font-mono font-bold">
                           BESOK
@@ -811,7 +963,7 @@ export default function RouteMapItinerary({
                   <span className={`absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border text-[7px] font-mono font-bold ${
                     node.isDone ? 'border-emerald-400 text-emerald-300' : 'border-gold-400 text-gold-300'
                   }`}>
-                    {waveIndex + 1}
+                    {waveIndex}
                   </span>
                 </div>
 
@@ -914,7 +1066,7 @@ export default function RouteMapItinerary({
                             className="object-cover"
                           />
                           <div className="absolute top-0.5 left-0.5 px-1 bg-black/80 rounded text-[7px] font-bold text-gold-400">
-                            {node.distanceKm.toFixed(1)} km
+                            {node.distanceFromPrev != null ? `${node.distanceFromPrev.toFixed(1)} km` : `${node.distanceKm.toFixed(1)} km`}
                           </div>
                         </div>
                       )}
