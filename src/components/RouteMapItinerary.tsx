@@ -111,10 +111,13 @@ export default function RouteMapItinerary({
     setActiveNodeId(null);
     setSlots((prev) => {
       const next = [...prev];
-      for (let i = slotIndex + 1; i < next.length; i++) {
-        next[i] = { status: 'locked', index: i };
-      }
       next[slotIndex] = { status: 'open', index: slotIndex };
+      // Only lock subsequent slots if they are not already resolved by user
+      for (let i = slotIndex + 1; i < next.length; i++) {
+        if (next[i].status !== 'resolved') {
+          next[i] = { status: 'locked', index: i };
+        }
+      }
       return next;
     });
     setActiveMoodPicker(slotIndex);
@@ -149,8 +152,8 @@ export default function RouteMapItinerary({
           status: 'open',
           index: slotIndex,
         };
-        // Unlock slot after next if available
-        if (nextSlotIdx + 1 < next.length) {
+        // Unlock slot after next if available and locked
+        if (nextSlotIdx + 1 < next.length && next[nextSlotIdx + 1].status === 'locked') {
           next[nextSlotIdx + 1] = { status: 'open', index: nextSlotIdx + 1 };
         }
         return next;
@@ -201,7 +204,7 @@ export default function RouteMapItinerary({
             return next;
           });
         } else {
-          // Directly resolve & unlock next node
+          // Directly resolve & unlock next node if it's currently locked
           setSlots((prev) => {
             const next = [...prev];
             next[slotIndex] = {
@@ -210,8 +213,10 @@ export default function RouteMapItinerary({
               node: resolvedData,
             };
             if (slotIndex + 1 < next.length) {
-              next[slotIndex + 1] = { status: 'open', index: slotIndex + 1 };
-              setActiveMoodPicker(slotIndex + 1);
+              if (next[slotIndex + 1].status === 'locked') {
+                next[slotIndex + 1] = { status: 'open', index: slotIndex + 1 };
+                setActiveMoodPicker(slotIndex + 1);
+              }
             }
             return next;
           });
