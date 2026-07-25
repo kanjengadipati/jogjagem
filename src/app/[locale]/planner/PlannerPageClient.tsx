@@ -18,6 +18,7 @@ function PlannerPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedDestinationId = searchParams.get('destination');
+  const preselectedDestinationIds = searchParams.get('destinations');
   const { isAuthenticated } = useAuth();
   const { t } = useLocale();
 
@@ -75,14 +76,29 @@ function PlannerPageContent() {
   }, [savedDestinations, hydrated]);
 
   useEffect(() => {
-    if (!hydrated || !preselectedDestinationId || allDestinations.length === 0) return;
-    const found = allDestinations.find(d => d.id === preselectedDestinationId);
-    if (!found) return;
-    setSavedDestinations(prev => {
-      if (prev.some(d => d.id === found.id)) return prev;
-      return [found, ...prev];
+    if (!hydrated || allDestinations.length === 0) return;
+
+    const idsToLoad = preselectedDestinationIds
+      ? preselectedDestinationIds.split(',').map((s) => s.trim())
+      : preselectedDestinationId
+      ? [preselectedDestinationId]
+      : [];
+
+    if (idsToLoad.length === 0) return;
+
+    const foundDestinations = idsToLoad
+      .map((id) => allDestinations.find((d) => d.id === id))
+      .filter((d): d is Destination => d !== undefined);
+
+    if (foundDestinations.length === 0) return;
+
+    setSavedDestinations((prev) => {
+      const existingMap = new Set(prev.map((d) => d.id));
+      const toAdd = foundDestinations.filter((d) => !existingMap.has(d.id));
+      if (toAdd.length === 0) return prev;
+      return [...toAdd, ...prev];
     });
-  }, [hydrated, preselectedDestinationId, allDestinations]);
+  }, [hydrated, preselectedDestinationId, preselectedDestinationIds, allDestinations]);
 
   const handleToggleSave = async (dest: Destination) => {
     if (!auth.isLoggedIn()) {
@@ -129,13 +145,19 @@ function PlannerPageContent() {
         zClass="z-40"
       />
 
-      {preselectedDestinationId && allDestinations.find(d => d.id === preselectedDestinationId) && (
+      {(preselectedDestinationIds || preselectedDestinationId) && (
         <div className="max-w-4xl mx-auto px-4 pt-5">
           <div className="flex items-center gap-3 bg-gold-50 border border-gold-200 rounded-2xl px-4 py-3">
             <Sparkles className="h-4 w-4 text-gold-600 shrink-0" />
             <p className="text-sm text-gold-800">
-              <span className="font-semibold">{allDestinations.find(d => d.id === preselectedDestinationId)?.name}</span>
-              {' '}sudah ditambahkan ke rencana perjalananmu.
+              {preselectedDestinationIds ? (
+                <>Destinasi dari <span className="font-semibold">Rute AI</span> telah ditambahkan ke rencana perjalananmu.</>
+              ) : (
+                <>
+                  <span className="font-semibold">{allDestinations.find(d => d.id === preselectedDestinationId)?.name}</span>
+                  {' '}sudah ditambahkan ke rencana perjalananmu.
+                </>
+              )}
             </p>
           </div>
         </div>

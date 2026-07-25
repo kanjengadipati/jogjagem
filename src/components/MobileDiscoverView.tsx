@@ -30,6 +30,7 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { AIPickCard } from './AIPickCard';
 import MobileDestinationCard from './MobileDestinationCard';
 import { MobileDestinationCardSkeleton, TrendingCardSkeleton } from './CardSkeleton';
+import RouteMapItinerary from './RouteMapItinerary';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -462,6 +463,14 @@ export default function MobileDiscoverView({
               </div>
             </div>
 
+            {/* ── Route Map Itinerary (Above Search) ── */}
+            <RouteMapItinerary
+              destinations={allDestinations}
+              events={allEvents}
+              coords={coords}
+              className="mb-1"
+            />
+
             {/* Search — full width, all sizes */}
             <form onSubmit={handleSearchSubmit} className="relative flex items-center rounded-full border border-white/20 bg-black/40 hover:bg-black/50 backdrop-blur-md p-1 shadow-xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400 w-full sm:max-w-lg">
               <Search className="ml-3.5 h-4 w-4 text-white/70 shrink-0" />
@@ -870,136 +879,7 @@ export default function MobileDiscoverView({
           </div>
         )}
 
-        {/* ── AI Suggested Journey ── */}
-        {allDestinations.length > 0 && (() => {
-          const currentHour = new Date().getHours();
-          const { coords } = useLocation();
-          const getDist = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-            if (!lat1 || !lon1 || !lat2 || !lon2) return 999;
-            const R = 6371;
-            const dLat = (lat2 - lat1) * (Math.PI / 180);
-            const dLon = (lon2 - lon1) * (Math.PI / 180);
-            const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-          };
 
-          const journeySlots = [
-            { label: t('home.morning'),   time: '07.00 AM', Icon: Sun,      color: '#B18A5E', categories: ['heritage', 'nature', 'adventure'], isCurrent: currentHour >= 5 && currentHour < 11 },
-            { label: t('home.lunch'),     time: '12.00 PM', Icon: Utensils, color: '#5F713D', categories: ['culinary'],                       isCurrent: currentHour >= 11 && currentHour < 15 },
-            { label: t('home.afternoon'), time: '03.30 PM', Icon: Leaf,     color: '#4F6F52', categories: ['nature', 'beach', 'sunset', 'hidden-gem'], isCurrent: currentHour >= 15 && currentHour < 19 },
-            { label: t('home.night'),     time: '07.30 PM', Icon: Moon,     color: '#8B5CF6', categories: ['night_vibes', 'culinary', 'heritage', 'cultural', 'shopping'], isCurrent: currentHour >= 19 || currentHour < 5 },
-          ];
-
-          const slots = journeySlots
-            .map((slot, idx) => {
-              const candidates = allDestinations.filter(d => {
-                if (!d.images || d.images.length === 0) return false;
-                if (slot.categories.includes('night_vibes')) {
-                  const cat = (d.category || '').toLowerCase();
-                  const desc = (d.description || '').toLowerCase();
-                  const name = (d.name || '').toLowerCase();
-                  const tag = (d.tagline || '').toLowerCase();
-                  return cat === 'culinary' || cat === 'cultural' || cat === 'shopping' ||
-                    desc.includes('malam') || name.includes('malam') || tag.includes('malam') ||
-                    name.includes('malioboro') || name.includes('tugu') || name.includes('alun');
-                }
-                return slot.categories.includes(d.category);
-              });
-
-              const sorted = candidates.sort((a, b) => {
-                if (coords?.lat && coords?.lng) {
-                  const distA = getDist(coords.lat, coords.lng, a.latitude, a.longitude);
-                  const distB = getDist(coords.lat, coords.lng, b.latitude, b.longitude);
-                  const scoreA = (a.rating * 2.5) - (distA * 0.1);
-                  const scoreB = (b.rating * 2.5) - (distB * 0.1);
-                  return scoreB - scoreA;
-                }
-                return b.rating - a.rating;
-              });
-
-              return { ...slot, idx, dest: sorted[0] };
-            })
-            .filter(s => s.dest);
-
-          if (slots.length === 0) return null;
-          return (
-            <div>
-              <div className="flex items-end justify-between px-4 mb-3">
-                <div>
-                  <h2 className="font-manrope text-[17px] font-bold tracking-tight text-royal-950">
-                    {t('home.ai_suggested_journey')}
-                  </h2>
-                  <p className="text-[11px] text-stone-500/80 mt-0.5">{t('home.one_perfect_day')}</p>
-                </div>
-                <button
-                  onClick={() => router.push('/planner')}
-                  className="text-[11px] font-semibold text-gold-700 flex items-center gap-0.5 shrink-0"
-                >
-                  {t('home.customize_ai')} →
-                </button>
-              </div>
-              <div className="flex gap-3 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-1">
-                {slots.map(({ label, time, Icon, color, dest, idx, isCurrent }) => (
-                  <div
-                    key={label}
-                    onClick={() => router.push(`/destinations/${toSlug(dest!.name)}`)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={e => { if (e.key === 'Enter') router.push(`/destinations/${toSlug(dest!.name)}`); }}
-                    className={`shrink-0 snap-start relative w-[148px] h-[196px] rounded-[20px] overflow-hidden border cursor-pointer active:scale-95 transition-all ${
-                      isCurrent ? 'border-gold-400 ring-2 ring-gold-400/50 scale-[1.02]' : 'border-white/10'
-                    }`}
-                  >
-                    {/* Image */}
-                    <Image
-                      src={dest!.images[0]?.url || ''}
-                      alt={dest!.name}
-                      fill
-                      sizes="148px"
-                      className="object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-
-                    {/* Gradient scrim */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/20 to-transparent" />
-
-                    {/* Time chip top-left */}
-                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-2 py-1 border border-white/15">
-                      <Icon className="h-2.5 w-2.5" style={{ color }} />
-                      <span className="text-[9px] font-bold text-white">{time}</span>
-                    </div>
-
-                    {/* Step number / Active badge top-right */}
-                    {isCurrent ? (
-                      <div className="absolute top-2.5 right-2.5 bg-gold-500 text-royal-950 px-1.5 py-0.5 rounded-full text-[8px] font-extrabold shadow-md animate-pulse">
-                        SEKARANG
-                      </div>
-                    ) : (
-                      <div className="absolute top-2.5 right-2.5 h-5 w-5 rounded-full bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                        <span className="text-[9px] font-bold text-white">{idx + 1}</span>
-                      </div>
-                    )}
-
-                    {/* Info overlay bottom */}
-                    <div className="absolute bottom-0 left-0 right-0 p-2.5">
-                      <p className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color }}>
-                        {label}
-                      </p>
-                      <h4 className="text-white font-extrabold text-[12px] leading-tight line-clamp-2">
-                        {dest!.name}
-                      </h4>
-                      <div className="flex items-center gap-1 mt-1">
-                        <Star className="h-2.5 w-2.5 fill-gold-400 text-gold-400" />
-                        <span className="text-gold-400 text-[10px] font-bold">{dest!.rating.toFixed(1)}</span>
-                        <span className="text-white/50 text-[9px]">· {dest!.subRegion || dest!.location}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
 
       </div>
     </div>

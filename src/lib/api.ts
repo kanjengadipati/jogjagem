@@ -496,6 +496,38 @@ export const ai = {
       body: JSON.stringify({ destinationName }),
     });
   },
+
+  async getRouteTimeline(lat?: number, lng?: number, hour?: number, savedIds?: string[], category?: string) {
+    const params = new URLSearchParams();
+    if (lat) params.set('lat', lat.toString());
+    if (lng) params.set('lng', lng.toString());
+    if (hour !== undefined) params.set('hour', hour.toString());
+    if (savedIds && savedIds.length > 0) params.set('saved_ids', savedIds.join(','));
+    if (category && category !== 'all') params.set('category', category);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return request<{
+      headerTitle: string;
+      timeRange: string;
+      nodes: Array<{
+        id: string;
+        title: string;
+        type: 'destination' | 'event';
+        category: string;
+        image: string;
+        location: string;
+        subRegion: string;
+        rating: number;
+        distanceKm: number;
+        isPast: boolean;
+        isCurrent: boolean;
+        isTomorrow: boolean;
+        dayLabel: string;
+        displayTime: string;
+        timeSlot: string;
+        duration: string;
+      }>;
+    }>(`/ai/route-timeline${qs}`);
+  },
 };
 
 export const trips = {

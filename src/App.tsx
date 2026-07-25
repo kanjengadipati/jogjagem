@@ -454,6 +454,8 @@ export default function App() {
                 {/* Visual Fullscreen Hero Section */}
                 <Hero
                   destinations={allDestinations}
+                  events={allEvents}
+                  coords={coords}
                   onSearchSubmit={handleHeroSearch}
                   onImageSearchSubmit={handleHeroImageSearch}
                   onExploreDestination={handleExploreDestination}
@@ -468,6 +470,8 @@ export default function App() {
                   onSelectCategory={setSelectedCategory}
                   dark
                 />
+
+
 
                 {/* Destinations Showcase Grids */}
                 <section id="trending-destinations-showcase" className="mx-auto max-w-7xl px-4 pt-1 pb-8 sm:px-6 lg:px-8 sm:pt-2">
@@ -656,142 +660,6 @@ export default function App() {
                             </div>
                           );
                         })}
-                  </div>
-                </section>
-
-                  {/* AI Suggested Journey Section */}
-                  <section id="ai-suggested-journey-timeline" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                  <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-6 border-b border-[#E8E0D5] pb-4">
-                    <div className="text-left">
-                      <h2 className="font-manrope text-xl sm:text-2xl font-bold tracking-tight text-royal-950">
-                        {t('home.ai_suggested_journey')}
-                      </h2>
-                      <p className="text-xs text-stone-500/80 mt-0.5">{t('home.one_perfect_day')}</p>
-                    </div>
-                    <button 
-                      onClick={() => router.push('/planner')}
-                      className="mt-2 sm:mt-0 text-xs font-semibold text-gold-700 hover:text-gold-900 flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>{t('home.customize_ai')}</span>
-                      <span>→</span>
-                    </button>
-                  </div>
-
-                  {/* Timeline grid — 4 cards in a row */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {(() => {
-                      const currentHour = new Date().getHours();
-                      const getDist = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-                        if (!lat1 || !lon1 || !lat2 || !lon2) return 999;
-                        const R = 6371;
-                        const dLat = (lat2 - lat1) * (Math.PI / 180);
-                        const dLon = (lon2 - lon1) * (Math.PI / 180);
-                        const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);
-                        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                      };
-
-                      const journeySlots = [
-                        { label: t('home.morning'),   time: '07.00 AM', icon: Sun,      color: '#B18A5E', categories: ['heritage', 'nature', 'adventure'], isCurrent: currentHour >= 5 && currentHour < 11 },
-                        { label: t('home.lunch'),     time: '12.00 PM', icon: Utensils, color: '#5F713D', categories: ['culinary'],                       isCurrent: currentHour >= 11 && currentHour < 15 },
-                        { label: t('home.afternoon'), time: '03.30 PM', icon: Leaf,     color: '#4F6F52', categories: ['nature', 'beach', 'sunset', 'hidden-gem'], isCurrent: currentHour >= 15 && currentHour < 19 },
-                        { label: t('home.night'),     time: '07.30 PM', icon: Moon,     color: '#8B5CF6', categories: ['night_vibes', 'culinary', 'heritage', 'cultural', 'shopping'], isCurrent: currentHour >= 19 || currentHour < 5 },
-                      ];
-
-                      return journeySlots.map((slot, idx) => {
-                        const candidates = allDestinations.filter(d => {
-                          if (!d.images || d.images.length === 0) return false;
-                          if (slot.categories.includes('night_vibes')) {
-                            const cat = (d.category || '').toLowerCase();
-                            const desc = (d.description || '').toLowerCase();
-                            const name = (d.name || '').toLowerCase();
-                            const tag = (d.tagline || '').toLowerCase();
-                            return cat === 'culinary' || cat === 'cultural' || cat === 'shopping' ||
-                              desc.includes('malam') || name.includes('malam') || tag.includes('malam') ||
-                              name.includes('malioboro') || name.includes('tugu') || name.includes('alun');
-                          }
-                          return slot.categories.includes(d.category);
-                        });
-
-                        const sorted = candidates.sort((a, b) => {
-                          if (coords?.lat && coords?.lng) {
-                            const distA = getDist(coords.lat, coords.lng, a.latitude, a.longitude);
-                            const distB = getDist(coords.lat, coords.lng, b.latitude, b.longitude);
-                            const scoreA = (a.rating * 2.5) - (distA * 0.1);
-                            const scoreB = (b.rating * 2.5) - (distB * 0.1);
-                            return scoreB - scoreA;
-                          }
-                          return b.rating - a.rating;
-                        });
-
-                        const dest = sorted[0];
-                        if (!dest) return null;
-                        const Icon = slot.icon;
-
-                        return (
-                          <div
-                            key={slot.label}
-                            onClick={() => handleExploreDestination(dest)}
-                            className={`group relative rounded-[20px] overflow-hidden cursor-pointer border transition-all duration-300 aspect-[3/4] ${
-                              slot.isCurrent
-                                ? 'border-gold-400 shadow-md ring-2 ring-gold-400/50 scale-[1.02]'
-                                : 'border-stone-200/60 hover:border-gold-300 hover:-translate-y-1 hover:shadow-lg'
-                            }`}
-                          >
-                            {/* Image — full card */}
-                            <Image
-                              src={dest.images[0]?.url || ''}
-                              fill
-                              sizes="(max-width: 640px) 50vw, 25vw"
-                              className="object-cover transition-transform duration-500 group-hover:scale-105"
-                              referrerPolicy="no-referrer"
-                              alt={dest.name}
-                            />
-
-                            {/* Gradient scrim */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/25 to-transparent" />
-
-                            {/* Time chip top-left */}
-                            <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-2.5 py-1 border border-white/15">
-                              <Icon className="h-3 w-3" style={{ color: slot.color }} />
-                              <span className="text-[10px] font-bold text-white">{slot.time}</span>
-                            </div>
-
-                            {/* Step number / Active badge top-right */}
-                            {slot.isCurrent ? (
-                              <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-gold-500 text-royal-950 px-2 py-0.5 rounded-full text-[9px] font-extrabold shadow-md animate-pulse">
-                                <span>SEKARANG</span>
-                              </div>
-                            ) : (
-                              <div className="absolute top-2.5 right-2.5 h-5 w-5 rounded-full bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                                <span className="text-[9px] font-bold text-white">{idx + 1}</span>
-                              </div>
-                            )}
-
-                            {/* Info overlay — bottom */}
-                            <div className="absolute bottom-0 left-0 right-0 p-3">
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: slot.color }}>
-                                {slot.label}
-                              </p>
-                              <h4 className="font-manrope text-sm font-bold text-white leading-tight line-clamp-1 group-hover:text-gold-300 transition-colors drop-shadow-sm">
-                                {dest.name}
-                              </h4>
-                              <div className="flex items-center justify-between mt-1.5">
-                                <div className="flex items-center gap-1 text-[10px]">
-                                  <Star className="h-3 w-3 fill-gold-400 text-gold-400" />
-                                  <span className="font-bold text-gold-400">{dest.rating.toFixed(1)}</span>
-                                  <span className="text-white/60">· {dest.subRegion || dest.location}</span>
-                                </div>
-                                <div className="h-6 w-6 rounded-full bg-gold-400 text-royal-950 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0">
-                                  <svg className="h-3 w-3 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                  </svg>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
                   </div>
                 </section>
 
