@@ -41,13 +41,25 @@ export default function TripPlanner({
   // Local AI itineraries saved from home page wave control
   const [localItineraries, setLocalItineraries] = useState<LocalItinerary[]>([]);
 
+  const refreshLocalItineraries = () => setLocalItineraries(getLocalItineraries());
+
   useEffect(() => {
-    setLocalItineraries(getLocalItineraries());
+    refreshLocalItineraries();
+    // Re-read when user comes back to this tab (e.g. after building itinerary on home)
+    window.addEventListener('focus', refreshLocalItineraries);
+    document.addEventListener('visibilitychange', refreshLocalItineraries);
+    // Also listen for storage events from other tabs
+    window.addEventListener('storage', refreshLocalItineraries);
+    return () => {
+      window.removeEventListener('focus', refreshLocalItineraries);
+      document.removeEventListener('visibilitychange', refreshLocalItineraries);
+      window.removeEventListener('storage', refreshLocalItineraries);
+    };
   }, []);
 
   const handleDeleteLocalItinerary = (id: string) => {
     clearLocalItinerary(id);
-    setLocalItineraries(getLocalItineraries());
+    refreshLocalItineraries();
   };
 
   const [tripPlan, setTripPlan] = useState<TripPlan>({
