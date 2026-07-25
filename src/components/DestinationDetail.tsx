@@ -10,7 +10,7 @@ import {
   Footprints, MessageSquare, Map, Camera, Video, Eye, Award, 
   ChevronRight, Calendar, Users, AlertTriangle, Play,
   ShoppingBag, Landmark, ArrowRight, Check, HeartHandshake,
-  MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle, Pencil, X, Navigation
+  MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle, Pencil, X, Navigation, BookOpen
 } from 'lucide-react';
 import { Destination, EcosystemPartner, Review } from '@/types';
 import { events as eventsApi, reviews as reviewsApi, partners as partnersApi } from '@/lib/api';
@@ -967,7 +967,7 @@ export default function DestinationDetail({
             {/* 4. DESTINATION STORY (Editorial Layout) */}
             <div className="space-y-6">
               <div className="flex items-center space-x-2">
-                <Landmark className="h-5 w-5 text-gold-600" />
+                <BookOpen className="h-5 w-5 text-gold-600" />
                 <h2 className="font-manrope text-xs uppercase tracking-[0.15em] text-royal-700 font-extrabold">
                   {t('destination_detail.editorial_story')}
                 </h2>

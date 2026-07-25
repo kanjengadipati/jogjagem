@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Camera, Flag } from 'lucide-react';
 import { Destination } from '@/types';
@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { auth } from '@/lib/api';
 import YouTubePlayer from '@/components/YouTubePlayer';
 import ReportModal from '@/components/ReportModal';
+import LightboxModal from '@/components/LightboxModal';
 
 export interface DestinationGalleryProps {
   destination: Destination;
@@ -25,15 +26,42 @@ export default function DestinationGallery({
   const { isAuthenticated } = useAuth();
   const [reportOpen, setReportOpen] = useState(false);
   const [reportImageUrl, setReportImageUrl] = useState<string>('');
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const imgs = destination.images;
   const firstUrl = imgs.find(i => i?.url)?.url ?? null;
   const getUrl = (idx: number): string | null => imgs[idx]?.url || firstUrl;
   const activeUrl = getUrl(activeImageIdx);
 
-  const handleSelect = (idx: number) => {
-    onSelectImage(idx);
-  };
+  // Build lightbox items: video first (if any), then images
+  const lightboxItems = (() => {
+    const result: { type: 'image' | 'video'; url: string; alt?: string }[] = [];
+    if (destination.videoUrl) {
+      result.push({ type: 'video', url: destination.videoUrl, alt: destination.name });
+    }
+    imgs.forEach((img, i) => {
+      if (img?.url) {
+        result.push({ type: 'image', url: img.url, alt: `${destination.name} foto ${i + 1}` });
+      }
+    });
+    return result;
+  })();
+
+  const openLightbox = useCallback((url: string | null, isVideo = false) => {
+    if (!url) return;
+    if (isVideo && destination.videoUrl) {
+      setLightboxIndex(0); // video is always first
+      return;
+    }
+    const idx = lightboxItems.findIndex(item => item.url === url);
+    setLightboxIndex(idx >= 0 ? idx : 0);
+  }, [lightboxItems, destination.videoUrl]);
+
+  const closeLightbox = () => setLightboxIndex(null);
+  const nextLightbox = () => setLightboxIndex(i => i !== null ? (i + 1) % lightboxItems.length : 0);
+  const prevLightbox = () => setLightboxIndex(i => i !== null ? (i - 1 + lightboxItems.length) % lightboxItems.length : 0);
+
+  const handleSelect = (idx: number) => onSelectImage(idx);
 
   const handleReportOpen = (imageUrl: string) => {
     if (!isAuthenticated) {
@@ -75,22 +103,43 @@ export default function DestinationGallery({
         onReport={handleReport}
       />
 
+      {lightboxIndex !== null && (
+        <LightboxModal
+          items={lightboxItems}
+          activeIndex={lightboxIndex}
+          onClose={closeLightbox}
+          onNext={nextLightbox}
+          onPrev={prevLightbox}
+        />
+      )}
+
       <div className="lg:col-span-6 grid grid-cols-2 grid-rows-3 gap-3 h-[420px] relative">
 
         {/* Video — tall, spans 2 rows left side */}
         <div className="col-span-1 row-span-2 relative rounded-2xl overflow-hidden bg-black/40">
           {destination.videoUrl ? (
-            <YouTubePlayer
-              videoUrl={destination.videoUrl}
-              thumbnailUrl={getUrl(1) || undefined}
-              title={destination.name}
-              label={t('destination_detail.media_tab_cinematic')}
-              className="rounded-2xl"
-            />
+            <div
+              className="relative w-full h-full cursor-zoom-in"
+              onClick={() => openLightbox(destination.videoUrl!, true)}
+            >
+              <YouTubePlayer
+                videoUrl={destination.videoUrl}
+                thumbnailUrl={getUrl(1) || undefined}
+                title={destination.name}
+                label={t('destination_detail.media_tab_cinematic')}
+                className="rounded-2xl pointer-events-none"
+              />
+              {/* Expand hint */}
+              <div className="absolute inset-0 bg-transparent hover:bg-black/10 transition-colors flex items-end justify-end p-3">
+                <span className="text-[10px] text-white/60 bg-black/40 px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100">
+                  Perluas
+                </span>
+              </div>
+            </div>
           ) : getUrl(1) ? (
             <button
-              onClick={() => handleSelect(1)}
-              className="relative w-full h-full group"
+              onClick={() => { handleSelect(1); openLightbox(getUrl(1)); }}
+              className="relative w-full h-full group cursor-zoom-in"
             >
               <Image
                 src={getUrl(1)!}
@@ -108,8 +157,8 @@ export default function DestinationGallery({
 
         {/* Photo top-right */}
         <button
-          className="col-span-1 row-span-1 relative rounded-2xl overflow-hidden group bg-white/5"
-          onClick={() => handleSelect(2)}
+          className="col-span-1 row-span-1 relative rounded-2xl overflow-hidden group bg-white/5 cursor-zoom-in"
+          onClick={() => { handleSelect(2); openLightbox(getUrl(2)); }}
         >
           {getUrl(2) && (
             <>
@@ -127,8 +176,8 @@ export default function DestinationGallery({
 
         {/* Photo middle-right */}
         <button
-          className="col-span-1 row-span-1 relative rounded-2xl overflow-hidden group bg-white/5"
-          onClick={() => handleSelect(3)}
+          className="col-span-1 row-span-1 relative rounded-2xl overflow-hidden group bg-white/5 cursor-zoom-in"
+          onClick={() => { handleSelect(3); openLightbox(getUrl(3)); }}
         >
           {getUrl(3) && (
             <>
@@ -146,8 +195,8 @@ export default function DestinationGallery({
 
         {/* Bottom full-width: active image + "+N Foto Lainnya" */}
         <button
-          className="col-span-2 row-span-1 relative rounded-2xl overflow-hidden group bg-white/5"
-          onClick={() => handleSelect(0)}
+          className="col-span-2 row-span-1 relative rounded-2xl overflow-hidden group bg-white/5 cursor-zoom-in"
+          onClick={() => { handleSelect(0); openLightbox(activeUrl); }}
         >
           {activeUrl && (
             <>
