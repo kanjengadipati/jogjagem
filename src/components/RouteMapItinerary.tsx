@@ -60,6 +60,7 @@ interface ResolvedNode {
   timeWarning?: string;
   isTomorrow?: boolean;
   scheduledFor?: string;
+  isDone?: boolean;
 }
 
 type SlotState =
@@ -116,6 +117,14 @@ export default function RouteMapItinerary({
   // Tracks whether current all-resolved state came from a resume (not user picks)
   const isResumedRef = React.useRef(false);
 
+  const getCurrentPeriod = (h: number) => {
+    if (h >= 5 && h < 11) return 0;
+    if (h >= 11 && h < 15) return 1;
+    if (h >= 15 && h < 19) return 2;
+    return 3;
+  };
+  const currentPeriod = getCurrentPeriod(currentHour);
+
   // Resume itinerary — silently hydrate slots from the most recent localStorage entry on mount
   useEffect(() => {
     try {
@@ -124,23 +133,34 @@ export default function RouteMapItinerary({
       const latest = saved[0];
       if (!latest.slots || latest.slots.length === 0) return;
 
-      const hydrated: SlotState[] = latest.slots.map((s) => ({
-        status: 'resolved' as const,
-        index: s.slotIndex,
-        node: {
-          id: s.destination.id,
-          title: s.destination.title,
-          category: s.destination.category,
-          image: s.destination.image,
-          location: s.destination.location,
-          subRegion: s.destination.location,
-          rating: s.destination.rating,
-          distanceKm: 0,
-          mood: 'all',
-          isTomorrow: s.isTomorrow,
-          scheduledFor: s.scheduledFor,
-        },
-      }));
+      const todayDate = new Date().toDateString();
+      const savedDate = new Date(latest.createdAt).toDateString();
+      const isPastDay = new Date(savedDate) < new Date(todayDate);
+
+      const hydrated: SlotState[] = latest.slots.map((s) => {
+        const isDone = isPastDay
+          ? !s.isTomorrow
+          : !s.isTomorrow && (s.slotIndex < currentPeriod);
+
+        return {
+          status: 'resolved' as const,
+          index: s.slotIndex,
+          node: {
+            id: s.destination.id,
+            title: s.destination.title,
+            category: s.destination.category,
+            image: s.destination.image,
+            location: s.destination.location,
+            subRegion: s.destination.location,
+            rating: s.destination.rating,
+            distanceKm: 0,
+            mood: 'all',
+            isTomorrow: s.isTomorrow,
+            scheduledFor: s.scheduledFor,
+            isDone,
+          },
+        };
+      });
 
       if (hydrated.length === 3) {
         isResumedRef.current = true;
@@ -365,14 +385,6 @@ export default function RouteMapItinerary({
       setActiveMoodPicker(slotIndex);
     }
   }
-
-  const getCurrentPeriod = (h: number) => {
-    if (h >= 5 && h < 11) return 0;
-    if (h >= 11 && h < 15) return 1;
-    if (h >= 15 && h < 19) return 2;
-    return 3;
-  };
-  const currentPeriod = getCurrentPeriod(currentHour);
 
   // Build the 3 display nodes (index maps to slot 1,2,3 on the wave)
   const waveNodes = [null, ...slots];
@@ -743,42 +755,56 @@ export default function RouteMapItinerary({
                 }}
                 className={`relative flex flex-col items-center cursor-pointer group transition-transform ${waveTranslateY}`}
               >
-                {/* Distance Badge + Tomorrow Tag if scheduled tomorrow */}
+                {/* Distance Badge + Tomorrow / Selesai Tag */}
                 <div className="mb-0.5 flex items-center gap-1">
-                  <div className="px-1.5 py-0.5 rounded-full bg-black/75 backdrop-blur-sm border border-gold-400/40 text-[8px] font-bold text-gold-300 flex items-center gap-0.5 shadow-sm group-hover:scale-105 transition-transform">
-                    <MapPin className="h-2 w-2 text-gold-400 shrink-0" />
-                    <span>{node.distanceKm > 0 ? `${node.distanceKm.toFixed(1)}km` : '—'}</span>
-                  </div>
-                  {node.isTomorrow && (
-                    <span className="px-1 py-0.2 rounded bg-amber-500/30 text-amber-300 border border-amber-400/50 text-[7px] font-mono font-bold">
-                      BESOK
+                  {node.isDone ? (
+                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[7.5px] font-bold flex items-center gap-0.5 shadow-sm">
+                      <CheckCircle className="h-2 w-2 text-emerald-400" /> SELESAI
                     </span>
+                  ) : (
+                    <>
+                      <div className="px-1.5 py-0.5 rounded-full bg-black/75 backdrop-blur-sm border border-gold-400/40 text-[8px] font-bold text-gold-300 flex items-center gap-0.5 shadow-sm group-hover:scale-105 transition-transform">
+                        <MapPin className="h-2 w-2 text-gold-400 shrink-0" />
+                        <span>{node.distanceKm > 0 ? `${node.distanceKm.toFixed(1)}km` : '—'}</span>
+                      </div>
+                      {node.isTomorrow && (
+                        <span className="px-1 py-0.2 rounded bg-amber-500/30 text-amber-300 border border-amber-400/50 text-[7px] font-mono font-bold">
+                          BESOK
+                        </span>
+                      )}
+                    </>
                   )}
                 </div>
 
                 {/* Glowing Pin */}
                 <div
                   className={`relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full transition-all duration-300 shadow-md ${
-                    isPopupOpen
-                      ? 'bg-gold-400 text-royal-950 scale-125 ring-2 ring-gold-400/80 shadow-[0_0_15px_rgba(234,179,8,0.9)] z-30'
-                      : 'bg-black/50 text-gold-400 border border-gold-400/50 hover:bg-gold-400 hover:text-royal-950 hover:scale-110'
+                    node.isDone
+                      ? isPopupOpen
+                        ? 'bg-emerald-500 text-royal-950 scale-125 ring-2 ring-emerald-400/80 shadow-[0_0_15px_rgba(16,185,129,0.8)] z-30'
+                        : 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500 hover:text-royal-950 hover:scale-110'
+                      : isPopupOpen
+                        ? 'bg-gold-400 text-royal-950 scale-125 ring-2 ring-gold-400/80 shadow-[0_0_15px_rgba(234,179,8,0.9)] z-30'
+                        : 'bg-black/50 text-gold-400 border border-gold-400/50 hover:bg-gold-400 hover:text-royal-950 hover:scale-110'
                   }`}
                 >
                   <TypeIcon className="h-3.5 w-3.5" />
-                  <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-gold-400 text-[7px] font-mono font-bold text-gold-300">
+                  <span className={`absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border text-[7px] font-mono font-bold ${
+                    node.isDone ? 'border-emerald-400 text-emerald-300' : 'border-gold-400 text-gold-300'
+                  }`}>
                     {waveIndex + 1}
                   </span>
                 </div>
 
                 {/* Label */}
                 <div className="mt-1 text-center max-w-[85px]">
-                  <span className="block text-[8px] font-bold uppercase tracking-wider text-gold-400">
+                  <span className={`block text-[8px] font-bold uppercase tracking-wider ${node.isDone ? 'text-emerald-400/80' : 'text-gold-400'}`}>
                     {slotMeta.time}
                   </span>
                   <span className="block text-[7.5px] font-medium text-white/50 leading-none mb-0.5">
                     {slotMeta.duration}
                   </span>
-                  <span className="block text-[9px] font-bold text-white/90 leading-tight truncate group-hover:text-gold-300">
+                  <span className={`block text-[9px] font-bold leading-tight truncate ${node.isDone ? 'text-white/50 line-through decoration-white/30' : 'text-white/90 group-hover:text-gold-300'}`}>
                     {node.title}
                   </span>
                   <span className="block text-[7.5px] font-semibold text-gold-400/90 truncate mt-0.5">
@@ -795,7 +821,9 @@ export default function RouteMapItinerary({
                         onExploreDestination(node.rawItem);
                       }
                     }}
-                    className={`absolute bottom-full mb-3 z-50 w-64 p-2.5 rounded-xl border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.9)] animate-fade-in transition-all ${
+                    className={`absolute bottom-full mb-3 z-50 w-64 p-2.5 rounded-xl border bg-royal-950/95 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.9)] animate-fade-in transition-all ${
+                      node.isDone ? 'border-emerald-500/50' : 'border-gold-400/60'
+                    } ${
                       waveIndex === 1
                         ? 'left-0'
                         : waveIndex === 3
@@ -803,7 +831,9 @@ export default function RouteMapItinerary({
                           : 'left-1/2 -translate-x-1/2'
                     }`}
                   >
-                    <div className={`absolute -bottom-1.5 h-3 w-3 rotate-45 border-b border-r border-gold-400/60 bg-royal-950/95 ${
+                    <div className={`absolute -bottom-1.5 h-3 w-3 rotate-45 border-b border-r bg-royal-950/95 ${
+                      node.isDone ? 'border-emerald-500/50' : 'border-gold-400/60'
+                    } ${
                       waveIndex === 1 ? 'left-4' : waveIndex === 3 ? 'right-4' : 'left-1/2 -translate-x-1/2'
                     }`} />
 
@@ -830,8 +860,19 @@ export default function RouteMapItinerary({
                       </div>
                     </div>
 
+                    {/* Finished Banner if slot period has passed */}
+                    {node.isDone && (
+                      <div className="mb-2 p-2 rounded-lg bg-emerald-500/15 border border-emerald-400/40 text-left flex items-center gap-1.5">
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-400 flex-shrink-0" />
+                        <div>
+                          <p className="text-[9px] font-bold text-emerald-300 leading-none mb-0.5">Jadwal Telah Selesai</p>
+                          <p className="text-[8px] text-emerald-200/80 leading-tight">Waktu kunjungan untuk slot ini sudah berlalu.</p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Warning Banner if scheduled for tomorrow */}
-                    {node.isTomorrow && (
+                    {node.isTomorrow && !node.isDone && (
                       <div className="mb-2 p-2 rounded-lg bg-amber-500/15 border border-amber-400/40 text-left">
                         <div className="flex items-center gap-1 text-[9px] font-bold text-amber-300 mb-0.5">
                           <span>📅</span>
