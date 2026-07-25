@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useRouter } from '@/i18n/navigation';
 import { 
   Sun, Utensils, Leaf, Moon, Star, CalendarDays, MapPin, 
-  Landmark, Waves, Compass, Sparkles, Navigation, ExternalLink, Clock, Calendar, HelpCircle
+  Landmark, Waves, Compass, Sparkles, Navigation, ExternalLink, Clock, Calendar, HelpCircle, AlertTriangle
 } from 'lucide-react';
 import { Destination, Festival } from '../types';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -62,6 +62,7 @@ interface ResolvedNode {
 type SlotState =
   | { status: 'open'; index: number }
   | { status: 'loading'; index: number; mood: string }
+  | { status: 'confirming'; index: number; node: ResolvedNode }
   | { status: 'resolved'; index: number; node: ResolvedNode }
   | { status: 'locked'; index: number };
 
@@ -88,7 +89,7 @@ export default function RouteMapItinerary({
   const currentHour = new Date().getHours();
 
   // Node 0 = user location (always shown as Start pin)
-  // Nodes 1-3 = interactive slots, starting open → loading → resolved
+  // Nodes 1-3 = interactive slots, starting open → loading → confirming/resolved
   const [slots, setSlots] = useState<SlotState[]>([
     { status: 'open',   index: 0 },
     { status: 'locked', index: 1 },
@@ -104,7 +105,7 @@ export default function RouteMapItinerary({
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
 
   const getResolvedIds = () =>
-    slots.flatMap((s) => (s.status === 'resolved' ? [s.node.id] : []));
+    slots.flatMap((s) => (s.status === 'resolved' || s.status === 'confirming' ? [s.node.id] : []));
 
   function resetSlot(slotIndex: number) {
     setActiveNodeId(null);
@@ -124,6 +125,27 @@ export default function RouteMapItinerary({
     resetSlot(slotIndex);
   }
 
+  function cancelConfirmationWithNightFilter(slotIndex: number) {
+    resetSlotWithNightFilter(slotIndex);
+  }
+
+  function confirmSlotTomorrow(slotIndex: number, node: ResolvedNode) {
+    setSlots((prev) => {
+      const next = [...prev];
+      next[slotIndex] = {
+        status: 'resolved',
+        index: slotIndex,
+        node,
+      };
+      // Unlock next slot
+      if (slotIndex + 1 < next.length) {
+        next[slotIndex + 1] = { status: 'open', index: slotIndex + 1 };
+        setActiveMoodPicker(slotIndex + 1);
+      }
+      return next;
+    });
+  }
+
   async function resolveSlot(slotIndex: number, mood: string) {
     setActiveMoodPicker(null);
     setSlots((prev) => {
@@ -137,24 +159,39 @@ export default function RouteMapItinerary({
       const res = await ai.getNextStop(userLat, userLng, mood, excludeIds, currentHour);
       if (res.data) {
         const rawDest = destinations.find((d) => d.id === res.data!.id);
-        setSlots((prev) => {
-          const next = [...prev];
-          next[slotIndex] = {
-            status: 'resolved',
-            index: slotIndex,
-            node: {
-              ...res.data!,
-              mood,
-              rawItem: rawDest,
-            },
-          };
-          // Unlock next slot
-          if (slotIndex + 1 < next.length) {
-            next[slotIndex + 1] = { status: 'open', index: slotIndex + 1 };
-            setActiveMoodPicker(slotIndex + 1);
-          }
-          return next;
-        });
+        const resolvedData: ResolvedNode = {
+          ...res.data!,
+          mood,
+          rawItem: rawDest,
+        };
+
+        if (res.data.isTomorrow) {
+          // Do NOT directly move to resolved & unlock next node. Ask user confirmation first!
+          setSlots((prev) => {
+            const next = [...prev];
+            next[slotIndex] = {
+              status: 'confirming',
+              index: slotIndex,
+              node: resolvedData,
+            };
+            return next;
+          });
+        } else {
+          // Directly resolve & unlock next node
+          setSlots((prev) => {
+            const next = [...prev];
+            next[slotIndex] = {
+              status: 'resolved',
+              index: slotIndex,
+              node: resolvedData,
+            };
+            if (slotIndex + 1 < next.length) {
+              next[slotIndex + 1] = { status: 'open', index: slotIndex + 1 };
+              setActiveMoodPicker(slotIndex + 1);
+            }
+            return next;
+          });
+        }
       }
     } catch {
       setSlots((prev) => {
@@ -416,6 +453,109 @@ export default function RouteMapItinerary({
                     <span className="block text-[9px] font-bold text-white/50 leading-tight animate-pulse">
                       Mencari…
                     </span>
+                  </div>
+                </div>
+              );
+            }
+
+            // ── CONFIRMING (Tomorrow scheduling popup before moving next) ──
+            if (slot.status === 'confirming') {
+              const node = slot.node;
+              return (
+                <div
+                  key={`slot-confirming-${slotIndex}`}
+                  className={`relative flex flex-col items-center cursor-pointer group ${waveTranslateY}`}
+                >
+                  <div className="mb-0.5 flex items-center gap-1">
+                    <div className="px-1.5 py-0.5 rounded-full bg-amber-500/30 backdrop-blur-sm border border-amber-400/50 text-[8px] font-bold text-amber-300 flex items-center gap-0.5 shadow-sm">
+                      <span>⚠️ Konfirmasi</span>
+                    </div>
+                  </div>
+                  {/* Warning Pin */}
+                  <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-amber-500 text-royal-950 ring-2 ring-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.8)] animate-pulse">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-amber-400 text-[7px] font-mono font-bold text-amber-300">
+                      {waveIndex + 1}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-center max-w-[85px]">
+                    <span className="block text-[8px] font-bold uppercase tracking-wider text-amber-400">
+                      {slotMeta.time}
+                    </span>
+                    <span className="block text-[9px] font-bold text-amber-200 leading-tight">
+                      Perlu Konfirmasi
+                    </span>
+                  </div>
+
+                  {/* Confirmation Modal Card */}
+                  <div
+                    className={`absolute bottom-full mb-3 z-50 w-64 p-3 rounded-xl border border-amber-400/70 bg-royal-950/98 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.95)] animate-fade-in ${
+                      waveIndex === 1 ? 'left-0' : waveIndex === 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                    }`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className={`absolute -bottom-1.5 h-3 w-3 rotate-45 border-b border-r border-amber-400/70 bg-royal-950/98 ${
+                      waveIndex === 1 ? 'left-4' : waveIndex === 3 ? 'right-4' : 'left-1/2 -translate-x-1/2'
+                    }`} />
+
+                    <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-amber-400/30">
+                      <div className="flex items-center gap-1 text-amber-400 text-[9.5px] font-bold uppercase tracking-wide">
+                        <AlertTriangle className="h-3 w-3" />
+                        <span>Destinasi Tutup Sore Ini</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          cancelConfirmationWithNightFilter(slotIndex);
+                        }}
+                        className="text-white/40 hover:text-white text-[11px] font-bold px-1"
+                        title="Batal"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <p className="text-[8.5px] text-amber-200/90 leading-normal mb-2 text-left">
+                      {node.timeWarning || 'Destinasi ini umumnya tutup setelah jam 17:00. Apakah kamu ingin menjadwalkannya untuk besok pagi?'}
+                    </p>
+
+                    {/* Preview of proposed destination */}
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg bg-black/40 border border-amber-400/20 mb-2.5 text-left">
+                      {node.image && (
+                        <div className="relative h-10 w-12 shrink-0 rounded overflow-hidden border border-white/10">
+                          <Image src={node.image} alt={node.title} fill className="object-cover" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <span className="block text-[7.5px] font-bold text-amber-400 uppercase">
+                          📅 {node.scheduledFor || 'Besok Pagi'}
+                        </span>
+                        <h5 className="text-[10px] font-bold text-white truncate leading-tight">{node.title}</h5>
+                        <p className="text-[8px] text-white/60 truncate">📍 {node.subRegion}</p>
+                      </div>
+                    </div>
+
+                    {/* Confirmation Actions */}
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          confirmSlotTomorrow(slotIndex, node);
+                        }}
+                        className="w-full py-1.5 px-2 rounded-lg bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-royal-950 font-extrabold text-[9.5px] shadow-md active:scale-95 transition-all text-center cursor-pointer"
+                      >
+                        📅 Ya, Jadwalkan Besok
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          cancelConfirmationWithNightFilter(slotIndex);
+                        }}
+                        className="w-full py-1 px-2 rounded-lg bg-black/50 hover:bg-white/10 border border-white/20 text-white/80 hover:text-white text-[8.5px] font-semibold transition-all text-center cursor-pointer"
+                      >
+                        🌙 Tidak, Ubah ke Mood Lain
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
