@@ -275,6 +275,7 @@ function DestinationsPageInner() {
   const [page, setPage]                           = useState(1);
   const [totalPages, setTotalPages]               = useState(1);
   const [loadingMore, setLoadingMore]             = useState(false);
+  const hasLoadedOnce = useRef(false);
 
   const [trendingItems, setTrendingItems]   = useState<TrendingItem[]>([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
@@ -365,7 +366,7 @@ function DestinationsPageInner() {
 
   useEffect(() => {
     async function loadInitial() {
-      setIsLoading(true);
+      if (!hasLoadedOnce.current) setIsLoading(true);
       try {
         if (selectedCategory) {
           const response = await destinationApi.getByCategory(selectedCategory);
@@ -381,7 +382,10 @@ function DestinationsPageInner() {
           else { setPage(1); setTotalPages(1); }
         }
       } catch (e) { console.error('Failed to fetch destinations:', e); }
-      finally { setIsLoading(false); }
+      finally {
+        hasLoadedOnce.current = true;
+        setIsLoading(false);
+      }
     }
     loadInitial();
   }, [selectedCategory]);
