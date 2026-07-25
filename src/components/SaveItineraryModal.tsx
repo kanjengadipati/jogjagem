@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useRouter } from '@/i18n/navigation';
 import { CheckCircle, X, Save, CloudUpload, Loader2, MapPin, Clock, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -85,15 +86,20 @@ export default function SaveItineraryModal({
     setSavedLocation('local');
   }
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   function handleViewTrips() {
     router.push('/planner');
     onClose();
   }
 
-  return (
+  if (!mounted) return null;
+
+  return ReactDOM.createPortal(
     /* Backdrop */
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)' }}
     >
       {/* Modal card */}
@@ -297,6 +303,7 @@ export default function SaveItineraryModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
