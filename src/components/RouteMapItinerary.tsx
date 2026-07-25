@@ -716,38 +716,23 @@ export default function RouteMapItinerary({
                     </div>
 
                     {/* Bottom Action Footer */}
-                    <div className="flex flex-col gap-1.5 mt-2 pt-1.5 border-t border-white/10 text-[9px] relative z-10">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 font-bold text-gold-400">
-                          <Star className="h-2.5 w-2.5 fill-gold-400 text-gold-400" />
-                          <span>{node.rating.toFixed(1)}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); resetSlot(slotIndex); }}
-                            className="text-[9px] font-bold text-white/50 hover:text-amber-400 transition-colors cursor-pointer"
-                          >
-                            ↩ Ganti
-                          </button>
-                          <div className="flex items-center gap-0.5 text-gold-300 font-bold hover:underline cursor-pointer">
-                            <span>Buka Detail</span>
-                            <ExternalLink className="h-2.5 w-2.5" />
-                          </div>
+                    <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-white/10 text-[9px] relative z-10">
+                      <div className="flex items-center gap-1 font-bold text-gold-400">
+                        <Star className="h-2.5 w-2.5 fill-gold-400 text-gold-400" />
+                        <span>{node.rating.toFixed(1)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); resetSlot(slotIndex); }}
+                          className="text-[9px] font-bold text-white/50 hover:text-amber-400 transition-colors cursor-pointer"
+                        >
+                          ↩ Ganti
+                        </button>
+                        <div className="flex items-center gap-0.5 text-gold-300 font-bold hover:underline cursor-pointer">
+                          <span>Buka Detail</span>
+                          <ExternalLink className="h-2.5 w-2.5" />
                         </div>
                       </div>
-
-                      {/* Prompt to change to night-accessible destinations */}
-                      {node.isTomorrow && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            resetSlotWithNightFilter(slotIndex);
-                          }}
-                          className="w-full py-1 px-2 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[8.5px] font-bold transition-all text-center cursor-pointer"
-                        >
-                          🌙 Ganti ke yang bisa malam ini
-                        </button>
-                      )}
                     </div>
                   </div>
                 )}
