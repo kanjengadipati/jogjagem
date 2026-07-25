@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from '@/i18n/navigation';
 import { 
@@ -7,7 +7,11 @@ import {
 } from 'lucide-react';
 import { Destination, Festival } from '../types';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { ai } from '@/lib/api';
+import SaveItineraryModal from './SaveItineraryModal';
+import AuthModal from './AuthModal';
+import { syncLocalItinerariesToDB } from '@/lib/itinerary-storage';
 
 interface RouteMapItineraryProps {
   destinations: Destination[];
@@ -82,6 +86,7 @@ export default function RouteMapItinerary({
 }: RouteMapItineraryProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
 
   const userLat = coords?.lat || DEFAULT_LAT;
   const userLng = coords?.lng || DEFAULT_LNG;
@@ -105,6 +110,20 @@ export default function RouteMapItinerary({
   // Hover & Pinned states for resolved node popups (click pins popup open until explicitly closed)
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [pinnedNodeId, setPinnedNodeId] = useState<string | null>(null);
+
+  // Save itinerary modal
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  // Auto-show save modal when all slots are resolved
+  useEffect(() => {
+    const allResolved = slots.length > 0 && slots.every((s) => s.status === 'resolved');
+    if (allResolved) {
+      // Small delay so user sees the last card resolve first
+      const timer = setTimeout(() => setShowSaveModal(true), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [slots]);
 
   const getResolvedIds = () =>
     slots.flatMap((s) => (s.status === 'resolved' || s.status === 'confirming' ? [s.node.id] : []));
@@ -773,6 +792,50 @@ export default function RouteMapItinerary({
           })}
         </div>
       </div>
+
+      {/* Save Itinerary Modal — auto-opens when all slots resolved */}
+      {showSaveModal && (() => {
+        const modalSlots = slots
+          .filter((s) => s.status === 'resolved')
+          .map((s) => {
+            if (s.status !== 'resolved') return null;
+            const baseSlot = BASE_SLOTS[s.index] ?? BASE_SLOTS[BASE_SLOTS.length - 1];
+            return {
+              slotIndex: s.index,
+              time: baseSlot.time,
+              timeRange: baseSlot.timeRange,
+              isTomorrow: s.node.isTomorrow ?? false,
+              scheduledFor: s.node.scheduledFor,
+              destination: {
+                id: s.node.id,
+                title: s.node.title,
+                category: s.node.category,
+                image: s.node.image,
+                location: s.node.location,
+                rating: s.node.rating,
+              },
+            };
+          })
+          .filter(Boolean) as Parameters<typeof SaveItineraryModal>[0]['slots'];
+
+        return (
+          <SaveItineraryModal
+            slots={modalSlots}
+            onClose={() => setShowSaveModal(false)}
+            onOpenAuthModal={() => setAuthModalOpen(true)}
+          />
+        );
+      })()}
+
+      {/* Auth Modal — shown when guest clicks "Login & Simpan ke Akun" */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onSuccess={async () => {
+          setAuthModalOpen(false);
+          await syncLocalItinerariesToDB();
+        }}
+      />
     </div>
   );
 }

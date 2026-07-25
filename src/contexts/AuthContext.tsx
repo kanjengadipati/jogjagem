@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { auth, type ProfileResponse } from '../lib/api';
+import { syncLocalItinerariesToDB } from '../lib/itinerary-storage';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -98,6 +99,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await auth.login(email, password);
       if (res.status === 'success') {
         await refreshProfile();
+        // Sync any locally saved itineraries to DB in background
+        syncLocalItinerariesToDB().catch(() => {});
         // Get fresh profile to check role
         const profileRes = await auth.getProfile();
         const role = profileRes?.data?.role;
@@ -133,11 +136,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await auth.socialLogin(provider, token);
       if (res.status === 'success') {
         await refreshProfile();
+        // Sync any locally saved itineraries to DB in background
+        syncLocalItinerariesToDB().catch(() => {});
         return { success: true };
       }
       return { success: false, error: res.message || 'Social login failed' };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Network error' };
+      return { success: false, error: err.message || 'Social login failed' };
     }
   };
 

@@ -1,0 +1,128 @@
+/**
+ * itinerary-storage.ts
+ * Helpers for local-first itinerary storage.
+ * Itineraries are stored in localStorage under the key STORAGE_KEY as a
+ * JSON array of LocalItinerary objects. When the user logs in,
+ * syncLocalItinerariesToDB() uploads them to the backend trips API.
+ */
+
+import { trips } from './api';
+
+export const STORAGE_KEY = 'explore_jogja_itineraries_v1';
+
+export interface LocalItinerarySlot {
+  slotIndex: number;
+  /** e.g. "07.00 AM" */
+  time: string;
+  timeRange: string;
+  isTomorrow: boolean;
+  scheduledFor?: string;
+  destination: {
+    id: string;
+    title: string;
+    category: string;
+    image: string;
+    location: string;
+    rating: number;
+  };
+}
+
+export interface LocalItinerary {
+  /** nanoid-like uuid generated client-side */
+  id: string;
+  title: string;
+  /** ISO date string */
+  createdAt: string;
+  slots: LocalItinerarySlot[];
+}
+
+// ─── Read / Write ────────────────────────────────────────────────────────────
+
+export function getLocalItineraries(): LocalItinerary[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveItineraryLocally(itinerary: LocalItinerary): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getLocalItineraries();
+    // Replace if same id exists, otherwise prepend
+    const idx = existing.findIndex((i) => i.id === itinerary.id);
+    if (idx >= 0) {
+      existing[idx] = itinerary;
+    } else {
+      existing.unshift(itinerary);
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+  } catch {
+    // storage quota exceeded — ignore silently
+  }
+}
+
+export function clearLocalItinerary(id: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getLocalItineraries();
+    const filtered = existing.filter((i) => i.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  } catch {}
+}
+
+export function clearAllLocalItineraries(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {}
+}
+
+// ─── DB Sync ─────────────────────────────────────────────────────────────────
+
+/**
+ * Sync all locally stored itineraries to the backend trips API.
+ * Called after user successfully logs in.
+ * Successfully synced items are removed from localStorage.
+ */
+export async function syncLocalItinerariesToDB(): Promise<void> {
+  const itineraries = getLocalItineraries();
+  if (itineraries.length === 0) return;
+
+  for (const itinerary of itineraries) {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const destinationIds = itinerary.slots.map((s) => s.destination.id);
+      const res = await trips.create({
+        title: itinerary.title,
+        start_date: today,
+        duration_days: 1,
+        days: [
+          {
+            dayNumber: 1,
+            destinationIds,
+            notes: '',
+          },
+        ],
+        status: 'draft',
+      });
+      if (res.status === 'success') {
+        clearLocalItinerary(itinerary.id);
+      }
+    } catch {
+      // If one fails, continue with others
+    }
+  }
+}
+
+// ─── ID Generator ────────────────────────────────────────────────────────────
+
+/** Lightweight unique ID (no dependency needed) */
+export function generateLocalId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
