@@ -81,6 +81,23 @@ export default React.memo(function DestinationCard({
 
   const badgeBgClass = BADGE_STYLES[badgeKey] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white';
 
+  // Secondary badges (skip the primary, max 2 more)
+  const allBadges = (destination.badges && destination.badges.length > 0)
+    ? destination.badges
+    : apiBadge
+      ? [apiBadge]
+      : [];
+  const secondaryBadges = allBadges
+    .filter((b: string) => b !== apiBadge)
+    .slice(0, 2)
+    .map((b: string) => {
+      const key = b.toLowerCase().replace(/-/g, '_').replace(/ /g, '_');
+      return {
+        label: t(`badges.${b.toLowerCase().replace(/ /g, '_')}`).toUpperCase(),
+        style: BADGE_STYLES[key] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white',
+      };
+    });
+
   const heightClass = 'h-[160px] sm:h-[360px] md:h-[400px]';
   const slug = destination.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -127,10 +144,19 @@ export default React.memo(function DestinationCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent transition-opacity duration-300 group-hover:from-black/100" />
 
         {/* Top-Left Badge Container */}
-        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-2">
+        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-col items-start gap-1">
             <div className={`${badgeBgClass} px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-sans font-semibold uppercase tracking-[0.08em]`}>
                 {badgeText}
             </div>
+            {secondaryBadges.length > 0 && (
+              <div className="flex items-center gap-1">
+                {secondaryBadges.map((b, i) => (
+                  <div key={i} className={`${b.style} px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-full text-[7px] sm:text-[9px] font-sans font-semibold uppercase tracking-[0.08em]`}>
+                    {b.label}
+                  </div>
+                ))}
+              </div>
+            )}
         </div>
 
         {/* Bookmark Icon */}

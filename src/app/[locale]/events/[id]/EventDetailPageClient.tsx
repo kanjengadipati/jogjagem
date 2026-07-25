@@ -224,6 +224,23 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
     ? (t(`badges.${event.badge.toLowerCase().replace(/ /g, '_')}`) || event.badge)
     : event.category.replace(/-/g, ' ');
 
+  // Secondary badges
+  const allBadges = (event.badges && event.badges.length > 0)
+    ? event.badges
+    : event.badge
+      ? [event.badge]
+      : [];
+  const secondaryBadges = allBadges
+    .filter((b: string) => b !== event.badge)
+    .slice(0, 2)
+    .map((b: string) => {
+      const key = b.toLowerCase().replace(/[\s-]/g, '_');
+      return {
+        label: (t(`badges.${b.toLowerCase().replace(/ /g, '_')}`) || b).toUpperCase(),
+        style: BADGE_STYLES[key] || 'bg-gold-500/90 text-white',
+      };
+    });
+
   return (
     <div className="min-h-screen bg-[#F7F3EE]">
       <div className="hidden xl:block">
@@ -262,6 +279,11 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
             <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border ${badgeStyle}`}>
               {badgeLabel}
             </span>
+            {secondaryBadges.map((b, i) => (
+              <span key={i} className={`inline-flex items-center text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${b.style} opacity-80 ml-1`}>
+                {b.label}
+              </span>
+            ))}
           </div>
         </div>
 

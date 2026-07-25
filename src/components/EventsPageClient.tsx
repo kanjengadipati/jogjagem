@@ -77,6 +77,23 @@ function EventCard({ evt, className = '' }: { evt: EventItem; className?: string
     ? (t(`badges.${evt.badge.toLowerCase().replace(/ /g, '_')}`) || evt.badge)
     : evt.category.replace(/-/g, ' ');
 
+  // Secondary badges
+  const allBadges = (evt.badges && evt.badges.length > 0)
+    ? evt.badges
+    : evt.badge
+      ? [evt.badge]
+      : [];
+  const secondaryBadges = allBadges
+    .filter((b: string) => b !== evt.badge)
+    .slice(0, 2)
+    .map((b: string) => {
+      const key = b.toLowerCase().replace(/[\s-]/g, '_');
+      return {
+        label: (t(`badges.${b.toLowerCase().replace(/ /g, '_')}`) || b).toUpperCase(),
+        style: BADGE_STYLES[key] || BADGE_STYLES.default,
+      };
+    });
+
   const dateLabel = evt.start_date
     ? `${evt.start_date}${evt.end_date && evt.end_date !== evt.start_date ? ` – ${evt.end_date}` : ''}`
     : null;
@@ -118,10 +135,19 @@ function EventCard({ evt, className = '' }: { evt: EventItem; className?: string
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent group-hover:from-black/100 transition-opacity duration-300" />
 
       {/* Badge top-left */}
-      <div className="absolute top-3 left-3">
+      <div className="absolute top-3 left-3 flex flex-col items-start gap-1">
         <span className={`inline-flex items-center text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.08em] px-2.5 py-1 rounded-full border ${badgeStyle}`}>
           {badgeLabel}
         </span>
+        {secondaryBadges.length > 0 && (
+          <div className="flex items-center gap-1">
+            {secondaryBadges.map((b, i) => (
+              <span key={i} className={`inline-flex items-center text-[8px] font-bold uppercase tracking-[0.08em] px-2 py-0.5 rounded-full border ${b.style}`}>
+                {b.label}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Ticket price top-right */}

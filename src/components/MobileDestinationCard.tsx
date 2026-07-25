@@ -178,6 +178,23 @@ export default memo(function MobileDestinationCard({
 
   const badgeColor = BADGE_STYLES[badgeKey] || localBadge.color;
   const badge = { label: badgeLabel, color: badgeColor };
+
+  // Secondary badges
+  const allBadges = (destination.badges && destination.badges.length > 0)
+    ? destination.badges
+    : apiBadge
+      ? [apiBadge]
+      : [];
+  const secondaryBadges = allBadges
+    .filter((b: string) => b !== apiBadge)
+    .slice(0, 2)
+    .map((b: string) => {
+      const key = b.toLowerCase().replace(/-/g, '_').replace(/ /g, '_');
+      return {
+        label: t(`badges.${b.toLowerCase().replace(/ /g, '_')}`),
+        style: BADGE_STYLES[key] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white',
+      };
+    });
   const img = destination.images?.[0]?.url || destination.ogImageUrl || '';
   const totalActions = QUICK_ACTIONS.length;
   const maxSwipe = -(totalActions * ACTION_WIDTH);
@@ -310,9 +327,20 @@ export default memo(function MobileDestinationCard({
           <div className={`absolute inset-0 bg-gradient-to-t ${expanded ? 'from-black/95 via-black/50 to-black/10' : 'from-black/85 via-black/30 to-transparent'}`} />
 
           {/* Badge top-left */}
-          <div className={`absolute top-2.5 left-2.5 flex items-center gap-1 ${badge.color} px-2 py-0.5 rounded-full`}>
-            <Sparkles className="h-2.5 w-2.5 text-white" />
-            <span className="text-[9px] font-bold text-white uppercase tracking-wide">{badge.label}</span>
+          <div className="absolute top-2.5 left-2.5 flex flex-col items-start gap-1">
+            <div className={`flex items-center gap-1 ${badge.color} px-2 py-0.5 rounded-full`}>
+              <Sparkles className="h-2.5 w-2.5 text-white" />
+              <span className="text-[9px] font-bold text-white uppercase tracking-wide">{badge.label}</span>
+            </div>
+            {secondaryBadges.length > 0 && (
+              <div className="flex items-center gap-1">
+                {secondaryBadges.map((b, i) => (
+                  <span key={i} className={`${b.style} text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full`}>
+                    {b.label}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Heart top-right */}
