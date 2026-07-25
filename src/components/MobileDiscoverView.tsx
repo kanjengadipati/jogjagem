@@ -625,57 +625,73 @@ export default function MobileDiscoverView({
       <div className="bg-[#F5F0E8] space-y-6 pt-6 pb-[calc(96px+env(safe-area-inset-bottom,0px))] relative z-20 -mt-4">
 
         {/* ── Category pills ── */}
-        <div>
-          <SectionHeader title={t('hero.browse_categories')} />
-          {/* Primary row: 4 cats + Lainnya button */}
-          <div className="grid grid-cols-5 gap-2 px-4">
-            {[...PRIMARY_CATS, { id: '__more__' as const, tKey: 'category.more', Icon: MoreHorizontal }].map(({ id, tKey, Icon }) => {
-              const isMore = id === '__more__';
-              const active = isMore ? showMoreCats : selectedCategory === id;
-              return (
-                <button
-                  key={String(id)}
-                  onClick={() => {
-                    if (isMore) { setShowMoreCats(v => !v); return; }
-                    setShowMoreCats(false);
-                    onSelectCategory(active ? null : id);
-                  }}
-                  className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
-                    active ? 'bg-gold-500 border-gold-500' : 'bg-[#1C1A17] border-[#2E2A24]'
-                  }`}
-                >
-                  <Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
-                  <span className={`text-[9px] font-bold text-center leading-none w-full truncate px-1 ${active ? 'text-royal-950' : 'text-white/70'}`}>
-                    {id === 'hidden-gem' ? t(tKey) : t(tKey).split(' ')[0]}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+        {(() => {
+          const orderedCategories = !selectedCategory
+            ? ALL_CATEGORIES
+            : (() => {
+                const activeIdx = ALL_CATEGORIES.findIndex(c => c.id === selectedCategory);
+                if (activeIdx <= 0) return ALL_CATEGORIES;
+                const activeItem = ALL_CATEGORIES[activeIdx];
+                const rest = ALL_CATEGORIES.filter((_, idx) => idx !== activeIdx);
+                return [rest[0], activeItem, ...rest.slice(1)];
+              })();
+          const primaryCats = orderedCategories.slice(0, 4);
+          const moreCats = orderedCategories.slice(4);
 
-          {/* Expanded "Lainnya" row */}
-          {showMoreCats && (
-            <div className="grid grid-cols-5 gap-2 px-4 mt-2">
-              {MORE_CATS.map(cat => {
-                const active = selectedCategory === cat.id;
-                return (
-                  <button
-                    key={String(cat.id)}
-                    onClick={() => { onSelectCategory(active ? null : cat.id); setShowMoreCats(false); }}
-                    className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
-                      active ? 'bg-gold-500 border-gold-500' : 'bg-[#1c1a17] border-[#2E2A24]'
-                    }`}
-                  >
-                    <cat.Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
-                    <span className={`text-[9px] font-bold text-center leading-tight px-0.5 ${active ? 'text-royal-950' : 'text-white/70'}`}>
-                      {t(cat.tKey)}
-                    </span>
-                  </button>
-                );
-              })}
+          return (
+            <div>
+              <SectionHeader title={t('hero.browse_categories')} />
+              {/* Primary row: 4 cats + Lainnya button */}
+              <div className="grid grid-cols-5 gap-2 px-4">
+                {[...primaryCats, { id: '__more__' as const, tKey: 'category.more', Icon: MoreHorizontal }].map(({ id, tKey, Icon }) => {
+                  const isMore = id === '__more__';
+                  const active = isMore ? showMoreCats : selectedCategory === id;
+                  return (
+                    <button
+                      key={String(id)}
+                      onClick={() => {
+                        if (isMore) { setShowMoreCats(v => !v); return; }
+                        setShowMoreCats(false);
+                        onSelectCategory(active ? null : id);
+                      }}
+                      className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
+                        active ? 'bg-gold-500 border-gold-500' : 'bg-[#1C1A17] border-[#2E2A24]'
+                      }`}
+                    >
+                      <Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
+                      <span className={`text-[9px] font-bold text-center leading-tight whitespace-pre-line w-full px-0.5 ${active ? 'text-royal-950' : 'text-white/70'}`}>
+                        {t(tKey).includes(' ') ? t(tKey).replace(' ', '\n') : t(tKey)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Expanded "Lainnya" row */}
+              {showMoreCats && (
+                <div className="grid grid-cols-5 gap-2 px-4 mt-2">
+                  {moreCats.map(cat => {
+                    const active = selectedCategory === cat.id;
+                    return (
+                      <button
+                        key={String(cat.id)}
+                        onClick={() => { onSelectCategory(active ? null : cat.id); setShowMoreCats(false); }}
+                        className={`flex flex-col items-center gap-1.5 py-2.5 rounded-2xl border transition-all duration-200 ${
+                          active ? 'bg-gold-500 border-gold-500' : 'bg-[#1c1a17]'
+                        }`}
+                      >
+                        <cat.Icon className={`h-7 w-7 ${active ? 'text-royal-950' : 'text-gold-400'}`} />
+                        <span className={`text-[9px] font-bold text-center leading-tight whitespace-pre-line w-full px-0.5 ${active ? 'text-royal-950' : 'text-white/70'}`}>
+                          {t(cat.tKey).includes(' ') ? t(cat.tKey).replace(' ', '\n') : t(cat.tKey)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })()}
 
         {/* ── Popular destinations ── */}
         <div>

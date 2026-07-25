@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import DestinationCard from '@/components/DestinationCard';
 import { DestinationCardSkeleton, TrendingCardSkeleton } from '@/components/CardSkeleton';
 import CategoryLinks from '@/components/CategoryLinks';
+import SearchBar from '@/components/SearchBar';
 import { Destination } from '@/types';
 import { destinations as destinationApi, ai } from '@/lib/api';
 import Image from 'next/image';
@@ -366,7 +367,7 @@ function DestinationsPageInner() {
 
   useEffect(() => {
     async function loadInitial() {
-      if (!hasLoadedOnce.current) setIsLoading(true);
+      setIsLoading(true);
       try {
         if (selectedCategory) {
           const response = await destinationApi.getByCategory(selectedCategory);
@@ -466,14 +467,11 @@ function DestinationsPageInner() {
                 </p>
               </div>
 
-              <div className="relative w-full lg:w-[420px] shrink-0">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-white/40 pointer-events-none" />
-                <input
-                  type="text"
+              <div className="w-full lg:w-[440px] shrink-0">
+                <SearchBar
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
+                  onChange={setSearchQuery}
                   placeholder={t('destinations_page.search_placeholder') || 'Cari destinasi, aktivitas, atau pengalaman...'}
-                  className="w-full pl-11 pr-4 py-3.5 bg-white/6 border border-white/12 rounded-2xl text-sm text-white placeholder:text-white/35 focus:outline-none focus:border-gold-400/50 focus:bg-white/10 transition-all backdrop-blur-sm"
                 />
               </div>
             </div>
@@ -553,7 +551,10 @@ function DestinationsPageInner() {
           {isLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
               {Array.from({ length: 12 }).map((_, i) => (
-                <DestinationCardSkeleton key={i} landscape={i % 7 === 0} />
+                <div
+                  key={i}
+                  className={`rounded-3xl bg-stone-200/70 animate-pulse aspect-[3/4] ${i % 7 === 0 ? 'col-span-2' : ''}`}
+                />
               ))}
             </div>
           ) : filteredDestinations.length === 0 ? (

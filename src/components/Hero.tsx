@@ -8,6 +8,7 @@ import NearbyMapCard from './NearbyMapCard';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AIPickCard } from './AIPickCard';
+import SearchBar from './SearchBar';
 
 const BADGE_COLOR: Record<string, string> = {
   'Spesial Hari Ini': 'bg-orange-500',
@@ -419,22 +420,37 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
                 </h1>
                 <p className="text-sm sm:text-base max-w-xl font-light text-white/90 drop-shadow-md leading-relaxed">{heroConfig.subtitle}</p>
                 <div className="max-w-xl w-full pt-4 md:pt-5">
-                  <form id="hero-conversational-search-form" onSubmit={handleSearchSubmit} className="relative flex items-center rounded-full border border-white/20 bg-black/35 hover:bg-black/45 backdrop-blur-md p-1 shadow-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400">
-                    <Search className="ml-4 h-5 w-5 text-white/70 shrink-0" />
-                    <input type="text" placeholder={t('hero.search_placeholder')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full bg-transparent py-3 pl-3 pr-28 text-sm text-white placeholder-white/60 focus:outline-none font-sans" />
-                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                    <div className="absolute right-1 flex items-center space-x-1">
-                      <button type="button" onClick={handleImageButtonClick} disabled={isUploadingImage} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-all shrink-0 disabled:opacity-50" title={t('hero.search_by_image')}>
-                        {isUploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-                      </button>
-                      <button type="button" onClick={handleVoiceSearch} className={`flex h-9 w-9 items-center justify-center rounded-full transition-all shrink-0 ${isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'hover:bg-white/10 text-white/70 hover:text-white'}`} title={t('hero.search_by_voice')}>
-                        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                      </button>
-                      <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-full bg-gold-500 hover:bg-gold-600 active:scale-95 text-white transition-all shadow-md shrink-0">
-                        <Search className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </form>
+                  <SearchBar
+                    id="hero-conversational-search-form"
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    onSubmit={() => { if (searchQuery.trim()) onSearchSubmit(searchQuery); }}
+                    placeholder={t('hero.search_placeholder')}
+                    showImageSearch
+                    showVoiceSearch
+                    onImageSearch={async (file) => {
+                      if (!file.type.startsWith('image/')) { alert(t('hero.upload_image_file')); return; }
+                      setIsUploadingImage(true);
+                      try {
+                        const base64Data = await new Promise<string>((resolve, reject) => {
+                          const reader = new FileReader();
+                          reader.readAsDataURL(file);
+                          reader.onload = () => resolve((reader.result as string).split(',')[1]);
+                          reader.onerror = error => reject(error);
+                        });
+                        const previewUrl = URL.createObjectURL(file);
+                        const responseData = await ai.imageSearch(base64Data, file.type);
+                        if (responseData.status === 'success' && responseData.data) {
+                          const { reply, matchedDestinationIds } = responseData.data;
+                          onImageSearchSubmit(previewUrl, reply, Array.isArray(matchedDestinationIds) ? matchedDestinationIds : []);
+                        } else { throw new Error(responseData.message || 'Failed to analyze image'); }
+                      } catch (err: any) { console.error(err); alert(t('hero.error_scanning_image') + err.message); }
+                      finally { setIsUploadingImage(false); }
+                    }}
+                    onVoiceSearch={handleVoiceSearch}
+                    isUploadingImage={isUploadingImage}
+                    isListening={isListening}
+                  />
                 </div>
 
               </div>

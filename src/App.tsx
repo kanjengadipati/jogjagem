@@ -464,6 +464,7 @@ export default function App() {
                 <CategoryLinks
                   selectedCategory={selectedCategory}
                   onSelectCategory={setSelectedCategory}
+                  dark
                 />
 
                 {/* Destinations Showcase Grids */}

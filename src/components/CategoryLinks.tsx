@@ -90,7 +90,7 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
       selected ? 'text-royal-950' : dark ? 'text-white/70' : 'text-stone-700'
     }`;
 
-  const allCats = [
+  const rawCats = [
     { id: null as string | null, name: t('category.all_journeys'), Icon: TuguJogjaIcon },
     ...categories.map(cat => ({
       id: cat.id as string | null,
@@ -98,6 +98,16 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
       Icon: ICON_MAP[cat.icon] || ICON_MAP[cat.id] || HiddenGemsIcon,
     })),
   ];
+
+  // Reorder so active selected category is in 1st order (right after "Semua Perjalanan")
+  const allCats = React.useMemo(() => {
+    if (!selectedCategory) return rawCats;
+    const activeIdx = rawCats.findIndex(c => c.id === selectedCategory);
+    if (activeIdx <= 0) return rawCats;
+    const activeItem = rawCats[activeIdx];
+    const rest = rawCats.filter((_, idx) => idx !== activeIdx);
+    return [rest[0], activeItem, ...rest.slice(1)];
+  }, [categories, selectedCategory, t]);
 
   // Mobile: 4 primary + "Lainnya" button, rest in expanded drawer
   const PRIMARY_COUNT = 4;
@@ -120,8 +130,8 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
                 className={pillCls(selected)}
               >
                 <Icon className={iconCls(selected)} />
-                <span className={`${labelCls(selected)} truncate w-full`}>
-                  {name.split(' ')[0]}
+                <span className={`${labelCls(selected)} whitespace-pre-line w-full`}>
+                  {name.includes(' ') ? name.replace(' ', '\n') : name}
                 </span>
               </button>
             );
@@ -148,7 +158,9 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
                   className={pillCls(selected)}
                 >
                   <Icon className={iconCls(selected)} />
-                  <span className={`${labelCls(selected)} line-clamp-2`}>{name}</span>
+                  <span className={`${labelCls(selected)} whitespace-pre-line w-full`}>
+                    {name.includes(' ') ? name.replace(' ', '\n') : name}
+                  </span>
                 </button>
               );
             })}
@@ -156,11 +168,11 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
         )}
       </div>
 
-      {/* ── Desktop layout: single row grid (unchanged) ── */}
+      {/* ── Desktop layout: single row grid for all categories ── */}
       <div
         id="categories-pill-row"
         className="hidden sm:grid gap-2"
-        style={{ gridTemplateColumns: `repeat(${Math.min(allCats.length, 9)}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${allCats.length}, minmax(0, 1fr))` }}
       >
         {allCats.map(({ id, name, Icon }) => {
           const selected = selectedCategory === id;
@@ -172,7 +184,9 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
               className={pillCls(selected)}
             >
               <Icon className={iconCls(selected)} />
-              <span className={labelCls(selected)}>{name}</span>
+              <span className={`${labelCls(selected)} whitespace-pre-line w-full`}>
+                {name.includes(' ') ? name.replace(' ', '\n') : name}
+              </span>
             </button>
           );
         })}
