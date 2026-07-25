@@ -529,12 +529,13 @@ export const ai = {
     }>(`/ai/route-timeline${qs}`);
   },
 
-  async getNextStop(lat: number, lng: number, category: string, excludeIds: string[]) {
+  async getNextStop(lat: number, lng: number, category: string, excludeIds: string[], hour?: number) {
     const params = new URLSearchParams();
     params.set('lat', lat.toString());
     params.set('lng', lng.toString());
     if (category && category !== 'all') params.set('category', category);
     if (excludeIds.length > 0) params.set('exclude', excludeIds.join(','));
+    if (hour !== undefined) params.set('hour', hour.toString());
     return request<{
       id: string;
       title: string;
@@ -544,6 +545,9 @@ export const ai = {
       subRegion: string;
       rating: number;
       distanceKm: number;
+      timeWarning?: string;
+      isTomorrow?: boolean;
+      scheduledFor?: string;
     }>(`/ai/next-stop?${params.toString()}`);
   },
 };

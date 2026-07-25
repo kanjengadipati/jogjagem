@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from '@/i18n/navigation';
 import { 
@@ -54,6 +54,9 @@ interface ResolvedNode {
   distanceKm: number;
   mood: string;
   rawItem?: Destination;
+  timeWarning?: string;
+  isTomorrow?: boolean;
+  scheduledFor?: string;
 }
 
 type SlotState =
@@ -82,6 +85,8 @@ export default function RouteMapItinerary({
   const userLat = coords?.lat || DEFAULT_LAT;
   const userLng = coords?.lng || DEFAULT_LNG;
 
+  const currentHour = new Date().getHours();
+
   // Node 0 = user location (always shown as Start pin)
   // Nodes 1-3 = interactive slots, starting open → loading → resolved
   const [slots, setSlots] = useState<SlotState[]>([
@@ -90,6 +95,9 @@ export default function RouteMapItinerary({
     { status: 'locked', index: 2 },
   ]);
 
+  // Track which slots are strictly in "Night/Open destinations only" filter mode (disabling nature/beach/etc.)
+  const [nightOnlySlots, setNightOnlySlots] = useState<Record<number, boolean>>({});
+
   // Which node's mood picker is expanded (click to open)
   const [activeMoodPicker, setActiveMoodPicker] = useState<number | null>(0);
   // Which node popup is hovered (resolved nodes)
@@ -97,6 +105,24 @@ export default function RouteMapItinerary({
 
   const getResolvedIds = () =>
     slots.flatMap((s) => (s.status === 'resolved' ? [s.node.id] : []));
+
+  function resetSlot(slotIndex: number) {
+    setActiveNodeId(null);
+    setSlots((prev) => {
+      const next = [...prev];
+      for (let i = slotIndex + 1; i < next.length; i++) {
+        next[i] = { status: 'locked', index: i };
+      }
+      next[slotIndex] = { status: 'open', index: slotIndex };
+      return next;
+    });
+    setActiveMoodPicker(slotIndex);
+  }
+
+  function resetSlotWithNightFilter(slotIndex: number) {
+    setNightOnlySlots((prev) => ({ ...prev, [slotIndex]: true }));
+    resetSlot(slotIndex);
+  }
 
   async function resolveSlot(slotIndex: number, mood: string) {
     setActiveMoodPicker(null);
@@ -108,7 +134,7 @@ export default function RouteMapItinerary({
 
     try {
       const excludeIds = getResolvedIds();
-      const res = await ai.getNextStop(userLat, userLng, mood, excludeIds);
+      const res = await ai.getNextStop(userLat, userLng, mood, excludeIds, currentHour);
       if (res.data) {
         const rawDest = destinations.find((d) => d.id === res.data!.id);
         setSlots((prev) => {
@@ -140,7 +166,6 @@ export default function RouteMapItinerary({
     }
   }
 
-  const currentHour = new Date().getHours();
   const getCurrentPeriod = (h: number) => {
     if (h >= 5 && h < 11) return 0;
     if (h >= 11 && h < 15) return 1;
@@ -150,8 +175,7 @@ export default function RouteMapItinerary({
   const currentPeriod = getCurrentPeriod(currentHour);
 
   // Build the 3 display nodes (index maps to slot 1,2,3 on the wave)
-  // Wave has 4 positions: 0=Start(user), 1=slot[0], 2=slot[1], 3=slot[2]
-  const waveNodes = [null, ...slots]; // position 0 = user location
+  const waveNodes = [null, ...slots];
 
   return (
     <div className={`w-full max-w-[500px] sm:max-w-[560px] ml-0 bg-transparent ${className}`}>
@@ -270,6 +294,8 @@ export default function RouteMapItinerary({
 
             // ── OPEN (mood picker) ──
             if (slot.status === 'open') {
+              const isNightFiltered = !!nightOnlySlots[slotIndex];
+
               return (
                 <div
                   key={`slot-open-${slotIndex}`}
@@ -302,27 +328,62 @@ export default function RouteMapItinerary({
                   {/* Mood Picker Dropdown */}
                   {isMoodPickerOpen && (
                     <div
-                      className={`absolute bottom-full mb-3 z-50 w-52 p-2.5 rounded-xl border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.9)] animate-fade-in ${
+                      className={`absolute bottom-full mb-3 z-50 w-56 p-2.5 rounded-xl border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.9)] animate-fade-in ${
                         waveIndex === 0 ? 'left-0' : waveIndex === 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
                       }`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="absolute -bottom-1.5 h-3 w-3 rotate-45 border-b border-r border-gold-400/60 bg-royal-950/95 left-1/2 -translate-x-1/2" />
-                      <p className="text-[9px] font-bold text-gold-400 mb-1.5 uppercase tracking-wide">Pilih Mood Perjalanan</p>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-[9px] font-bold text-gold-400 uppercase tracking-wide">Pilih Mood Perjalanan</p>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setActiveMoodPicker(null); }}
+                          className="flex items-center justify-center w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white text-[10px] font-bold transition-all cursor-pointer"
+                          aria-label="Tutup"
+                        >
+                          ×
+                        </button>
+                      </div>
+
+                      {isNightFiltered && (
+                        <p className="text-[8px] font-bold text-amber-400 mb-1.5 leading-tight">
+                          🌙 Hanya menampilkan destinasi yang terjangkau malam ini
+                        </p>
+                      )}
+
                       <div className="flex flex-wrap gap-1">
-                        {MOOD_OPTIONS.map((mood) => (
-                          <button
-                            key={mood.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              resolveSlot(slotIndex, mood.id);
-                            }}
-                            className="flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold bg-black/40 text-gold-300/80 border border-gold-400/30 hover:bg-gold-500 hover:text-royal-950 hover:border-gold-400 active:scale-95 transition-all cursor-pointer"
-                          >
-                            <span>{mood.icon}</span>
-                            <span>{mood.label}</span>
-                          </button>
-                        ))}
+                        {MOOD_OPTIONS.map((mood) => {
+                          const isNatureOrBeach = mood.id === 'nature' || mood.id === 'beach';
+                          const isCultural = mood.id === 'cultural';
+                          const isLateClosed = (currentHour >= 17 && isNatureOrBeach) || (currentHour >= 20 && isCultural);
+
+                          const isDisabled = isNightFiltered && isLateClosed;
+                          const showWarningBadge = !isNightFiltered && isLateClosed;
+
+                          return (
+                            <button
+                              key={mood.id}
+                              disabled={isDisabled}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!isDisabled) {
+                                  resolveSlot(slotIndex, mood.id);
+                                }
+                              }}
+                              className={`flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold transition-all ${
+                                isDisabled
+                                  ? 'bg-white/5 text-white/20 border border-white/10 cursor-not-allowed line-through'
+                                  : 'bg-black/40 text-gold-300/80 border border-gold-400/30 hover:bg-gold-500 hover:text-royal-950 hover:border-gold-400 active:scale-95 cursor-pointer'
+                              }`}
+                              title={isDisabled ? 'Destinasi ini sudah tutup malam ini' : undefined}
+                            >
+                              <span>{mood.icon}</span>
+                              <span>{mood.label}</span>
+                              {isDisabled && <span className="text-[7.5px] text-amber-500/70">🔒</span>}
+                              {showWarningBadge && <span className="text-[7.5px] text-amber-400">⚠️</span>}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -372,12 +433,17 @@ export default function RouteMapItinerary({
                 onClick={() => setActiveNodeId(activeNodeId === node.id + slotIndex ? null : node.id + slotIndex)}
                 className={`relative flex flex-col items-center cursor-pointer group transition-transform ${waveTranslateY}`}
               >
-                {/* Distance Badge */}
+                {/* Distance Badge + Tomorrow Tag if scheduled tomorrow */}
                 <div className="mb-0.5 flex items-center gap-1">
                   <div className="px-1.5 py-0.5 rounded-full bg-black/75 backdrop-blur-sm border border-gold-400/40 text-[8px] font-bold text-gold-300 flex items-center gap-0.5 shadow-sm group-hover:scale-105 transition-transform">
                     <MapPin className="h-2 w-2 text-gold-400 shrink-0" />
                     <span>{node.distanceKm > 0 ? `${node.distanceKm.toFixed(1)}km` : '—'}</span>
                   </div>
+                  {node.isTomorrow && (
+                    <span className="px-1 py-0.2 rounded bg-amber-500/30 text-amber-300 border border-amber-400/50 text-[7px] font-mono font-bold">
+                      BESOK
+                    </span>
+                  )}
                 </div>
 
                 {/* Glowing Pin */}
@@ -440,6 +506,19 @@ export default function RouteMapItinerary({
                       <span className="text-white/60 bg-white/10 px-1.5 rounded">{slotMeta.duration}</span>
                     </div>
 
+                    {/* Warning Banner if scheduled for tomorrow */}
+                    {node.isTomorrow && (
+                      <div className="mb-2 p-2 rounded-lg bg-amber-500/15 border border-amber-400/40 text-left">
+                        <div className="flex items-center gap-1 text-[9px] font-bold text-amber-300 mb-0.5">
+                          <span>📅</span>
+                          <span>{node.scheduledFor || 'Dijadwalkan Besok'}</span>
+                        </div>
+                        <p className="text-[8px] text-amber-200/90 leading-tight">
+                          {node.timeWarning || 'Destinasi ini umumnya tutup malam hari, kami jadwalkan untuk besok.'}
+                        </p>
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2.5 relative z-10">
                       {node.image && (
                         <div className="relative h-13 w-16 shrink-0 rounded-lg overflow-hidden border border-white/10">
@@ -467,16 +546,39 @@ export default function RouteMapItinerary({
                       </div>
                     </div>
 
-                    {/* Bottom */}
-                    <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-white/10 text-[9px] relative z-10">
-                      <div className="flex items-center gap-1 font-bold text-gold-400">
-                        <Star className="h-2.5 w-2.5 fill-gold-400 text-gold-400" />
-                        <span>{node.rating.toFixed(1)}</span>
+                    {/* Bottom Action Footer */}
+                    <div className="flex flex-col gap-1.5 mt-2 pt-1.5 border-t border-white/10 text-[9px] relative z-10">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 font-bold text-gold-400">
+                          <Star className="h-2.5 w-2.5 fill-gold-400 text-gold-400" />
+                          <span>{node.rating.toFixed(1)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); resetSlot(slotIndex); }}
+                            className="text-[9px] font-bold text-white/50 hover:text-amber-400 transition-colors cursor-pointer"
+                          >
+                            ↩ Ganti
+                          </button>
+                          <div className="flex items-center gap-0.5 text-gold-300 font-bold hover:underline cursor-pointer">
+                            <span>Buka Detail</span>
+                            <ExternalLink className="h-2.5 w-2.5" />
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-0.5 text-gold-300 font-bold hover:underline">
-                        <span>Buka Detail</span>
-                        <ExternalLink className="h-2.5 w-2.5" />
-                      </div>
+
+                      {/* Prompt to change to night-accessible destinations */}
+                      {node.isTomorrow && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            resetSlotWithNightFilter(slotIndex);
+                          }}
+                          className="w-full py-1 px-2 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-[8.5px] font-bold transition-all text-center cursor-pointer"
+                        >
+                          🌙 Ganti ke yang bisa malam ini
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
