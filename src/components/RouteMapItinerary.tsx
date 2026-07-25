@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ai } from '@/lib/api';
 import SaveItineraryModal from './SaveItineraryModal';
 import AuthModal from './AuthModal';
-import { syncLocalItinerariesToDB } from '@/lib/itinerary-storage';
+import { syncLocalItinerariesToDB, getLocalItineraries } from '@/lib/itinerary-storage';
 
 interface RouteMapItineraryProps {
   destinations: Destination[];
@@ -114,16 +114,62 @@ export default function RouteMapItinerary({
   // Save itinerary modal
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  // Tracks whether current all-resolved state came from a resume (not user picks)
+  const isResumedRef = React.useRef(false);
 
-  // Auto-show save modal when all slots are resolved
+  // Resume itinerary — silently hydrate slots from the most recent localStorage entry on mount
+  useEffect(() => {
+    try {
+      const saved = getLocalItineraries();
+      if (!saved.length) return;
+      const latest = saved[0]; // most recent is first (prepend on save)
+      if (!latest.slots || latest.slots.length === 0) return;
+
+      const hydrated: SlotState[] = latest.slots.map((s) => ({
+        status: 'resolved' as const,
+        index: s.slotIndex,
+        node: {
+          id: s.destination.id,
+          title: s.destination.title,
+          category: s.destination.category,
+          image: s.destination.image,
+          location: s.destination.location,
+          subRegion: s.destination.location,
+          rating: s.destination.rating,
+          distanceKm: 0,
+          mood: 'all',
+          isTomorrow: s.isTomorrow,
+          scheduledFor: s.scheduledFor,
+        },
+      }));
+
+      // Only resume if we have exactly the right number of slots
+      if (hydrated.length === 3) {
+        isResumedRef.current = true; // mark as resumed so save modal is suppressed
+        setSlots(hydrated);
+        setActiveMoodPicker(null);
+      }
+    } catch {
+      // Ignore parse errors — start fresh
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount only
+
+  // Auto-show save modal when all slots are resolved by user (not on resume)
   useEffect(() => {
     const allResolved = slots.length > 0 && slots.every((s) => s.status === 'resolved');
     if (allResolved) {
+      if (isResumedRef.current) {
+        // Slots just resumed from localStorage — don't show save modal again
+        isResumedRef.current = false;
+        return;
+      }
       // Small delay so user sees the last card resolve first
       const timer = setTimeout(() => setShowSaveModal(true), 600);
       return () => clearTimeout(timer);
     }
   }, [slots]);
+
 
   const getResolvedIds = () =>
     slots.flatMap((s) => (s.status === 'resolved' || s.status === 'confirming' ? [s.node.id] : []));
