@@ -133,14 +133,23 @@ export default function RouteMapItinerary({
       const latest = saved[0];
       if (!latest.slots || latest.slots.length === 0) return;
 
-      const todayDate = new Date().toDateString();
-      const savedDate = new Date(latest.createdAt).toDateString();
-      const isPastDay = new Date(savedDate) < new Date(todayDate);
+      const createdDate = latest.createdAt ? new Date(latest.createdAt) : new Date();
+      const nowDate = new Date();
+
+      const createdDay = new Date(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate()).getTime();
+      const nowDay = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate()).getTime();
+      const elapsedDays = Math.max(0, Math.floor((nowDay - createdDay) / (1000 * 60 * 60 * 24)));
+
+      const savedPeriod = getCurrentPeriod(createdDate.getHours());
+      const nowPeriod = getCurrentPeriod(nowDate.getHours());
+
+      const currentAbsPeriod = elapsedDays * 4 + nowPeriod;
 
       const hydrated: SlotState[] = latest.slots.map((s) => {
-        const isDone = isPastDay
-          ? !s.isTomorrow
-          : !s.isTomorrow && (s.slotIndex < currentPeriod);
+        // Absolute period assigned to this slot when itinerary was created:
+        // Node slotIndex (0, 1, 2) corresponds to period offset (savedPeriod + 1 + slotIndex)
+        const slotAbsPeriod = savedPeriod + 1 + s.slotIndex;
+        const isDone = currentAbsPeriod > slotAbsPeriod;
 
         return {
           status: 'resolved' as const,
