@@ -146,7 +146,7 @@ export default function LightboxModal({
           {items.map((it, i) => (
             <button
               key={i}
-              onClick={(e) => { e.stopPropagation(); onClose(); setTimeout(() => onGoTo?.(i), 0); }}
+            onClick={(e) => { e.stopPropagation(); onGoTo ? onGoTo(i) : undefined; }}
               className={`relative w-14 h-10 rounded-lg overflow-hidden flex-shrink-0 border-2 transition cursor-pointer ${
                 i === activeIndex ? 'border-gold-400' : 'border-transparent opacity-60 hover:opacity-100'
               }`}

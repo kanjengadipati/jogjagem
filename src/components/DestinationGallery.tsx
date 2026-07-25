@@ -110,6 +110,7 @@ export default function DestinationGallery({
           onClose={closeLightbox}
           onNext={nextLightbox}
           onPrev={prevLightbox}
+          onGoTo={setLightboxIndex}
         />
       )}
 
