@@ -130,20 +130,44 @@ export default function RouteMapItinerary({
   }
 
   function confirmSlotTomorrow(slotIndex: number, node: ResolvedNode) {
-    setSlots((prev) => {
-      const next = [...prev];
-      next[slotIndex] = {
-        status: 'resolved',
-        index: slotIndex,
-        node,
-      };
-      // Unlock next slot
-      if (slotIndex + 1 < next.length) {
-        next[slotIndex + 1] = { status: 'open', index: slotIndex + 1 };
-        setActiveMoodPicker(slotIndex + 1);
-      }
-      return next;
-    });
+    if (slotIndex + 1 < slots.length) {
+      const nextSlotIdx = slotIndex + 1;
+      setNightOnlySlots((prev) => ({ ...prev, [slotIndex]: true }));
+      setSlots((prev) => {
+        const next = [...prev];
+        // Assign tomorrow node to the next slot
+        next[nextSlotIdx] = {
+          status: 'resolved',
+          index: nextSlotIdx,
+          node: {
+            ...node,
+            isTomorrow: true,
+          },
+        };
+        // Keep current slot open for tonight's trip
+        next[slotIndex] = {
+          status: 'open',
+          index: slotIndex,
+        };
+        // Unlock slot after next if available
+        if (nextSlotIdx + 1 < next.length) {
+          next[nextSlotIdx + 1] = { status: 'open', index: nextSlotIdx + 1 };
+        }
+        return next;
+      });
+      // Keep mood picker open on current slot for tonight
+      setActiveMoodPicker(slotIndex);
+    } else {
+      setSlots((prev) => {
+        const next = [...prev];
+        next[slotIndex] = {
+          status: 'resolved',
+          index: slotIndex,
+          node,
+        };
+        return next;
+      });
+    }
   }
 
   async function resolveSlot(slotIndex: number, mood: string) {
