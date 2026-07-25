@@ -3,15 +3,14 @@ import Image from 'next/image';
 import { useRouter } from '@/i18n/navigation';
 import { 
   Sun, Utensils, Leaf, Moon, Star, CalendarDays, MapPin, 
-  Landmark, Waves, Compass, Sparkles, Navigation, ExternalLink, Clock, Calendar, HelpCircle, AlertTriangle
+  Landmark, Waves, Compass, Sparkles, Navigation, ExternalLink, Clock, Calendar, HelpCircle, AlertTriangle, CheckCircle, X
 } from 'lucide-react';
 import { Destination, Festival } from '../types';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { ai } from '@/lib/api';
-import SaveItineraryModal from './SaveItineraryModal';
+import { ai, trips as tripsApi } from '@/lib/api';
 import AuthModal from './AuthModal';
-import { syncLocalItinerariesToDB, getLocalItineraries } from '@/lib/itinerary-storage';
+import { saveItineraryLocally, syncLocalItinerariesToDB, getLocalItineraries, generateLocalId } from '@/lib/itinerary-storage';
 
 interface RouteMapItineraryProps {
   destinations: Destination[];
@@ -111,8 +110,8 @@ export default function RouteMapItinerary({
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [pinnedNodeId, setPinnedNodeId] = useState<string | null>(null);
 
-  // Save itinerary modal
-  const [showSaveModal, setShowSaveModal] = useState(false);
+  // Toast notification state
+  const [toast, setToast] = useState<{ visible: boolean; synced: boolean } | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   // Tracks whether current all-resolved state came from a resume (not user picks)
   const isResumedRef = React.useRef(false);
@@ -122,7 +121,7 @@ export default function RouteMapItinerary({
     try {
       const saved = getLocalItineraries();
       if (!saved.length) return;
-      const latest = saved[0]; // most recent is first (prepend on save)
+      const latest = saved[0];
       if (!latest.slots || latest.slots.length === 0) return;
 
       const hydrated: SlotState[] = latest.slots.map((s) => ({
@@ -143,32 +142,91 @@ export default function RouteMapItinerary({
         },
       }));
 
-      // Only resume if we have exactly the right number of slots
       if (hydrated.length === 3) {
-        isResumedRef.current = true; // mark as resumed so save modal is suppressed
+        isResumedRef.current = true;
         setSlots(hydrated);
         setActiveMoodPicker(null);
       }
     } catch {
-      // Ignore parse errors — start fresh
+      // ignore
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // run once on mount only
+  }, []);
 
-  // Auto-show save modal when all slots are resolved by user (not on resume)
+  // Auto-save + auto-sync + toast when all slots resolved by user (not on resume)
   useEffect(() => {
     const allResolved = slots.length > 0 && slots.every((s) => s.status === 'resolved');
-    if (allResolved) {
-      if (isResumedRef.current) {
-        // Slots just resumed from localStorage — don't show save modal again
-        isResumedRef.current = false;
-        return;
-      }
-      // Small delay so user sees the last card resolve first
-      const timer = setTimeout(() => setShowSaveModal(true), 600);
-      return () => clearTimeout(timer);
+    if (!allResolved) return;
+    if (isResumedRef.current) {
+      isResumedRef.current = false;
+      return;
     }
-  }, [slots]);
+
+    const timer = setTimeout(async () => {
+      const resolvedSlots = slots
+        .filter((s) => s.status === 'resolved')
+        .map((s) => {
+          if (s.status !== 'resolved') return null;
+          const baseSlot = BASE_SLOTS[s.index] ?? BASE_SLOTS[BASE_SLOTS.length - 1];
+          return {
+            slotIndex: s.index,
+            time: baseSlot.time,
+            timeRange: baseSlot.timeRange,
+            isTomorrow: s.node.isTomorrow ?? false,
+            scheduledFor: s.node.scheduledFor,
+            destination: {
+              id: s.node.id,
+              title: s.node.title,
+              category: s.node.category,
+              image: s.node.image,
+              location: s.node.location,
+              rating: s.node.rating,
+            },
+          };
+        })
+        .filter(Boolean) as any[];
+
+      if (resolvedSlots.length === 0) return;
+
+      const itineraryTitle = `Perjalananku di Jogja — ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}`;
+
+      // Always save locally first
+      saveItineraryLocally({
+        id: generateLocalId(),
+        title: itineraryTitle,
+        createdAt: new Date().toISOString(),
+        slots: resolvedSlots,
+      });
+
+      // If logged in, also auto-sync to DB in background
+      let syncedToCloud = false;
+      if (isAuthenticated) {
+        try {
+          const today = new Date().toISOString().split('T')[0];
+          const res = await tripsApi.create({
+            title: itineraryTitle,
+            start_date: today,
+            duration_days: 1,
+            days: [{
+              dayNumber: 1,
+              destinationIds: resolvedSlots.map((s: any) => s.destination.id),
+              notes: '',
+            }],
+            status: 'draft',
+          });
+          if (res.status === 'success') syncedToCloud = true;
+        } catch {
+          // DB sync failed — local copy still exists, no error shown
+        }
+      }
+
+      setToast({ visible: true, synced: syncedToCloud });
+      // Auto-dismiss toast after 6 seconds
+      setTimeout(() => setToast(null), 6000);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [slots, isAuthenticated]);
 
 
   const getResolvedIds = () =>
@@ -839,41 +897,46 @@ export default function RouteMapItinerary({
         </div>
       </div>
 
-      {/* Save Itinerary Modal — auto-opens when all slots resolved */}
-      {showSaveModal && (() => {
-        const modalSlots = slots
-          .filter((s) => s.status === 'resolved')
-          .map((s) => {
-            if (s.status !== 'resolved') return null;
-            const baseSlot = BASE_SLOTS[s.index] ?? BASE_SLOTS[BASE_SLOTS.length - 1];
-            return {
-              slotIndex: s.index,
-              time: baseSlot.time,
-              timeRange: baseSlot.timeRange,
-              isTomorrow: s.node.isTomorrow ?? false,
-              scheduledFor: s.node.scheduledFor,
-              destination: {
-                id: s.node.id,
-                title: s.node.title,
-                category: s.node.category,
-                image: s.node.image,
-                location: s.node.location,
-                rating: s.node.rating,
-              },
-            };
-          })
-          .filter(Boolean) as Parameters<typeof SaveItineraryModal>[0]['slots'];
+      {/* Toast notification — shown after auto-save */}
+      {toast?.visible && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl"
+          style={{
+            background: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+            border: '1px solid rgba(255,196,0,0.3)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,196,0,0.1)',
+            minWidth: '280px',
+            maxWidth: '90vw',
+          }}
+        >
+          <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
+          <span className="text-[12px] font-semibold text-white flex-1">
+            {toast.synced ? 'Tersimpan ke akun ☁️' : 'Itinerary tersimpan!'}
+          </span>
+          <button
+            onClick={() => router.push('/planner')}
+            className="text-[11px] font-bold text-gold-400 hover:text-gold-300 transition-colors cursor-pointer whitespace-nowrap"
+          >
+            Lihat ↗
+          </button>
+          {!isAuthenticated && !toast.synced && (
+            <button
+              onClick={() => { setToast(null); setAuthModalOpen(true); }}
+              className="text-[11px] font-bold text-white/60 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+            >
+              Login & Sync ↑
+            </button>
+          )}
+          <button
+            onClick={() => setToast(null)}
+            className="flex items-center justify-center w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-all cursor-pointer flex-shrink-0"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
 
-        return (
-          <SaveItineraryModal
-            slots={modalSlots}
-            onClose={() => setShowSaveModal(false)}
-            onOpenAuthModal={() => setAuthModalOpen(true)}
-          />
-        );
-      })()}
-
-      {/* Auth Modal — shown when guest clicks "Login & Simpan ke Akun" */}
+      {/* Auth Modal — only for login flow from toast "Login & Sync" button (guest only) */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
