@@ -384,7 +384,7 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
             <div className="bg-white rounded-3xl border border-stone-200/60 shadow-sm p-6">
               <h2 className="font-manrope font-bold text-base text-royal-950 mb-5 flex items-center gap-2">
                 <span className="w-1 h-5 rounded-full bg-gold-400 shrink-0" />
-                Apa yang Akan Kamu Alami?
+                {t('event_detail.what_to_experience')}
               </h2>
               {highlights.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -426,7 +426,7 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
             <div className="bg-white rounded-3xl border border-stone-200/60 shadow-sm p-6">
               <h2 className="font-manrope font-bold text-base text-royal-950 mb-5 flex items-center gap-2">
                 <span className="w-1 h-5 rounded-full bg-gold-400 shrink-0" />
-                Line-up &amp; Schedule
+                {t('event_detail.lineup_schedule')}
               </h2>
               <div className="flex flex-col sm:flex-row gap-6">
                 <div className="flex-1 space-y-2">
