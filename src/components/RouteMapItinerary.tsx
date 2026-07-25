@@ -405,7 +405,7 @@ export default function RouteMapItinerary({
         <div className="flex items-center gap-1.5">
           <Navigation className="h-3.5 w-3.5 text-gold-400 animate-pulse" />
           <h3 className="text-[11px] font-bold text-white/90 tracking-wide uppercase flex items-center gap-1">
-            <span>Perjalanan Selanjutnya</span>
+            <span>Rencana Perjalanan</span>
           </h3>
         </div>
         <div className="flex items-center gap-1.5">
