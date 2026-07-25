@@ -149,7 +149,7 @@ export default memo(function MobileDestinationCard({
   const apiBadge = destination.badge;
   const localBadge = getBadge(destination);
   const badgeLabel = apiBadge 
-    ? t(`hero.badge_${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
+    ? t(`badges.${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
     : localBadge.label;
 
   const badgeKey = (apiBadge || localBadge.label)

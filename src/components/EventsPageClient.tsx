@@ -74,7 +74,7 @@ function EventCard({ evt, className = '' }: { evt: EventItem; className?: string
   const badgeKey = (evt.badge || evt.category || '').toLowerCase().replace(/[\s-]/g, '_');
   const badgeStyle = BADGE_STYLES[badgeKey] || BADGE_STYLES.default;
   const badgeLabel = evt.badge
-    ? (t(`hero.badge_${evt.badge.toLowerCase().replace(/ /g, '_')}`) || evt.badge)
+    ? (t(`badges.${evt.badge.toLowerCase().replace(/ /g, '_')}`) || evt.badge)
     : evt.category.replace(/-/g, ' ');
 
   const dateLabel = evt.start_date

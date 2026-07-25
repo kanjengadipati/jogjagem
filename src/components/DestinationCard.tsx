@@ -50,7 +50,7 @@ export default React.memo(function DestinationCard({
 
   const apiBadge = destination.badge;
   const rawBadgeText = apiBadge 
-    ? t(`hero.badge_${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
+    ? t(`badges.${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
     : (BADGE_MAP[destination.id] || destination.category.replace('-', ' '));
 
   const badgeText = rawBadgeText.toUpperCase();

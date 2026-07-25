@@ -221,7 +221,7 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
   const badgeKey = (event.badge || event.category || '').toLowerCase().replace(/[\s-]/g, '_');
   const badgeStyle = BADGE_STYLES[badgeKey] || 'bg-gold-500/90 text-white';
   const badgeLabel = event.badge
-    ? (t(`hero.badge_${event.badge.toLowerCase().replace(/ /g, '_')}`) || event.badge)
+    ? (t(`badges.${event.badge.toLowerCase().replace(/ /g, '_')}`) || event.badge)
     : event.category.replace(/-/g, ' ');
 
   return (

@@ -562,7 +562,7 @@ export default function App() {
                           
                           const apiBadge = fest.badge;
                           const rawBadgeText = apiBadge 
-                            ? t(`hero.badge_${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
+                            ? t(`badges.${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
                             : (fallbackBadges[idx] || fest.category);
                           const badgeText = rawBadgeText.toUpperCase();
                           const badgeKey = (apiBadge || fallbackBadges[idx] || fest.category)
