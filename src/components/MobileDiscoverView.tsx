@@ -7,7 +7,7 @@ import {
   Search, MapPin, Bell, Star, Heart, ChevronRight,
   Grid2x2, Compass, Utensils, Calendar, MoreHorizontal, Bookmark,
   Mic, MicOff, Camera, Loader2, Sparkles, CalendarDays,
-  Sun, Leaf, Sunset,
+  Sun, Leaf, Sunset, Moon,
 } from 'lucide-react';
 import { Destination, Festival } from '../types';
 import { auth, ai } from '../lib/api';
@@ -872,21 +872,55 @@ export default function MobileDiscoverView({
 
         {/* ── AI Suggested Journey ── */}
         {allDestinations.length > 0 && (() => {
+          const currentHour = new Date().getHours();
+          const { coords } = useLocation();
+          const getDist = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+            if (!lat1 || !lon1 || !lat2 || !lon2) return 999;
+            const R = 6371;
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          };
+
           const journeySlots = [
-            { label: t('home.morning'),   time: '07.00 AM', Icon: Sun,      color: '#B18A5E', categories: ['heritage', 'adventure'] },
-            { label: t('home.lunch'),     time: '12.00 PM', Icon: Utensils, color: '#5F713D', categories: ['culinary'] },
-            { label: t('home.afternoon'), time: '02.30 PM', Icon: Leaf,     color: '#4F6F52', categories: ['nature', 'heritage', 'hidden-gem'] },
-            { label: t('home.sunset'),    time: '05.30 PM', Icon: Sunset,   color: '#BC6C25', categories: ['beach', 'nature'] },
+            { label: t('home.morning'),   time: '07.00 AM', Icon: Sun,      color: '#B18A5E', categories: ['heritage', 'nature', 'adventure'], isCurrent: currentHour >= 5 && currentHour < 11 },
+            { label: t('home.lunch'),     time: '12.00 PM', Icon: Utensils, color: '#5F713D', categories: ['culinary'],                       isCurrent: currentHour >= 11 && currentHour < 15 },
+            { label: t('home.afternoon'), time: '03.30 PM', Icon: Leaf,     color: '#4F6F52', categories: ['nature', 'beach', 'sunset', 'hidden-gem'], isCurrent: currentHour >= 15 && currentHour < 19 },
+            { label: t('home.night'),     time: '07.30 PM', Icon: Moon,     color: '#8B5CF6', categories: ['night_vibes', 'culinary', 'heritage', 'cultural', 'shopping'], isCurrent: currentHour >= 19 || currentHour < 5 },
           ];
+
           const slots = journeySlots
-            .map((slot, idx) => ({
-              ...slot,
-              idx,
-              dest: allDestinations
-                .filter(d => slot.categories.includes(d.category) && d.images?.length > 0)
-                .sort((a, b) => b.rating - a.rating)[0],
-            }))
+            .map((slot, idx) => {
+              const candidates = allDestinations.filter(d => {
+                if (!d.images || d.images.length === 0) return false;
+                if (slot.categories.includes('night_vibes')) {
+                  const cat = (d.category || '').toLowerCase();
+                  const desc = (d.description || '').toLowerCase();
+                  const name = (d.name || '').toLowerCase();
+                  const tag = (d.tagline || '').toLowerCase();
+                  return cat === 'culinary' || cat === 'cultural' || cat === 'shopping' ||
+                    desc.includes('malam') || name.includes('malam') || tag.includes('malam') ||
+                    name.includes('malioboro') || name.includes('tugu') || name.includes('alun');
+                }
+                return slot.categories.includes(d.category);
+              });
+
+              const sorted = candidates.sort((a, b) => {
+                if (coords?.lat && coords?.lng) {
+                  const distA = getDist(coords.lat, coords.lng, a.latitude, a.longitude);
+                  const distB = getDist(coords.lat, coords.lng, b.latitude, b.longitude);
+                  const scoreA = (a.rating * 2.5) - (distA * 0.1);
+                  const scoreB = (b.rating * 2.5) - (distB * 0.1);
+                  return scoreB - scoreA;
+                }
+                return b.rating - a.rating;
+              });
+
+              return { ...slot, idx, dest: sorted[0] };
+            })
             .filter(s => s.dest);
+
           if (slots.length === 0) return null;
           return (
             <div>
@@ -905,14 +939,16 @@ export default function MobileDiscoverView({
                 </button>
               </div>
               <div className="flex gap-3 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-1">
-                {slots.map(({ label, time, Icon, color, dest, idx }) => (
+                {slots.map(({ label, time, Icon, color, dest, idx, isCurrent }) => (
                   <div
                     key={label}
                     onClick={() => router.push(`/destinations/${toSlug(dest!.name)}`)}
                     role="button"
                     tabIndex={0}
                     onKeyDown={e => { if (e.key === 'Enter') router.push(`/destinations/${toSlug(dest!.name)}`); }}
-                    className="shrink-0 snap-start relative w-[148px] h-[196px] rounded-[20px] overflow-hidden border border-white/10 cursor-pointer active:scale-95 transition-transform"
+                    className={`shrink-0 snap-start relative w-[148px] h-[196px] rounded-[20px] overflow-hidden border cursor-pointer active:scale-95 transition-all ${
+                      isCurrent ? 'border-gold-400 ring-2 ring-gold-400/50 scale-[1.02]' : 'border-white/10'
+                    }`}
                   >
                     {/* Image */}
                     <Image
@@ -928,15 +964,21 @@ export default function MobileDiscoverView({
                     <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/20 to-transparent" />
 
                     {/* Time chip top-left */}
-                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/40 backdrop-blur-sm rounded-full px-2 py-1 border border-white/10">
+                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-2 py-1 border border-white/15">
                       <Icon className="h-2.5 w-2.5" style={{ color }} />
                       <span className="text-[9px] font-bold text-white">{time}</span>
                     </div>
 
-                    {/* Step number top-right */}
-                    <div className="absolute top-2.5 right-2.5 h-5 w-5 rounded-full bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                      <span className="text-[9px] font-bold text-white">{idx + 1}</span>
-                    </div>
+                    {/* Step number / Active badge top-right */}
+                    {isCurrent ? (
+                      <div className="absolute top-2.5 right-2.5 bg-gold-500 text-royal-950 px-1.5 py-0.5 rounded-full text-[8px] font-extrabold shadow-md animate-pulse">
+                        SEKARANG
+                      </div>
+                    ) : (
+                      <div className="absolute top-2.5 right-2.5 h-5 w-5 rounded-full bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                        <span className="text-[9px] font-bold text-white">{idx + 1}</span>
+                      </div>
+                    )}
 
                     {/* Info overlay bottom */}
                     <div className="absolute bottom-0 left-0 right-0 p-2.5">
