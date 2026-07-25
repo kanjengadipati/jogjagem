@@ -433,7 +433,7 @@ export default function RouteMapItinerary({
                           const isSlotTomorrow = (currentPeriod + slotIndex + 1) >= 4;
                           const isNatureOrBeach = mood.id === 'nature' || mood.id === 'beach';
                           const isCultural = mood.id === 'cultural';
-                          const isLateClosed = !isSlotTomorrow && ((currentHour >= 17 && isNatureOrBeach) || (currentHour >= 20 && isCultural));
+                          const isLateClosed = !isSlotTomorrow && currentHour >= 17 && (isNatureOrBeach || isCultural);
 
                           const isDisabled = isNightFiltered && isLateClosed;
                           const showWarningBadge = !isNightFiltered && isLateClosed;
