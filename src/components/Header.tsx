@@ -92,7 +92,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
           </div>
 
           {/* Desktop Navigation — lg and above only */}
-          <nav id="desktop-navbar" className="hidden lg:flex items-center whitespace-nowrap space-x-1 xl:space-x-3">
+          <nav id="desktop-navbar" className="hidden lg:flex items-center whitespace-nowrap space-x-3 xl:space-x-6">
             {navItems.filter(item => item.id !== 'saved' || isAuthenticated).map((item) => {
               const isActive = activeTab === item.id || 
                 (item.id === 'events' && activeTab === 'discover-events') || 
