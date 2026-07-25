@@ -31,8 +31,10 @@ export interface LocalItinerary {
   /** nanoid-like uuid generated client-side */
   id: string;
   title: string;
-  /** ISO date string */
+  /** ISO date string of creation */
   createdAt: string;
+  /** YYYY-MM-DD date when the trip is scheduled */
+  tripDate?: string;
   slots: LocalItinerarySlot[];
 }
 
@@ -96,11 +98,21 @@ export async function syncLocalItinerariesToDB(): Promise<void> {
 
   for (const itinerary of itineraries) {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      // Use tripDate if stored, or calculate based on slots/createdAt
+      let startDate = itinerary.tripDate;
+      if (!startDate) {
+        const createdDate = itinerary.createdAt ? new Date(itinerary.createdAt) : new Date();
+        const hasTomorrow = itinerary.slots.some((s) => s.isTomorrow) || createdDate.getHours() >= 19;
+        if (hasTomorrow) {
+          createdDate.setDate(createdDate.getDate() + 1);
+        }
+        startDate = createdDate.toISOString().split('T')[0];
+      }
+
       const destinationIds = itinerary.slots.map((s) => s.destination.id);
       const res = await trips.create({
         title: itinerary.title,
-        start_date: today,
+        start_date: startDate,
         duration_days: 1,
         days: [
           {

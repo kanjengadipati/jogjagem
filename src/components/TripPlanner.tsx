@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
   CalendarDays, Trash, Sparkles,
-  PlusCircle, CheckCircle, Info, Save, Loader2
+  PlusCircle, CheckCircle, Info, Save, Loader2, Navigation, MapPin, Clock, ArrowRight
 } from 'lucide-react';
 import { Destination, TripPlan, TripDay } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 import { trips as tripsApi, TripDayPayload, TripResponse } from '../lib/api';
+import { getLocalItineraries, clearLocalItinerary, LocalItinerary } from '../lib/itinerary-storage';
 
 /** Safely extract the first image URL regardless of whether images are
  *  plain strings or {url, credit} objects (both shapes come from the BE). */
@@ -36,6 +37,18 @@ export default function TripPlanner({
   const [saveFeedback, setSaveFeedback] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   // remote BE id — null means trip hasn't been saved yet
   const [remoteId, setRemoteId] = useState<string | null>(null);
+
+  // Local AI itineraries saved from home page wave control
+  const [localItineraries, setLocalItineraries] = useState<LocalItinerary[]>([]);
+
+  useEffect(() => {
+    setLocalItineraries(getLocalItineraries());
+  }, []);
+
+  const handleDeleteLocalItinerary = (id: string) => {
+    clearLocalItinerary(id);
+    setLocalItineraries(getLocalItineraries());
+  };
 
   const [tripPlan, setTripPlan] = useState<TripPlan>({
     id: 'my-custom-trip',
@@ -263,6 +276,91 @@ export default function TripPlanner({
             <span>Add Day</span>
           </button>
         </div>
+      </div>
+
+      {/* Saved AI Itineraries Section */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Navigation className="h-5 w-5 text-gold-600" />
+            <div>
+              <h2 className="font-manrope text-lg font-bold text-royal-950">Rencana Perjalanan AI Tersimpan</h2>
+              <p className="text-xs text-royal-700/70 font-light">Rute perjalanan otomatis yang pernah kamu buat dari halaman utama.</p>
+            </div>
+          </div>
+          <span className="text-xs font-mono font-bold text-gold-700 bg-gold-100/60 px-3 py-1 rounded-full">
+            {localItineraries.length} Rute
+          </span>
+        </div>
+
+        {localItineraries.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gold-200 bg-white p-6 text-center shadow-sm">
+            <Navigation className="h-8 w-8 text-gold-400 mx-auto mb-2 opacity-60" />
+            <p className="text-xs font-bold text-royal-950 mb-1">Belum ada Rencana Perjalanan AI tersimpan</p>
+            <p className="text-[11px] text-royal-700/60 font-light mb-3">
+              Buat rute perjalanan pertamamu di halaman utama menggunakan fitur kontrol mood interaktif.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {localItineraries.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-2xl border border-gold-100 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between pb-2 border-b border-gold-50">
+                  <div>
+                    <h3 className="font-manrope text-sm font-bold text-royal-950 leading-tight">{item.title}</h3>
+                    <span className="text-[10px] text-royal-700/50 font-mono">
+                      {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteLocalItinerary(item.id)}
+                    className="p-1.5 rounded-lg text-royal-700/40 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    title="Hapus Itinerary"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Slots flow */}
+                <div className="space-y-2">
+                  {item.slots.map((slot, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-3 p-2 rounded-xl bg-gold-50/30 border border-gold-100/50"
+                    >
+                      {slot.destination.image ? (
+                        <img
+                          src={slot.destination.image}
+                          alt={slot.destination.title}
+                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-gold-100 flex items-center justify-center text-sm flex-shrink-0">
+                          📍
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-royal-950 truncate">{slot.destination.title}</p>
+                        <div className="flex items-center gap-2 text-[10px] text-royal-700/60 mt-0.5">
+                          <span className="flex items-center gap-0.5 font-bold text-gold-700">
+                            <Clock className="h-3 w-3" />
+                            {slot.isTomorrow ? slot.scheduledFor || 'Besok' : slot.time}
+                          </span>
+                          <span>•</span>
+                          <span className="truncate">{slot.destination.location}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">

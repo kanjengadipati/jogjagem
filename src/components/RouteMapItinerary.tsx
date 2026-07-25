@@ -217,13 +217,24 @@ export default function RouteMapItinerary({
 
       if (resolvedSlots.length === 0) return;
 
-      const itineraryTitle = `Perjalananku di Jogja — ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}`;
+      // Determine effective trip execution date:
+      // If any slot is marked as isTomorrow OR current hour >= 19 (malam hari), trip date is TOMORROW!
+      const hasTomorrowSlot = resolvedSlots.some((s: any) => s.isTomorrow) || currentHour >= 19;
+      const tripDateObj = new Date();
+      if (hasTomorrowSlot) {
+        tripDateObj.setDate(tripDateObj.getDate() + 1);
+      }
+
+      const tripDateStr = tripDateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+      const formattedDate = tripDateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      const itineraryTitle = `Perjalananku di Jogja — ${formattedDate}`;
 
       // Always save locally first
       saveItineraryLocally({
         id: generateLocalId(),
         title: itineraryTitle,
         createdAt: new Date().toISOString(),
+        tripDate: tripDateStr,
         slots: resolvedSlots,
       });
 
@@ -231,10 +242,9 @@ export default function RouteMapItinerary({
       let syncedToCloud = false;
       if (isAuthenticated) {
         try {
-          const today = new Date().toISOString().split('T')[0];
           const res = await tripsApi.create({
             title: itineraryTitle,
-            start_date: today,
+            start_date: tripDateStr,
             duration_days: 1,
             days: [{
               dayNumber: 1,
