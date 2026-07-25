@@ -12,11 +12,15 @@ export const STORAGE_KEY = 'explore_jogja_itineraries_v1';
 
 export interface LocalItinerarySlot {
   slotIndex: number;
+  scheduledPeriod?: number;
   /** e.g. "07.00 AM" */
   time: string;
   timeRange: string;
   isTomorrow: boolean;
   scheduledFor?: string;
+  distanceFromPrev?: number;
+  lat?: number;
+  lng?: number;
   destination: {
     id: string;
     title: string;
@@ -46,7 +50,23 @@ export function getLocalItineraries(): LocalItinerary[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Deduplicate by slot destination IDs fingerprint — keep newest
+    const seen = new Set<string>();
+    const deduped = parsed.filter((item: LocalItinerary) => {
+      const fingerprint = (item.slots ?? [])
+        .map((s) => s.destination?.id ?? '')
+        .sort()
+        .join(',');
+      if (seen.has(fingerprint)) return false;
+      seen.add(fingerprint);
+      return true;
+    });
+    // Persist deduplicated list back if it changed
+    if (deduped.length !== parsed.length) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(deduped));
+    }
+    return deduped;
   } catch {
     return [];
   }

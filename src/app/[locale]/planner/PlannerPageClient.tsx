@@ -166,6 +166,7 @@ function PlannerPageContent() {
       <div className="pb-24">
         <TripPlanner
           savedDestinations={savedDestinations}
+          allDestinations={allDestinations}
           onExploreDestination={handleExploreDestination}
           onRemoveFromSaved={handleToggleSave}
         />

@@ -23,12 +23,14 @@ function getImgUrl(dest: Destination): string {
 
 interface TripPlannerProps {
   savedDestinations: Destination[];
+  allDestinations?: Destination[];
   onExploreDestination: (dest: Destination) => void;
   onRemoveFromSaved: (dest: Destination) => void;
 }
 
 export default function TripPlanner({ 
-  savedDestinations, 
+  savedDestinations,
+  allDestinations = [],
   onExploreDestination,
   onRemoveFromSaved
 }: TripPlannerProps) {
@@ -60,6 +62,76 @@ export default function TripPlanner({
   const handleDeleteLocalItinerary = (id: string) => {
     clearLocalItinerary(id);
     refreshLocalItineraries();
+  };
+
+  // Load saved AI itinerary into the first empty day (or Day 1)
+  const handleLoadItineraryToPlanner = (item: LocalItinerary) => {
+    // Build destination objects from slot data — lookup in allDestinations first, fallback to savedDestinations
+    const destPool = [...allDestinations, ...savedDestinations];
+    const dests: Destination[] = item.slots
+      .map((slot) => {
+        const found = destPool.find(
+          (d) => d.id === slot.destination.id ||
+                 d.name.toLowerCase() === slot.destination.title.toLowerCase()
+        );
+        if (found) return found;
+        // Fallback: build a minimal Destination from slot data so it still shows
+        return {
+          id: slot.destination.id,
+          name: slot.destination.title,
+          category: slot.destination.category,
+          location: slot.destination.location,
+          subRegion: slot.destination.location,
+          images: slot.destination.image ? [{ url: slot.destination.image }] : [],
+          rating: slot.destination.rating,
+          reviewCount: 0,
+          description: '',
+          tagline: '',
+          ticketPrice: '',
+          openingHours: '',
+          facilities: [],
+          travelTips: [],
+          bestTime: '',
+          weather: {},
+          latitude: 0,
+          longitude: 0,
+          reviews: [],
+          partners: [],
+          faqs: [],
+        } as unknown as Destination;
+      })
+      .filter(Boolean);
+
+    if (dests.length === 0) return;
+
+    setTripPlan((prev) => {
+      // Find first day with no destinations
+      const emptyDayIdx = prev.days.findIndex((d) => d.destinations.length === 0);
+      const targetIdx = emptyDayIdx >= 0 ? emptyDayIdx : 0; // fallback to Day 1
+
+      const updatedDays = prev.days.map((day, idx) => {
+        if (idx !== targetIdx) return day;
+        // Merge — avoid duplicates
+        const existingIds = new Set(day.destinations.map((d) => d.id));
+        const toAdd = dests.filter((d) => !existingIds.has(d.id));
+        return {
+          ...day,
+          destinations: [...day.destinations, ...toAdd],
+          notes: day.notes || item.title,
+        };
+      });
+
+      // Switch tab to target day
+      setActiveDayIdx(targetIdx);
+
+      return { ...prev, days: updatedDays };
+    });
+
+    // Remove the duplicate setTripPlan call — replaced above
+    // Scroll down to planner
+    setTimeout(() => {
+      document.getElementById('trip-planner-days')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
   };
 
   const [tripPlan, setTripPlan] = useState<TripPlan>({
@@ -328,13 +400,23 @@ export default function TripPlanner({
                       {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
                   </div>
-                  <button
-                    onClick={() => handleDeleteLocalItinerary(item.id)}
-                    className="p-1.5 rounded-lg text-royal-700/40 hover:text-red-500 hover:bg-red-50 transition-colors"
-                    title="Hapus Itinerary"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => handleLoadItineraryToPlanner(item)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gold-800 hover:bg-gold-700 text-gold-50 text-[10px] font-bold transition-colors cursor-pointer"
+                      title="Load ke Planner"
+                    >
+                      <ArrowRight className="h-3 w-3" />
+                      Load
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLocalItinerary(item.id)}
+                      className="p-1.5 rounded-lg text-royal-700/40 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      title="Hapus Itinerary"
+                    >
+                      <Trash className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Slots flow */}
@@ -471,7 +553,7 @@ export default function TripPlanner({
         {/* Right Pane: Customized Daily Slots Itinerary */}
         <div className="lg:col-span-7 space-y-6">
           {/* Day selection tabs */}
-          <div className="flex space-x-2 border-b border-gold-100 pb-3 overflow-x-auto">
+          <div id="trip-planner-days" className="flex space-x-2 border-b border-gold-100 pb-3 overflow-x-auto">
             {tripPlan.days.map((day, idx) => (
               <button
                 key={day.dayNumber}

@@ -89,6 +89,27 @@ const BASE_SLOTS = [
   { name: 'Malam', time: '07.30 PM', timeRange: '19:30 - 22:00 WIB', duration: '~3 jam',   icon: Moon,     periodIndex: 3 },
 ];
 
+function isSlotFinished(slotDate: Date, periodIndex: number, now = new Date()): boolean {
+  const [endTime] = BASE_SLOTS[periodIndex].timeRange.split(' - ')[1].split(' ');
+  const [hours, minutes] = endTime.split(':').map(Number);
+  const endDate = new Date(slotDate);
+  endDate.setHours(hours, minutes, 0, 0);
+  return now.getTime() > endDate.getTime();
+}
+
+function isSameCalendarDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function getStoredPeriodIndex(slot: { scheduledPeriod?: number; time?: string; timeRange?: string; slotIndex: number }, fallbackPeriod: number): number {
+  if (typeof slot.scheduledPeriod === 'number') return slot.scheduledPeriod;
+  const byTimeRange = BASE_SLOTS.findIndex((baseSlot) => baseSlot.timeRange === slot.timeRange);
+  if (byTimeRange >= 0) return byTimeRange;
+  const byTime = BASE_SLOTS.findIndex((baseSlot) => baseSlot.time === slot.time);
+  if (byTime >= 0) return byTime;
+  return fallbackPeriod;
+}
+
 export default function RouteMapItinerary({
   destinations,
   events,
@@ -106,11 +127,12 @@ export default function RouteMapItinerary({
   const currentHour = new Date().getHours();
 
   // Node 0 = user location (always shown as Start pin)
-  // Nodes 1-3 = interactive slots, starting open → loading → confirming/resolved
+  // Nodes 1-4 = interactive slots, starting open → loading → confirming/resolved
   const [slots, setSlots] = useState<SlotState[]>([
     { status: 'open',   index: 0 },
     { status: 'locked', index: 1 },
     { status: 'locked', index: 2 },
+    { status: 'locked', index: 3 },
   ]);
 
   // Track which slots are strictly in "Night/Open destinations only" filter mode (disabling nature/beach/etc.)
@@ -128,6 +150,9 @@ export default function RouteMapItinerary({
   const [authModalOpen, setAuthModalOpen] = useState(false);
   // Tracks whether current all-resolved state came from a resume (not user picks)
   const isResumedRef = React.useRef(false);
+  // Track the ID of the itinerary saved for this session — prevents duplicate saves
+  const savedItineraryIdRef = React.useRef<string | null>(null);
+  const tripDateRef = React.useRef<string | null>(null);
 
   const getCurrentPeriod = (h: number) => {
     if (h >= 5 && h < 11) return 0;
@@ -145,28 +170,21 @@ export default function RouteMapItinerary({
       const latest = saved[0];
       if (!latest.slots || latest.slots.length === 0) return;
 
-      const createdDate = latest.createdAt ? new Date(latest.createdAt) : new Date();
       const nowDate = new Date();
-
-      const createdDay = new Date(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate()).getTime();
-      const nowDay = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate()).getTime();
-      const elapsedDays = Math.max(0, Math.floor((nowDay - createdDay) / (1000 * 60 * 60 * 24)));
-
+      const createdDate = latest.createdAt ? new Date(latest.createdAt) : nowDate;
       const savedPeriod = getCurrentPeriod(createdDate.getHours());
-      const nowPeriod = getCurrentPeriod(nowDate.getHours());
-
-      const currentAbsPeriod = elapsedDays * 4 + nowPeriod;
+      const tripDate = latest.tripDate ? new Date(`${latest.tripDate}T00:00:00`) : new Date(createdDate);
+      tripDateRef.current = latest.tripDate ?? tripDate.toISOString().split('T')[0];
 
       const hydrated: SlotState[] = latest.slots.map((s) => {
-        // Absolute period assigned to this slot when itinerary was created:
-        // Node slotIndex (0, 1, 2) corresponds to period offset (savedPeriod + 1 + slotIndex)
-        const slotAbsPeriod = savedPeriod + 1 + s.slotIndex;
-        const isDone = currentAbsPeriod > slotAbsPeriod;
+        const scheduledPeriod = getStoredPeriodIndex(s, (savedPeriod + 1 + s.slotIndex) % 4);
+        const slotDate = new Date(tripDate);
+        const isDone = !isSameCalendarDay(slotDate, nowDate) && isSlotFinished(slotDate, scheduledPeriod, nowDate);
 
         return {
           status: 'resolved' as const,
           index: s.slotIndex,
-          scheduledPeriod: (savedPeriod + 1 + s.slotIndex) % 4,
+          scheduledPeriod,
           node: {
             id: s.destination.id,
             title: s.destination.title,
@@ -187,9 +205,19 @@ export default function RouteMapItinerary({
         };
       });
 
-      if (hydrated.length === 3) {
+      if (hydrated.length >= 3) {
+        const normalizedSlots: SlotState[] = [
+          ...hydrated.slice(0, 4),
+          ...Array.from({ length: Math.max(0, 4 - hydrated.length) }, (_, i) => {
+            const index = hydrated.length + i;
+            const previousResolved = index > 0 && hydrated[index - 1]?.status === 'resolved';
+            return previousResolved
+              ? { status: 'open' as const, index }
+              : { status: 'locked' as const, index };
+          }),
+        ];
         isResumedRef.current = true;
-        setSlots(hydrated);
+        setSlots(normalizedSlots);
         setActiveMoodPicker(null);
       }
     } catch {
@@ -201,17 +229,16 @@ export default function RouteMapItinerary({
   // Live timer: recalculate isDone for resolved slots every 60s
   useEffect(() => {
     const tick = () => {
-      const now = Date.now();
-      const nowHour = new Date().getHours();
-      const nowPeriod = getCurrentPeriod(nowHour);
+      const now = new Date();
 
       setSlots((prev) =>
         prev.map((s) => {
-          if (s.status !== 'resolved' || s.node.isDone || !s.resolvedAt) return s;
-          const elapsedMs = now - s.resolvedAt;
-          const elapsedPeriods = Math.floor(elapsedMs / (1000 * 60 * 60 * 3));
-          // Slot for current period is done when 1+ periods have elapsed since creation
-          if (elapsedPeriods >= 1) {
+          if (s.status !== 'resolved' || s.node.isDone) return s;
+          const periodIndex = s.scheduledPeriod ?? (currentPeriod + s.index + 1) % 4;
+          const slotDate = tripDateRef.current ? new Date(`${tripDateRef.current}T00:00:00`) : new Date();
+          if (!tripDateRef.current && s.node.isTomorrow) slotDate.setDate(slotDate.getDate() + 1);
+          if (isSameCalendarDay(slotDate, now)) return s;
+          if (isSlotFinished(slotDate, periodIndex, now)) {
             return { ...s, node: { ...s.node, isDone: true } };
           }
           return s;
@@ -219,7 +246,6 @@ export default function RouteMapItinerary({
       );
     };
 
-    tick(); // initial check
     const interval = setInterval(tick, 60_000);
     return () => clearInterval(interval);
   }, []);
@@ -232,15 +258,19 @@ export default function RouteMapItinerary({
       isResumedRef.current = false;
       return;
     }
+    // Already saved this exact set of slots — skip
+    if (savedItineraryIdRef.current) return;
 
     const timer = setTimeout(async () => {
       const resolvedSlots = slots
         .filter((s) => s.status === 'resolved')
         .map((s) => {
           if (s.status !== 'resolved') return null;
-          const baseSlot = BASE_SLOTS[s.index] ?? BASE_SLOTS[BASE_SLOTS.length - 1];
+          const scheduledPeriod = s.scheduledPeriod ?? s.index;
+          const baseSlot = BASE_SLOTS[scheduledPeriod] ?? BASE_SLOTS[BASE_SLOTS.length - 1];
           return {
             slotIndex: s.index,
+            scheduledPeriod,
             time: baseSlot.time,
             timeRange: baseSlot.timeRange,
             isTomorrow: s.node.isTomorrow ?? false,
@@ -271,17 +301,21 @@ export default function RouteMapItinerary({
       }
 
       const tripDateStr = tripDateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+      tripDateRef.current = tripDateStr;
       const formattedDate = tripDateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
       const itineraryTitle = `Perjalananku di Jogja — ${formattedDate}`;
 
+      const newId = generateLocalId();
       // Always save locally first
       saveItineraryLocally({
-        id: generateLocalId(),
+        id: newId,
         title: itineraryTitle,
         createdAt: new Date().toISOString(),
         tripDate: tripDateStr,
         slots: resolvedSlots,
       });
+      // Mark as saved so subsequent re-renders don't create duplicates
+      savedItineraryIdRef.current = newId;
 
       // If logged in, also auto-sync to DB in background
       let syncedToCloud = false;
@@ -319,6 +353,7 @@ export default function RouteMapItinerary({
   function resetSlot(slotIndex: number) {
     setHoveredNodeId(null);
     setPinnedNodeId(null);
+    savedItineraryIdRef.current = null; // allow new save after reset
     setSlots((prev) => {
       const next = [...prev];
       next[slotIndex] = { status: 'open', index: slotIndex };
@@ -523,9 +558,36 @@ export default function RouteMapItinerary({
   };
 
   const tripDateInfo = getTripDateLabel();
+  const resolvedSegmentDistances = slots.map((slot) =>
+    slot.status === 'resolved' && slot.node.distanceFromPrev != null ? slot.node.distanceFromPrev : null
+  );
+  const measuredSegmentDistances = resolvedSegmentDistances.filter((dist): dist is number => typeof dist === 'number' && dist > 0);
+  const hasMeasuredSegments = measuredSegmentDistances.length === slots.length;
+  const routeNodePositions = hasMeasuredSegments
+    ? (() => {
+      const totalDistance = measuredSegmentDistances.reduce((sum, dist) => sum + dist, 0);
+      let cumulativeDistance = 0;
+      return [
+        4,
+        ...measuredSegmentDistances.map((dist) => {
+          cumulativeDistance += dist;
+          return 4 + (cumulativeDistance / totalDistance) * 92;
+        }),
+      ];
+    })()
+    : Array.from({ length: slots.length + 1 }, (_, index) =>
+        4 + (index / Math.max(1, slots.length)) * 92
+      );
+  const routeLineY = (waveIndex: number) => (waveIndex === 0 ? 49 : waveIndex % 2 === 0 ? 30 : 46);
+  const routeLinePath = routeNodePositions.slice(1).reduce((path, x, index) => {
+    const startX = routeNodePositions[index] ?? 12.5;
+    const endY = routeLineY(index + 1);
+    return `${path} C ${startX + (x - startX) * 0.35} ${index % 2 === 0 ? 20 : 54}, ${startX + (x - startX) * 0.65} ${index % 2 === 0 ? 54 : 20}, ${x} ${endY}`;
+  }, `M ${routeNodePositions[0] ?? 4} ${routeLineY(0)}`);
+  const nextDestinationSlotIndex = slots.findIndex((slot) => slot.status === 'resolved' && !slot.node.isDone);
 
   return (
-    <div className={`w-full max-w-[500px] sm:max-w-[560px] ml-0 bg-transparent ${className}`}>
+    <div className={`w-full max-w-[500px] sm:max-w-[560px] lg:max-w-none ml-0 bg-transparent ${className}`}>
       {/* HEADER */}
       <div className="flex items-center justify-between mb-1 px-1">
         <div className="flex items-center gap-1.5">
@@ -554,19 +616,19 @@ export default function RouteMapItinerary({
       </div>
 
       {/* WAVE + NODES */}
-      <div className="relative bg-transparent">
+      <div className="relative h-[126px] bg-transparent">
         {/* WAVY SVG LINE */}
         <svg
           width="100%"
-          height="54"
-          viewBox="0 0 340 54"
+          height="64"
+          viewBox="0 0 100 64"
           preserveAspectRatio="none"
-          className="block w-full pointer-events-none"
+          className="absolute left-0 top-0 block w-full pointer-events-none"
           style={{ display: 'block' }}
           aria-hidden="true"
         >
           <path
-            d="M 40 34 C 80 18, 120 50, 170 34 C 220 18, 260 50, 300 34"
+            d={routeLinePath}
             fill="none"
             stroke="#FBBF24"
             strokeWidth="2.5"
@@ -577,64 +639,69 @@ export default function RouteMapItinerary({
           />
         </svg>
 
-        {/* Distance labels — below the wave line, between each node pair */}
-        <div className="flex mt-1 px-0">
-          {/* Spacer kiri (lebar node user) */}
-          <div className="flex-1" />
-          {/* Gap user→slot0 */}
-          <div className="flex-1 flex justify-center">
-            {slots[0]?.status === 'resolved' && slots[0].node.distanceFromPrev != null && (
-              <span className="px-1.5 py-0.5 rounded-full bg-black/60 border border-gold-400/30 text-[7px] font-mono font-bold text-gold-400 whitespace-nowrap">
-                {slots[0].node.distanceFromPrev.toFixed(1)} km
+        {/* Distance labels — Absolute positioning di antara node */}
+        <div className="absolute inset-0 z-20 pointer-events-none">
+          {slots.map((slot, i) => {
+            const dist = slot?.status === 'resolved' ? slot.node.distanceFromPrev : undefined;
+            if (dist == null) return null;
+            
+            const leftPos = ((routeNodePositions[i] ?? 4) + (routeNodePositions[i + 1] ?? 96)) / 2;
+            
+            return (
+              <span
+                key={`dist-${i}`}
+                className="absolute px-1.5 py-0.5 rounded-full bg-black/80 border border-gold-400/50 text-[7px] font-mono font-bold text-gold-300 whitespace-nowrap shadow-[0_2px_8px_rgba(0,0,0,0.45)]"
+                style={{
+                  left: `${leftPos}%`,
+                  top: i % 2 === 0 ? '20px' : '28px',
+                  transform: 'translateX(-50%)',
+                }}
+              >
+                {dist.toFixed(1)} km
               </span>
-            )}
-          </div>
-          {/* Gap slot0→slot1 */}
-          <div className="flex-1 flex justify-center">
-            {slots[1]?.status === 'resolved' && slots[1].node.distanceFromPrev != null && (
-              <span className="px-1.5 py-0.5 rounded-full bg-black/60 border border-gold-400/30 text-[7px] font-mono font-bold text-gold-400 whitespace-nowrap">
-                {slots[1].node.distanceFromPrev.toFixed(1)} km
-              </span>
-            )}
-          </div>
-          {/* Gap slot1→slot2 */}
-          <div className="flex-1 flex justify-center">
-            {slots[2]?.status === 'resolved' && slots[2].node.distanceFromPrev != null && (
-              <span className="px-1.5 py-0.5 rounded-full bg-black/60 border border-gold-400/30 text-[7px] font-mono font-bold text-gold-400 whitespace-nowrap">
-                {slots[2].node.distanceFromPrev.toFixed(1)} km
-              </span>
-            )}
-          </div>
+            );
+          })}
         </div>
 
         {/* Nodes: pulled up on top of wave */}
-        <div className="-mt-[50px] grid grid-cols-4 gap-1 relative z-10">
+        <div className="absolute inset-0 z-10">
           {waveNodes.map((slot, waveIndex) => {
-            const waveTranslateY = waveIndex % 2 === 0 ? '-translate-y-0.5' : 'translate-y-0.5';
+            const getNodeTop = () => {
+              if (waveIndex === 0) return '21px';
+              const lineY = routeLineY(waveIndex);
+              if (slot && (slot.status === 'locked' || slot.status === 'open' || slot.status === 'loading' || slot.status === 'confirming')) {
+                return `${lineY - 36}px`;
+              }
+              return `${lineY - 16}px`;
+            };
+            const nodeStyle = {
+              left: `${routeNodePositions[waveIndex] ?? 4}%`,
+              top: getNodeTop(),
+              transform: 'translateX(-50%)',
+            };
+            const waveTranslateY = '';
 
             // ── Position 0: User Location ──
             if (slot === null) {
               return (
                 <div
                   key="user-start"
-                  className={`relative flex flex-col items-center group ${waveTranslateY}`}
+                  className={`absolute flex flex-col items-center group ${waveTranslateY}`}
+                  style={nodeStyle}
                 >
                   {/* Distance badge */}
                   <div className="mb-0.5 flex items-center gap-1 h-5" />
                   {/* Pin */}
-                  <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-gold-500 text-royal-950 ring-2 ring-gold-400/80 shadow-[0_0_12px_rgba(234,179,8,0.6)] transition-all duration-300 shadow-md">
-                    <MapPin className="h-3.5 w-3.5" />
-                    <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-gold-400 text-[7px] font-mono font-bold text-gold-300">
+                  <div className="relative flex h-3 w-3 items-center justify-center rounded-full bg-gold-500 text-royal-950 ring-1 ring-gold-400/80 shadow-[0_0_5px_rgba(234,179,8,0.5)] transition-all duration-300 shadow-sm">
+                    <MapPin className="h-1.5 w-1.5" />
+                    <span className="absolute -bottom-0.5 -right-0.5 flex h-1.5 w-1.5 items-center justify-center rounded-full bg-royal-950 border border-gold-400 text-[3px] font-mono font-bold text-gold-300">
                       📍
                     </span>
                   </div>
                   {/* Label */}
-                  <div className="mt-1 text-center max-w-[85px]">
-                    <span className="block text-[8px] font-bold uppercase tracking-wider text-gold-400">
+                  <div className="mt-1 w-[70px] text-center">
+                    <span className="block text-[7px] font-bold uppercase tracking-wider text-gold-400">
                       Kamu
-                    </span>
-                    <span className="block text-[9px] font-bold text-white/90 leading-tight truncate">
-                      Lokasi Saat Ini
                     </span>
                   </div>
                 </div>
@@ -651,28 +718,32 @@ export default function RouteMapItinerary({
 
             // ── LOCKED ──
             if (slot.status === 'locked') {
+              const canUnlockLockedSlot = slotIndex > 0 && slots.slice(0, slotIndex).every((s) => s.status === 'resolved');
               return (
                 <div
                   key={`slot-locked-${slotIndex}`}
-                  className={`relative flex flex-col items-center group opacity-40 ${waveTranslateY}`}
+                  className={`absolute flex flex-col items-center group ${canUnlockLockedSlot ? 'cursor-pointer opacity-80 hover:opacity-100' : 'opacity-40'} ${waveTranslateY}`}
+                  style={nodeStyle}
+                  onClick={() => {
+                    if (!canUnlockLockedSlot) return;
+                    setSlots((prev) => {
+                      const next = [...prev];
+                      next[slotIndex] = { status: 'open', index: slotIndex };
+                      return next;
+                    });
+                    setActiveMoodPicker(slotIndex);
+                  }}
                 >
-                  <div className="mb-0.5 flex items-center gap-1">
-                    <div className="px-1.5 py-0.5 rounded-full bg-black/75 border border-white/10 text-[8px] font-bold text-white/30 flex items-center gap-0.5">
-                      <span>—</span>
-                    </div>
-                  </div>
+                  <div className="mb-0.5 flex items-center gap-1 h-5" />
                   <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-black/40 text-white/30 border border-white/10 shadow-md">
                     <HelpCircle className="h-3.5 w-3.5" />
                     <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-white/20 text-[7px] font-mono font-bold text-white/30">
                       {waveIndex}
                     </span>
                   </div>
-                  <div className="mt-1 text-center max-w-[85px]">
+                  <div className="mt-1 w-[80px] sm:w-[96px] text-center">
                     <span className="block text-[8px] font-bold uppercase tracking-wider text-white/30">
                       {slotMeta.time}
-                    </span>
-                    <span className="block text-[9px] font-bold text-white/30 leading-tight">
-                      ?
                     </span>
                   </div>
                 </div>
@@ -686,14 +757,11 @@ export default function RouteMapItinerary({
               return (
                 <div
                   key={`slot-open-${slotIndex}`}
-                  className={`relative flex flex-col items-center cursor-pointer group ${waveTranslateY}`}
+                  className={`absolute flex flex-col items-center cursor-pointer group ${waveTranslateY}`}
+                  style={nodeStyle}
                   onClick={() => setActiveMoodPicker(isMoodPickerOpen ? null : slotIndex)}
                 >
-                  <div className="mb-0.5 flex items-center gap-1">
-                    <div className="px-1.5 py-0.5 rounded-full bg-black/75 backdrop-blur-sm border border-gold-400/40 text-[8px] font-bold text-gold-300 flex items-center gap-0.5 shadow-sm">
-                      <span>{slotMeta.time}</span>
-                    </div>
-                  </div>
+                  <div className="mb-0.5 flex items-center gap-1 h-5" />
                   {/* Pulsing ? pin */}
                   <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-black/50 text-gold-400 border border-gold-400/50 hover:bg-gold-400 hover:text-royal-950 hover:scale-110 transition-all duration-300 shadow-md">
                     <span className="text-[13px] font-black">?</span>
@@ -703,11 +771,11 @@ export default function RouteMapItinerary({
                     {/* Pulse ring */}
                     <span className="absolute inset-0 rounded-full bg-gold-400 opacity-20 animate-ping" />
                   </div>
-                  <div className="mt-1 text-center max-w-[85px]">
+                  <div className="mt-1 w-[80px] sm:w-[96px] text-center">
                     <span className="block text-[8px] font-bold uppercase tracking-wider text-gold-400">
                       {slotMeta.time}
                     </span>
-                    <span className="block text-[9px] font-bold text-white/90 leading-tight group-hover:text-gold-300">
+                    <span className="hidden text-[9px] font-bold text-white/90 leading-tight group-hover:block group-hover:text-gold-300">
                       Tap pilih
                     </span>
                   </div>
@@ -784,7 +852,8 @@ export default function RouteMapItinerary({
               return (
                 <div
                   key={`slot-loading-${slotIndex}`}
-                  className={`relative flex flex-col items-center group ${waveTranslateY}`}
+                  className={`absolute flex flex-col items-center group ${waveTranslateY}`}
+                  style={nodeStyle}
                 >
                   <div className="mb-0.5 flex items-center gap-1">
                     <div className="px-1.5 py-0.5 rounded-full bg-black/75 backdrop-blur-sm border border-gold-400/40 text-[8px] font-bold text-gold-300 flex items-center gap-0.5 shadow-sm">
@@ -797,7 +866,7 @@ export default function RouteMapItinerary({
                       {waveIndex}
                     </span>
                   </div>
-                  <div className="mt-1 text-center max-w-[85px]">
+                  <div className="mt-1 w-[92px] sm:w-[110px] text-center">
                     <span className="block text-[8px] font-bold uppercase tracking-wider text-gold-400">
                       {slotMeta.time}
                     </span>
@@ -815,7 +884,8 @@ export default function RouteMapItinerary({
               return (
                 <div
                   key={`slot-confirming-${slotIndex}`}
-                  className={`relative flex flex-col items-center cursor-pointer group ${waveTranslateY}`}
+                  className={`absolute flex flex-col items-center cursor-pointer group ${waveTranslateY}`}
+                  style={nodeStyle}
                 >
                   <div className="mb-0.5 flex items-center gap-1">
                     <div className="px-1.5 py-0.5 rounded-full bg-amber-500/30 backdrop-blur-sm border border-amber-400/50 text-[8px] font-bold text-amber-300 flex items-center gap-0.5 shadow-sm">
@@ -829,7 +899,7 @@ export default function RouteMapItinerary({
                       {waveIndex}
                     </span>
                   </div>
-                  <div className="mt-1 text-center max-w-[85px]">
+                  <div className="mt-1 w-[92px] sm:w-[110px] text-center">
                     <span className="block text-[8px] font-bold uppercase tracking-wider text-amber-400">
                       {slotMeta.time}
                     </span>
@@ -917,6 +987,7 @@ export default function RouteMapItinerary({
             const TypeIcon = getCategoryIcon('destination', node.category);
             const nodeKey = node.id + slotIndex;
             const isPopupOpen = pinnedNodeId === nodeKey || hoveredNodeId === nodeKey;
+            const isNextDestination = slotIndex === nextDestinationSlotIndex;
 
             return (
               <div
@@ -928,7 +999,8 @@ export default function RouteMapItinerary({
                   // Clicking the pin toggles pinned state (stays open!)
                   setPinnedNodeId(pinnedNodeId === nodeKey ? null : nodeKey);
                 }}
-                className={`relative flex flex-col items-center cursor-pointer group transition-transform ${waveTranslateY}`}
+                className={`absolute flex flex-col items-center cursor-pointer group transition-transform ${waveTranslateY}`}
+                style={nodeStyle}
               >
                 {/* Distance Badge + Tomorrow / Selesai Tag */}
                 <div className="mb-0.5 flex items-center gap-1">
@@ -959,6 +1031,9 @@ export default function RouteMapItinerary({
                         : 'bg-black/50 text-gold-400 border border-gold-400/50 hover:bg-gold-400 hover:text-royal-950 hover:scale-110'
                   }`}
                 >
+                  {isNextDestination && !isPopupOpen && (
+                    <span className="absolute inset-0 rounded-full bg-gold-400/25 animate-ping" />
+                  )}
                   <TypeIcon className="h-3.5 w-3.5" />
                   <span className={`absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border text-[7px] font-mono font-bold ${
                     node.isDone ? 'border-emerald-400 text-emerald-300' : 'border-gold-400 text-gold-300'
@@ -968,17 +1043,14 @@ export default function RouteMapItinerary({
                 </div>
 
                 {/* Label */}
-                <div className="mt-1 text-center max-w-[85px]">
+                <div className="mt-1 w-[78px] sm:w-[94px] text-center">
                   <span className={`block text-[8px] font-bold uppercase tracking-wider ${node.isDone ? 'text-emerald-400/80' : 'text-gold-400'}`}>
                     {slotMeta.time}
-                  </span>
-                  <span className="block text-[7.5px] font-medium text-white/50 leading-none mb-0.5">
-                    {slotMeta.duration}
                   </span>
                   <span className={`block text-[9px] font-bold leading-tight truncate ${node.isDone ? 'text-white/50 line-through decoration-white/30' : 'text-white/90 group-hover:text-gold-300'}`}>
                     {node.title}
                   </span>
-                  <span className="block text-[7.5px] font-semibold text-gold-400/90 truncate mt-0.5">
+                  <span className="hidden text-[7.5px] font-semibold text-gold-400/90 truncate mt-0.5 group-hover:block">
                     📍 {node.subRegion || node.location}
                   </span>
                 </div>
