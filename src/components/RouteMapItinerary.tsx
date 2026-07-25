@@ -101,14 +101,17 @@ export default function RouteMapItinerary({
 
   // Which node's mood picker is expanded (click to open)
   const [activeMoodPicker, setActiveMoodPicker] = useState<number | null>(0);
-  // Which node popup is hovered (resolved nodes)
-  const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+  
+  // Hover & Pinned states for resolved node popups (click pins popup open until explicitly closed)
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [pinnedNodeId, setPinnedNodeId] = useState<string | null>(null);
 
   const getResolvedIds = () =>
     slots.flatMap((s) => (s.status === 'resolved' || s.status === 'confirming' ? [s.node.id] : []));
 
   function resetSlot(slotIndex: number) {
-    setActiveNodeId(null);
+    setHoveredNodeId(null);
+    setPinnedNodeId(null);
     setSlots((prev) => {
       const next = [...prev];
       next[slotIndex] = { status: 'open', index: slotIndex };
@@ -262,7 +265,7 @@ export default function RouteMapItinerary({
       </div>
 
       {/* WAVE + NODES */}
-      <div className="relative bg-transparent" onMouseLeave={() => setActiveNodeId(null)}>
+      <div className="relative bg-transparent">
         {/* WAVY SVG LINE */}
         <svg
           width="100%"
@@ -593,13 +596,19 @@ export default function RouteMapItinerary({
             // ── RESOLVED ──
             const node = slot.node;
             const TypeIcon = getCategoryIcon('destination', node.category);
-            const isHovered = activeNodeId === node.id + slotIndex;
+            const nodeKey = node.id + slotIndex;
+            const isPopupOpen = pinnedNodeId === nodeKey || hoveredNodeId === nodeKey;
 
             return (
               <div
                 key={`slot-resolved-${slotIndex}-${node.id}`}
-                onMouseEnter={() => setActiveNodeId(node.id + slotIndex)}
-                onClick={() => setActiveNodeId(activeNodeId === node.id + slotIndex ? null : node.id + slotIndex)}
+                onMouseEnter={() => setHoveredNodeId(nodeKey)}
+                onMouseLeave={() => setHoveredNodeId(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Clicking the pin toggles pinned state (stays open!)
+                  setPinnedNodeId(pinnedNodeId === nodeKey ? null : nodeKey);
+                }}
                 className={`relative flex flex-col items-center cursor-pointer group transition-transform ${waveTranslateY}`}
               >
                 {/* Distance Badge + Tomorrow Tag if scheduled tomorrow */}
@@ -618,7 +627,7 @@ export default function RouteMapItinerary({
                 {/* Glowing Pin */}
                 <div
                   className={`relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full transition-all duration-300 shadow-md ${
-                    isHovered
+                    isPopupOpen
                       ? 'bg-gold-400 text-royal-950 scale-125 ring-2 ring-gold-400/80 shadow-[0_0_15px_rgba(234,179,8,0.9)] z-30'
                       : 'bg-black/50 text-gold-400 border border-gold-400/50 hover:bg-gold-400 hover:text-royal-950 hover:scale-110'
                   }`}
@@ -646,7 +655,7 @@ export default function RouteMapItinerary({
                 </div>
 
                 {/* Floating Popup */}
-                {isHovered && (
+                {isPopupOpen && (
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
@@ -666,13 +675,27 @@ export default function RouteMapItinerary({
                       waveIndex === 1 ? 'left-4' : waveIndex === 3 ? 'right-4' : 'left-1/2 -translate-x-1/2'
                     }`} />
 
-                    {/* Header */}
+                    {/* Header with Close Button × */}
                     <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-white/10 text-[8.5px] font-bold">
                       <div className="flex items-center gap-1 text-gold-400">
                         <Calendar className="h-2.5 w-2.5 text-gold-400" />
                         <span className="text-gold-300">{slotMeta.timeRange}</span>
                       </div>
-                      <span className="text-white/60 bg-white/10 px-1.5 rounded">{slotMeta.duration}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-white/60 bg-white/10 px-1.5 rounded">{slotMeta.duration}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPinnedNodeId(null);
+                            setHoveredNodeId(null);
+                          }}
+                          className="flex items-center justify-center w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white text-[10px] font-bold transition-all cursor-pointer"
+                          aria-label="Tutup Popup"
+                          title="Tutup"
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
 
                     {/* Warning Banner if scheduled for tomorrow */}
