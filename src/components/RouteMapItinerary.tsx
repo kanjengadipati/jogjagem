@@ -141,13 +141,13 @@ export default function RouteMapItinerary({
       setNightOnlySlots((prev) => ({ ...prev, [slotIndex]: true }));
       setSlots((prev) => {
         const next = [...prev];
-        // Assign tomorrow node to the next slot
+        // Assign tomorrow node to the next slot (suppress amber warning banner on tomorrow slot)
         next[nextSlotIdx] = {
           status: 'resolved',
           index: nextSlotIdx,
           node: {
             ...node,
-            isTomorrow: true,
+            isTomorrow: false,
           },
         };
         // Keep current slot open for tonight's trip
@@ -169,7 +169,10 @@ export default function RouteMapItinerary({
         next[slotIndex] = {
           status: 'resolved',
           index: slotIndex,
-          node,
+          node: {
+            ...node,
+            isTomorrow: false,
+          },
         };
         return next;
       });
@@ -195,8 +198,10 @@ export default function RouteMapItinerary({
           rawItem: rawDest,
         };
 
-        if (res.data.isTomorrow) {
-          // Do NOT directly move to resolved & unlock next node. Ask user confirmation first!
+        const isTargetSlotTomorrow = (currentPeriod + slotIndex + 1) >= 4;
+
+        if (res.data.isTomorrow && !isTargetSlotTomorrow) {
+          // Ask user confirmation ONLY if picking an unreachable mood on a TODAY slot
           setSlots((prev) => {
             const next = [...prev];
             next[slotIndex] = {
@@ -207,13 +212,16 @@ export default function RouteMapItinerary({
             return next;
           });
         } else {
-          // Directly resolve & unlock next node if it's currently locked
+          // Directly resolve & unlock next node. On tomorrow slots, popup is 100% normal
           setSlots((prev) => {
             const next = [...prev];
             next[slotIndex] = {
               status: 'resolved',
               index: slotIndex,
-              node: resolvedData,
+              node: {
+                ...resolvedData,
+                isTomorrow: isTargetSlotTomorrow ? false : res.data!.isTomorrow,
+              },
             };
             if (slotIndex + 1 < next.length) {
               if (next[slotIndex + 1].status === 'locked') {
