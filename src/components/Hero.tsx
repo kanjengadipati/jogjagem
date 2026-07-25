@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from '@/i18n/navigation';
 import { Search, ChevronLeft, ChevronRight, Mic, MicOff, Camera, Loader2, Bookmark, X, Star, CalendarDays, Heart, MapPin } from 'lucide-react';
-import { Destination } from '../types';
+import { Destination, Festival } from '../types';
 import { ai } from '../lib/api';
 import NearbyMapCard from './NearbyMapCard';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { AIPickCard } from './AIPickCard';
 import SearchBar from './SearchBar';
+import RouteMapItinerary from './RouteMapItinerary';
 
 const BADGE_COLOR: Record<string, string> = {
   'Spesial Hari Ini': 'bg-orange-500',
@@ -43,6 +44,8 @@ type TrendingItem = {
 
 interface HeroProps {
   destinations: Destination[];
+  events?: Festival[];
+  coords?: { lat: number; lng: number } | null;
   onSearchSubmit: (query: string) => void;
   onImageSearchSubmit: (imageUrl: string, reply: string, matchedDestinationIds: string[]) => void;
   onExploreDestination: (dest: Destination) => void;
@@ -60,7 +63,7 @@ const HERO_SLIDES = [
   { id: 'goajomblang', name: 'Goa Jomblang Cave', tagline: 'Descend into a vertical primeval forest to catch the blinding column of heavenly light.', image: 'https://images.unsplash.com/photo-1628047563315-d1e8b8d222b9?auto=format&fit=crop&w=1600&q=80', credit: 'Unsplash' },
 ];
 
-export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit, onExploreDestination, onToggleSave, isSaved, initialAiPick }: HeroProps) {
+export default function Hero({ destinations, events = [], coords, onSearchSubmit, onImageSearchSubmit, onExploreDestination, onToggleSave, isSaved, initialAiPick }: HeroProps) {
   const { t } = useLocale();
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
@@ -379,7 +382,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
         <div className="relative z-10 flex flex-col min-h-[calc(100svh-64px)] lg:min-h-[680px] lg:h-[calc(100vh-80px)]">
 
           {/* ── Main content area (single, authoritative) ── */}
-          <div className="relative mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-0 lg:justify-center lg:pb-[240px]">
+          <div className="relative mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-0 lg:justify-center lg:pb-[340px]">
 
             {/* RECOMMENDATIONS */}
             {recommendation ? (
@@ -451,6 +454,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
                     isUploadingImage={isUploadingImage}
                     isListening={isListening}
                   />
+
                 </div>
 
               </div>
@@ -480,6 +484,16 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
               </div>
             </div>
 
+            {/* Route Map Itinerary — mobile/tablet only (in-flow) */}
+            <div className="block lg:hidden mt-6 mb-4">
+              <RouteMapItinerary
+                destinations={destinations}
+                events={events}
+                coords={coords}
+                onExploreDestination={onExploreDestination}
+              />
+            </div>
+
             {/* Trending Now — mobile/tablet */}
             <div className="block lg:hidden pb-[82px]">
               <div className="flex items-center gap-1.5 mb-2">
@@ -505,6 +519,18 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
           </div>{/* end main content */}
 
 
+          {/* RouteMap — desktop only, pinned above Trending */}
+          <div className="hidden lg:block absolute bottom-[220px] left-0 right-0 z-10">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <RouteMapItinerary
+                destinations={destinations}
+                events={events}
+                coords={coords}
+                onExploreDestination={onExploreDestination}
+              />
+            </div>
+          </div>
+
           {/* Trending Now — desktop only, pinned above slide controls */}
           <div className="hidden lg:block absolute bottom-[56px] left-0 right-0 z-10">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -525,6 +551,7 @@ export default function Hero({ destinations, onSearchSubmit, onImageSearchSubmit
               </div>
             </div>
           </div>
+
 
           {/* Slide controls — desktop only */}
           <div className="hidden lg:flex absolute bottom-4 left-0 right-0 z-10 pointer-events-none">
