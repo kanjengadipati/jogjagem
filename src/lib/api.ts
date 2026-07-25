@@ -528,6 +528,24 @@ export const ai = {
       }>;
     }>(`/ai/route-timeline${qs}`);
   },
+
+  async getNextStop(lat: number, lng: number, category: string, excludeIds: string[]) {
+    const params = new URLSearchParams();
+    params.set('lat', lat.toString());
+    params.set('lng', lng.toString());
+    if (category && category !== 'all') params.set('category', category);
+    if (excludeIds.length > 0) params.set('exclude', excludeIds.join(','));
+    return request<{
+      id: string;
+      title: string;
+      category: string;
+      image: string;
+      location: string;
+      subRegion: string;
+      rating: number;
+      distanceKm: number;
+    }>(`/ai/next-stop?${params.toString()}`);
+  },
 };
 
 export const trips = {
