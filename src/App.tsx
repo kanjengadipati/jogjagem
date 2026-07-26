@@ -972,8 +972,8 @@ export default function App() {
               onClick={() => router.push('/ai')}
               className="flex flex-col items-center gap-1 active:scale-95 transition-transform duration-150"
             >
-              <div className="w-14 h-14 rounded-[20px] bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center shadow-[0_4px_16px_rgba(180,130,40,0.45)] border border-gold-300/20">
-                <Sparkles className="h-6 w-6 text-royal-950" />
+              <div className="w-14 h-14 rounded-[20px] bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center shadow-[0_4px_16px_rgba(180,130,40,0.45)] border border-gold-300/20 overflow-hidden">
+                <Image src="/logo-gold-new.png" alt="Jogjagem AI" width={40} height={40} className="w-10 h-10 object-contain" />
               </div>
               <span className="text-[9px] font-semibold tracking-wide text-gold-400">AI</span>
             </button>
