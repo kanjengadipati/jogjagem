@@ -1118,38 +1118,17 @@ export default function RouteMapItinerary({
 
                       <div className="flex gap-1 overflow-x-auto whitespace-nowrap pb-0.5 scrollbar-none">
                         {MOOD_OPTIONS.map((mood) => {
-                          const isSlotTomorrow = isPlanningMode || (currentPeriod + slotIndex + 1) >= 4;
-                          const isNatureOrBeach = mood.category === 'nature' || mood.category === 'beach';
-                          const isCultural = mood.category === 'cultural';
-                          // NOTE: This "closed after 17:00" rule is duplicated in the backend
-                          // at tourist/handler.go (NextStop function, scoring + isTomorrow logic).
-                          // If you change the categories or cutoff time here, update the backend too.
-                          const isLateClosed = !isSlotTomorrow && currentHour >= 17 && (isNatureOrBeach || isCultural);
-
-                          const isDisabled = isNightFiltered && isLateClosed;
-                          const showWarningBadge = !isNightFiltered && isLateClosed;
-
                           return (
                             <button
                               key={mood.id}
-                              disabled={isDisabled}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (!isDisabled) {
-                                  resolveSlot(slotIndex, mood.id);
-                                }
+                                resolveSlot(slotIndex, mood.id);
                               }}
-                              className={`flex shrink-0 items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] lg:gap-1 lg:py-1 lg:text-[8.5px] font-bold transition-all ${
-                                isDisabled
-                                  ? 'bg-white/5 text-white/20 border border-white/10 cursor-not-allowed line-through'
-                                  : 'bg-black/40 text-gold-300/80 border border-gold-400/30 hover:bg-gold-500 hover:text-royal-950 hover:border-gold-400 active:scale-95 cursor-pointer'
-                              }`}
-                              title={isDisabled ? 'Destinasi ini sudah tutup malam ini' : undefined}
+                              className="flex shrink-0 items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] lg:gap-1 lg:py-1 lg:text-[8.5px] font-bold transition-all bg-black/40 text-gold-300/80 border border-gold-400/30 hover:bg-gold-500 hover:text-royal-950 hover:border-gold-400 active:scale-95 cursor-pointer"
                             >
                               <span>{mood.icon}</span>
                               <span>{mood.label}</span>
-                              {isDisabled && <span className="text-[7.5px] text-amber-500/70">🔒</span>}
-                              {showWarningBadge && <span className="text-[7.5px] text-amber-400">⚠️</span>}
                             </button>
                           );
                         })}
