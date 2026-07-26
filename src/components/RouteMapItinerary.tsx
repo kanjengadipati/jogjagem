@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ai, trips as tripsApi } from '@/lib/api';
 import AuthModal from './AuthModal';
 import { saveItineraryLocally, syncLocalItinerariesToDB, getLocalItineraries, generateLocalId, clearAllLocalItineraries, HERO_ROUTE_DRAFT_KEY } from '@/lib/itinerary-storage';
+import { haversineKm } from '@/lib/geo';
 
 interface RouteMapItineraryProps {
   destinations: Destination[];
@@ -25,15 +26,6 @@ const DEFAULT_LNG = 110.3671;
 const JOGJA_CENTER_LAT = -7.7926;
 const JOGJA_CENTER_LNG = 110.3658;
 const PLANNING_DISTANCE_THRESHOLD_KM = 50;
-
-function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 
 function getCategoryIcon(type: string, category: string) {
   if (type === 'event') return CalendarDays;
@@ -106,6 +98,7 @@ interface ResolvedNode {
   rawItem?: Destination;
   timeWarning?: string;
   isTomorrow?: boolean;
+  requiresTomorrowSlot?: boolean;
   scheduledFor?: string;
   isDone?: boolean;
 }
@@ -155,6 +148,38 @@ function getStoredPeriodIndex(slot: { scheduledPeriod?: number; time?: string; t
   const byTime = BASE_SLOTS.findIndex((baseSlot) => baseSlot.time === slot.time);
   if (byTime >= 0) return byTime;
   return fallbackPeriod;
+}
+
+/** Returns the day offset (0 = today, 1 = tomorrow, etc.) for a given slot. */
+function getSlotDayOffset(firstSlotPeriod: number, slotIndex: number): number {
+  return Math.floor((firstSlotPeriod + slotIndex) / 4);
+}
+
+/** Format a date offset from a base date as a short label. */
+function formatDayLabel(baseDate: Date, dayOffset: number): string {
+  if (dayOffset === 0) return '';
+  const d = new Date(baseDate);
+  d.setDate(d.getDate() + dayOffset);
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+}
+
+/** Enforce minimum percentage gap between consecutive positions. */
+function enforceMinGap(positions: number[], minGapPct: number): number[] {
+  const adjusted = [...positions];
+  for (let i = 1; i < adjusted.length; i++) {
+    if (adjusted[i] - adjusted[i - 1] < minGapPct) {
+      adjusted[i] = adjusted[i - 1] + minGapPct;
+    }
+  }
+  // If total exceeds 100% after adjustment, scale down proportionally
+  const maxPos = adjusted[adjusted.length - 1];
+  if (maxPos > 96) {
+    const scale = 96 / maxPos;
+    for (let i = 1; i < adjusted.length; i++) {
+      adjusted[i] = adjusted[i] * scale;
+    }
+  }
+  return adjusted;
 }
 
 function normalizeDraftSlots(slots: SlotState[]): SlotState[] {
@@ -414,18 +439,32 @@ export default function RouteMapItinerary({
 
       if (resolvedSlots.length === 0) return;
 
-      // Determine effective trip execution date:
-      // If any slot is marked as isTomorrow OR current hour >= 19 (malam hari), trip date is TOMORROW!
-      const hasTomorrowSlot = isPlanningMode || resolvedSlots.some((s: any) => s.isTomorrow) || currentHour >= 19;
+      // Determine start date — use today unless all slots are tomorrow
       const tripDateObj = new Date();
-      if (hasTomorrowSlot) {
-        tripDateObj.setDate(tripDateObj.getDate() + 1);
-      }
-
       const tripDateStr = tripDateObj.toISOString().split('T')[0]; // YYYY-MM-DD
       tripDateRef.current = tripDateStr;
       const formattedDate = tripDateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
       const itineraryTitle = `Perjalananku di Jogja — ${formattedDate}`;
+
+      // Group slots by day for multi-day itineraries
+      const dayGroups: Record<number, string[]> = {};
+      let maxDay = 0;
+      for (const s of resolvedSlots) {
+        const dayOffset = getSlotDayOffset(firstSlotPeriod, s.slotIndex);
+        if (!dayGroups[dayOffset]) dayGroups[dayOffset] = [];
+        dayGroups[dayOffset].push(s.destination.id);
+        if (dayOffset > maxDay) maxDay = dayOffset;
+      }
+      const durationDays = maxDay + 1;
+      const days = Object.entries(dayGroups).map(([dayOffset, destinationIds]) => ({
+        dayNumber: Number(dayOffset) + 1,
+        destinationIds,
+        notes: '',
+      }));
+      // Compute end_date based on duration
+      const endDateObj = new Date(tripDateObj);
+      endDateObj.setDate(endDateObj.getDate() + durationDays - 1);
+      const endDateStr = endDateObj.toISOString().split('T')[0];
 
       const newId = generateLocalId();
       // Always save locally first
@@ -446,12 +485,9 @@ export default function RouteMapItinerary({
           const res = await tripsApi.create({
             title: itineraryTitle,
             start_date: tripDateStr,
-            duration_days: 1,
-            days: [{
-              dayNumber: 1,
-              destinationIds: resolvedSlots.map((s: any) => s.destination.id),
-              notes: '',
-            }],
+            end_date: endDateStr,
+            duration_days: durationDays,
+            days,
             status: 'draft',
           });
           if (res.status === 'success' && res.data?.id) {
@@ -686,7 +722,8 @@ export default function RouteMapItinerary({
               node: {
                 ...resolvedData,
                 distanceFromPrev,
-                isTomorrow: isTargetSlotTomorrow ? false : nodeSource.isTomorrow,
+                isTomorrow: isTargetSlotTomorrow,
+                requiresTomorrowSlot: nodeSource.isTomorrow,
               },
             };
             if (slotIndex + 1 < next.length) {
@@ -754,6 +791,13 @@ export default function RouteMapItinerary({
   };
 
   const tripDateInfo = getTripDateLabel();
+  // Compute max day offset across all resolved slots
+  const maxDayOffset = slots.reduce((max, slot) => {
+    if (slot.status !== 'resolved') return max;
+    const offset = getSlotDayOffset(firstSlotPeriod, slot.index);
+    return offset > max ? offset : max;
+  }, 0);
+  const hasMultipleDays = maxDayOffset > 0;
   const resolvedSegmentDistances = slots.map((slot) =>
     slot.status === 'resolved' && slot.node.distanceFromPrev != null ? slot.node.distanceFromPrev : null
   );
@@ -762,18 +806,22 @@ export default function RouteMapItinerary({
   const routeStartX = 4;
   const routeEndX = 96;
   const routeSpanX = routeEndX - routeStartX;
+  const MIN_NODE_GAP_PCT = 15; // minimum % gap between nodes to prevent label collision
   const routeNodePositions = hasMeasuredSegments
-    ? (() => {
-      const totalDistance = measuredSegmentDistances.reduce((sum, dist) => sum + dist, 0);
-      let cumulativeDistance = 0;
-      return [
-        routeStartX,
-        ...measuredSegmentDistances.map((dist) => {
-          cumulativeDistance += dist;
-          return routeStartX + (cumulativeDistance / totalDistance) * routeSpanX;
-        }),
-      ];
-    })()
+    ? enforceMinGap(
+      (() => {
+        const totalDistance = measuredSegmentDistances.reduce((sum, dist) => sum + dist, 0);
+        let cumulativeDistance = 0;
+        return [
+          routeStartX,
+          ...measuredSegmentDistances.map((dist) => {
+            cumulativeDistance += dist;
+            return routeStartX + (cumulativeDistance / totalDistance) * routeSpanX;
+          }),
+        ];
+      })(),
+      MIN_NODE_GAP_PCT,
+    )
     : Array.from({ length: slots.length + 1 }, (_, index) =>
         routeStartX + (index / Math.max(1, slots.length)) * routeSpanX
       );
@@ -797,15 +845,26 @@ export default function RouteMapItinerary({
               <span className="flex items-center gap-1">
                 <span className="text-[9px] font-mono text-gold-300/80 normal-case tracking-normal">
                   {tripDateInfo.dateStr}
+                  {hasMultipleDays && (
+                    <>
+                      {' — '}
+                      {formatDayLabel(new Date(tripDateInfo.dateStr + 'T00:00:00'), maxDayOffset)}
+                    </>
+                  )}
                 </span>
-                {tripDateInfo.isTomorrow && (
+                {tripDateInfo.isTomorrow && !hasMultipleDays && (
                   <span className="px-1 py-px rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[8px] font-bold font-mono">
                     {t('route_map.tomorrow')}
                   </span>
                 )}
-                {tripDateInfo.isToday && (
+                {tripDateInfo.isToday && !hasMultipleDays && (
                   <span className="px-1 py-px rounded bg-green-400/20 text-green-300 border border-green-400/40 text-[8px] font-bold font-mono">
                     {t('route_map.today')}
+                  </span>
+                )}
+                {hasMultipleDays && (
+                  <span className="px-1 py-px rounded bg-blue-400/20 text-blue-300 border border-blue-400/40 text-[8px] font-bold font-mono">
+                    {maxDayOffset + 1} hari
                   </span>
                 )}
               </span>
@@ -870,6 +929,39 @@ export default function RouteMapItinerary({
             );
           })}
         </div>
+
+        {/* Day dividers — vertical dashed line + label between nodes that cross day boundaries */}
+        {hasMultipleDays && (
+          <div className="absolute inset-x-0 top-16 bottom-0 lg:inset-0 z-15 pointer-events-none">
+            {slots.map((slot, i) => {
+              if (i === 0) return null;
+              if (slot.status !== 'resolved') return null;
+              const prevSlot = slots[i - 1];
+              if (prevSlot?.status !== 'resolved') return null;
+              const prevDay = getSlotDayOffset(firstSlotPeriod, prevSlot.index);
+              const currDay = getSlotDayOffset(firstSlotPeriod, slot.index);
+              if (currDay <= prevDay) return null;
+              // Day boundary found — render divider at midpoint between these two nodes
+              const midX = ((routeNodePositions[i] ?? 4) + (routeNodePositions[i + 1] ?? 96)) / 2;
+              const baseDate = tripDateRef.current ? new Date(tripDateRef.current + 'T00:00:00') : new Date();
+              const label = formatDayLabel(baseDate, currDay);
+              return (
+                <div
+                  key={`daydiv-${i}`}
+                  className="absolute flex flex-col items-center"
+                  style={{ left: `${midX}%`, top: '0', bottom: '0', transform: 'translateX(-50%)' }}
+                >
+                  <div className="w-px h-full border-l border-dashed border-blue-400/40" />
+                  {label && (
+                    <span className="absolute top-0 px-1.5 py-0.5 rounded bg-blue-500/20 border border-blue-400/40 text-[7px] font-bold font-mono text-blue-300 whitespace-nowrap">
+                      📅 {label}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Nodes: pulled up on top of wave */}
         <div className="absolute inset-x-0 top-16 bottom-0 lg:inset-0 z-10">
@@ -1029,6 +1121,9 @@ export default function RouteMapItinerary({
                           const isSlotTomorrow = isPlanningMode || (currentPeriod + slotIndex + 1) >= 4;
                           const isNatureOrBeach = mood.category === 'nature' || mood.category === 'beach';
                           const isCultural = mood.category === 'cultural';
+                          // NOTE: This "closed after 17:00" rule is duplicated in the backend
+                          // at tourist/handler.go (NextStop function, scoring + isTomorrow logic).
+                          // If you change the categories or cutoff time here, update the backend too.
                           const isLateClosed = !isSlotTomorrow && currentHour >= 17 && (isNatureOrBeach || isCultural);
 
                           const isDisabled = isNightFiltered && isLateClosed;
@@ -1333,14 +1428,16 @@ export default function RouteMapItinerary({
                     )}
 
                     {/* Warning Banner if scheduled for tomorrow */}
-                    {node.isTomorrow && !node.isDone && (
+                    {(node.isTomorrow || node.requiresTomorrowSlot) && !node.isDone && (
                       <div className="mb-2 p-2 rounded-lg bg-amber-500/15 border border-amber-400/40 text-left">
                         <div className="flex items-center gap-1 text-[9px] font-bold text-amber-300 mb-0.5">
                           <span>📅</span>
-                          <span>{node.scheduledFor || 'Dijadwalkan Besok'}</span>
+                          <span>{node.scheduledFor || (node.isTomorrow ? 'Dijadwalkan Besok' : 'Direkomendasikan untuk Besok')}</span>
                         </div>
                         <p className="text-[8px] text-amber-200/90 leading-tight">
-                          {node.timeWarning || 'Destinasi ini umumnya tutup malam hari, kami jadwalkan untuk besok.'}
+                          {node.timeWarning || (node.isTomorrow
+                            ? 'Slot waktu ini jatuh di hari berikutnya dalam itinerary Anda.'
+                            : 'Destinasi ini umumnya tutup malam hari, kami jadwalkan untuk besok.')}
                         </p>
                       </div>
                     )}

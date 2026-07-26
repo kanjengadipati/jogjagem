@@ -132,17 +132,36 @@ export async function syncLocalItinerariesToDB(): Promise<void> {
       }
 
       const destinationIds = itinerary.slots.map((s) => s.destination.id);
+
+      // Group slots by day for multi-day itineraries
+      const dayGroups: Record<number, string[]> = {};
+      let maxDay = 0;
+      for (const s of itinerary.slots) {
+        const scheduledPeriod = typeof s.scheduledPeriod === 'number' ? s.scheduledPeriod : 0;
+        const dayOffset = Math.floor((scheduledPeriod + s.slotIndex) / 4);
+        if (!dayGroups[dayOffset]) dayGroups[dayOffset] = [];
+        dayGroups[dayOffset].push(s.destination.id);
+        if (dayOffset > maxDay) maxDay = dayOffset;
+      }
+      const durationDays = maxDay + 1;
+      const days = Object.entries(dayGroups).map(([dayOffset, ids]) => ({
+        dayNumber: Number(dayOffset) + 1,
+        destinationIds: ids,
+        notes: '',
+      }));
+
+      // Compute end_date based on duration
+      const startObj = new Date(startDate + 'T00:00:00');
+      const endObj = new Date(startObj);
+      endObj.setDate(endObj.getDate() + durationDays - 1);
+      const endDateStr = endObj.toISOString().split('T')[0];
+
       const res = await trips.create({
         title: itinerary.title,
         start_date: startDate,
-        duration_days: 1,
-        days: [
-          {
-            dayNumber: 1,
-            destinationIds,
-            notes: '',
-          },
-        ],
+        end_date: endDateStr,
+        duration_days: durationDays,
+        days,
         status: 'draft',
       });
       if (res.status === 'success') {
