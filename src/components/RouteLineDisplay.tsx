@@ -200,7 +200,7 @@ export default function RouteLineDisplay({ destinations, userCoords }: RouteLine
         <span>{destinations.length} destinasi</span>
         {distances.some(Boolean) && (
           <span>
-            Total ≈ {distances.reduce((sum, d) => sum + (d ?? 0), 0).toFixed(1)} km
+            Total ≈ {distances.reduce<number>((sum, d) => sum + (d ?? 0), 0).toFixed(1)} km
           </span>
         )}
       </div>

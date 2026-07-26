@@ -10,7 +10,7 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ai, trips as tripsApi } from '@/lib/api';
 import AuthModal from './AuthModal';
-import { saveItineraryLocally, syncLocalItinerariesToDB, getLocalItineraries, generateLocalId } from '@/lib/itinerary-storage';
+import { saveItineraryLocally, syncLocalItinerariesToDB, getLocalItineraries, generateLocalId, clearAllLocalItineraries, HERO_ROUTE_DRAFT_KEY } from '@/lib/itinerary-storage';
 
 interface RouteMapItineraryProps {
   destinations: Destination[];
@@ -22,6 +22,9 @@ interface RouteMapItineraryProps {
 
 const DEFAULT_LAT = -7.7828;
 const DEFAULT_LNG = 110.3671;
+const JOGJA_CENTER_LAT = -7.7926;
+const JOGJA_CENTER_LNG = 110.3658;
+const PLANNING_DISTANCE_THRESHOLD_KM = 50;
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
@@ -82,6 +85,13 @@ type SlotState =
   | { status: 'resolved'; index: number; node: ResolvedNode; resolvedAt?: number; scheduledPeriod?: number }
   | { status: 'locked'; index: number };
 
+const INITIAL_SLOTS: SlotState[] = [
+  { status: 'open', index: 0 },
+  { status: 'locked', index: 1 },
+  { status: 'locked', index: 2 },
+  { status: 'locked', index: 3 },
+];
+
 const BASE_SLOTS = [
   { name: 'Pagi',  time: '07.00 AM', timeRange: '07:00 - 10:00 WIB', duration: '~2.5 jam', icon: Sun,      periodIndex: 0 },
   { name: 'Siang', time: '12.00 PM', timeRange: '12:00 - 14:00 WIB', duration: '~1.5 jam', icon: Utensils, periodIndex: 1 },
@@ -89,11 +99,16 @@ const BASE_SLOTS = [
   { name: 'Malam', time: '07.30 PM', timeRange: '19:30 - 22:00 WIB', duration: '~3 jam',   icon: Moon,     periodIndex: 3 },
 ];
 
-function isSlotFinished(slotDate: Date, periodIndex: number, now = new Date()): boolean {
+function getSlotEndDate(slotDate: Date, periodIndex: number): Date {
   const [endTime] = BASE_SLOTS[periodIndex].timeRange.split(' - ')[1].split(' ');
   const [hours, minutes] = endTime.split(':').map(Number);
   const endDate = new Date(slotDate);
   endDate.setHours(hours, minutes, 0, 0);
+  return endDate;
+}
+
+function isSlotFinished(slotDate: Date, periodIndex: number, now = new Date()): boolean {
+  const endDate = getSlotEndDate(slotDate, periodIndex);
   return now.getTime() > endDate.getTime();
 }
 
@@ -110,6 +125,27 @@ function getStoredPeriodIndex(slot: { scheduledPeriod?: number; time?: string; t
   return fallbackPeriod;
 }
 
+function normalizeDraftSlots(slots: SlotState[]): SlotState[] {
+  const normalized = slots.slice(0, INITIAL_SLOTS.length).map((slot) => {
+    if (slot.status === 'loading' || slot.status === 'confirming') {
+      return { status: 'open' as const, index: slot.index };
+    }
+    if (slot.status === 'resolved') {
+      const { rawItem, ...node } = slot.node;
+      return { ...slot, node };
+    }
+    return slot;
+  });
+  return [
+    ...normalized,
+    ...INITIAL_SLOTS.slice(normalized.length).map((slot) => ({ ...slot })),
+  ];
+}
+
+function hasDraftProgress(slots: SlotState[]): boolean {
+  return slots.some((slot) => slot.status === 'resolved' || slot.status === 'confirming' || slot.status === 'loading' || slot.index > 0 && slot.status === 'open');
+}
+
 export default function RouteMapItinerary({
   destinations,
   events,
@@ -121,19 +157,16 @@ export default function RouteMapItinerary({
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
-  const userLat = coords?.lat || DEFAULT_LAT;
-  const userLng = coords?.lng || DEFAULT_LNG;
+  const distanceToJogjaKm = coords ? haversineKm(coords.lat, coords.lng, JOGJA_CENTER_LAT, JOGJA_CENTER_LNG) : 0;
+  const isPlanningMode = !coords || distanceToJogjaKm > PLANNING_DISTANCE_THRESHOLD_KM;
+  const userLat = isPlanningMode ? DEFAULT_LAT : coords?.lat ?? DEFAULT_LAT;
+  const userLng = isPlanningMode ? DEFAULT_LNG : coords?.lng ?? DEFAULT_LNG;
 
   const currentHour = new Date().getHours();
 
   // Node 0 = user location (always shown as Start pin)
   // Nodes 1-4 = interactive slots, starting open → loading → confirming/resolved
-  const [slots, setSlots] = useState<SlotState[]>([
-    { status: 'open',   index: 0 },
-    { status: 'locked', index: 1 },
-    { status: 'locked', index: 2 },
-    { status: 'locked', index: 3 },
-  ]);
+  const [slots, setSlots] = useState<SlotState[]>(INITIAL_SLOTS);
 
   // Track which slots are strictly in "Night/Open destinations only" filter mode (disabling nature/beach/etc.)
   const [nightOnlySlots, setNightOnlySlots] = useState<Record<number, boolean>>({});
@@ -153,6 +186,9 @@ export default function RouteMapItinerary({
   // Track the ID of the itinerary saved for this session — prevents duplicate saves
   const savedItineraryIdRef = React.useRef<string | null>(null);
   const tripDateRef = React.useRef<string | null>(null);
+  const remoteTripIdRef = React.useRef<string | null>(null);
+  const hasHydratedRouteRef = React.useRef(false);
+  const skipNextDraftWriteRef = React.useRef(false);
 
   const getCurrentPeriod = (h: number) => {
     if (h >= 5 && h < 11) return 0;
@@ -160,15 +196,38 @@ export default function RouteMapItinerary({
     if (h >= 15 && h < 19) return 2;
     return 3;
   };
-  const currentPeriod = getCurrentPeriod(currentHour);
+  const currentPeriod = isPlanningMode ? 3 : getCurrentPeriod(currentHour);
+  const firstSlotPeriod = isPlanningMode ? 0 : (currentPeriod + 1) % 4;
 
   // Resume itinerary — silently hydrate slots from the most recent localStorage entry on mount
   useEffect(() => {
     try {
+      const rawDraft = localStorage.getItem(HERO_ROUTE_DRAFT_KEY);
+      if (rawDraft) {
+        const draft = JSON.parse(rawDraft) as {
+          slots?: SlotState[];
+          tripDate?: string | null;
+          remoteTripId?: string | null;
+          savedItineraryId?: string | null;
+          isPlanningMode?: boolean;
+        };
+        if (Array.isArray(draft.slots) && hasDraftProgress(draft.slots)) {
+          tripDateRef.current = draft.tripDate ?? null;
+          remoteTripIdRef.current = draft.remoteTripId ?? null;
+          savedItineraryIdRef.current = draft.savedItineraryId ?? null;
+          isResumedRef.current = true;
+          skipNextDraftWriteRef.current = true;
+          setSlots(normalizeDraftSlots(draft.slots));
+          setActiveMoodPicker(null);
+          return;
+        }
+      }
+
       const saved = getLocalItineraries();
       if (!saved.length) return;
       const latest = saved[0];
       if (!latest.slots || latest.slots.length === 0) return;
+      remoteTripIdRef.current = latest.remoteTripId ?? null;
 
       const nowDate = new Date();
       const createdDate = latest.createdAt ? new Date(latest.createdAt) : nowDate;
@@ -178,9 +237,6 @@ export default function RouteMapItinerary({
 
       const hydrated: SlotState[] = latest.slots.map((s) => {
         const scheduledPeriod = getStoredPeriodIndex(s, (savedPeriod + 1 + s.slotIndex) % 4);
-        const slotDate = new Date(tripDate);
-        const isDone = !isSameCalendarDay(slotDate, nowDate) && isSlotFinished(slotDate, scheduledPeriod, nowDate);
-
         return {
           status: 'resolved' as const,
           index: s.slotIndex,
@@ -200,7 +256,7 @@ export default function RouteMapItinerary({
             mood: 'all',
             isTomorrow: s.isTomorrow,
             scheduledFor: s.scheduledFor,
-            isDone,
+            isDone: false,
           },
         };
       });
@@ -217,14 +273,40 @@ export default function RouteMapItinerary({
           }),
         ];
         isResumedRef.current = true;
+        skipNextDraftWriteRef.current = true;
         setSlots(normalizedSlots);
         setActiveMoodPicker(null);
       }
     } catch {
       // ignore
+    } finally {
+      hasHydratedRouteRef.current = true;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!hasHydratedRouteRef.current) return;
+    if (skipNextDraftWriteRef.current) {
+      skipNextDraftWriteRef.current = false;
+      return;
+    }
+    try {
+      if (!hasDraftProgress(slots)) {
+        localStorage.removeItem(HERO_ROUTE_DRAFT_KEY);
+        return;
+      }
+      localStorage.setItem(HERO_ROUTE_DRAFT_KEY, JSON.stringify({
+        slots: normalizeDraftSlots(slots),
+        tripDate: tripDateRef.current,
+        remoteTripId: remoteTripIdRef.current,
+        savedItineraryId: savedItineraryIdRef.current,
+        isPlanningMode,
+      }));
+    } catch {
+      // ignore
+    }
+  }, [slots]);
 
   // Live timer: recalculate isDone for resolved slots every 60s
   useEffect(() => {
@@ -234,6 +316,7 @@ export default function RouteMapItinerary({
       setSlots((prev) =>
         prev.map((s) => {
           if (s.status !== 'resolved' || s.node.isDone) return s;
+          if (tripDateRef.current) return s;
           const periodIndex = s.scheduledPeriod ?? (currentPeriod + s.index + 1) % 4;
           const slotDate = tripDateRef.current ? new Date(`${tripDateRef.current}T00:00:00`) : new Date();
           if (!tripDateRef.current && s.node.isTomorrow) slotDate.setDate(slotDate.getDate() + 1);
@@ -294,7 +377,7 @@ export default function RouteMapItinerary({
 
       // Determine effective trip execution date:
       // If any slot is marked as isTomorrow OR current hour >= 19 (malam hari), trip date is TOMORROW!
-      const hasTomorrowSlot = resolvedSlots.some((s: any) => s.isTomorrow) || currentHour >= 19;
+      const hasTomorrowSlot = isPlanningMode || resolvedSlots.some((s: any) => s.isTomorrow) || currentHour >= 19;
       const tripDateObj = new Date();
       if (hasTomorrowSlot) {
         tripDateObj.setDate(tripDateObj.getDate() + 1);
@@ -332,7 +415,25 @@ export default function RouteMapItinerary({
             }],
             status: 'draft',
           });
-          if (res.status === 'success') syncedToCloud = true;
+          if (res.status === 'success' && res.data?.id) {
+            remoteTripIdRef.current = res.data.id;
+            saveItineraryLocally({
+              id: newId,
+              remoteTripId: res.data.id,
+              title: itineraryTitle,
+              createdAt: new Date().toISOString(),
+              tripDate: tripDateStr,
+              slots: resolvedSlots,
+            });
+            localStorage.setItem(HERO_ROUTE_DRAFT_KEY, JSON.stringify({
+              slots: normalizeDraftSlots(slots),
+              tripDate: tripDateRef.current,
+              remoteTripId: res.data.id,
+              savedItineraryId: newId,
+              isPlanningMode,
+            }));
+            syncedToCloud = true;
+          }
         } catch {
           // DB sync failed — local copy still exists, no error shown
         }
@@ -371,6 +472,29 @@ export default function RouteMapItinerary({
   function resetSlotWithNightFilter(slotIndex: number) {
     setNightOnlySlots((prev) => ({ ...prev, [slotIndex]: true }));
     resetSlot(slotIndex);
+  }
+
+  async function clearItinerary() {
+    const remoteTripId = remoteTripIdRef.current ?? getLocalItineraries()[0]?.remoteTripId;
+    if (isAuthenticated && remoteTripId) {
+      try {
+        await tripsApi.delete(remoteTripId);
+      } catch {
+        // Keep clearing the local route even if remote delete fails.
+      }
+    }
+    clearAllLocalItineraries();
+    localStorage.removeItem(HERO_ROUTE_DRAFT_KEY);
+    savedItineraryIdRef.current = null;
+    tripDateRef.current = null;
+    remoteTripIdRef.current = null;
+    isResumedRef.current = false;
+    setHoveredNodeId(null);
+    setPinnedNodeId(null);
+    setToast(null);
+    setNightOnlySlots({});
+    setSlots(INITIAL_SLOTS.map((slot) => ({ ...slot })));
+    setActiveMoodPicker(0);
   }
 
   function cancelConfirmationWithNightFilter(slotIndex: number) {
@@ -431,7 +555,7 @@ export default function RouteMapItinerary({
 
     try {
       const excludeIds = getResolvedIds();
-      const res = await ai.getNextStop(userLat, userLng, mood, excludeIds, currentHour);
+      const res = await ai.getNextStop(userLat, userLng, mood, excludeIds, isPlanningMode ? 7 : currentHour);
       if (res.data) {
         const rawDest = destinations.find((d) => d.id === res.data!.id)
           ?? destinations.find((d) => d.id.toLowerCase() === res.data!.id.toLowerCase());
@@ -445,7 +569,7 @@ export default function RouteMapItinerary({
           lng: destLng,
         };
 
-        const isTargetSlotTomorrow = (currentPeriod + slotIndex + 1) >= 4;
+        const isTargetSlotTomorrow = isPlanningMode || (currentPeriod + slotIndex + 1) >= 4;
 
         if (res.data.isTomorrow && !isTargetSlotTomorrow) {
           // Ask user confirmation ONLY if picking an unreachable mood on a TODAY slot
@@ -494,7 +618,7 @@ export default function RouteMapItinerary({
               status: 'resolved',
               index: slotIndex,
               resolvedAt: Date.now(),
-              scheduledPeriod: (currentPeriod + slotIndex + 1) % 4,
+              scheduledPeriod: (firstSlotPeriod + slotIndex) % 4,
               node: {
                 ...resolvedData,
                 distanceFromPrev,
@@ -527,6 +651,15 @@ export default function RouteMapItinerary({
   // Compute trip date label from the most recent saved itinerary
   const getTripDateLabel = (): { dateStr: string; isToday: boolean; isTomorrow: boolean } | null => {
     try {
+      if (isPlanningMode && !tripDateRef.current) {
+        const tomorrowDate = new Date();
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        return {
+          dateStr: tomorrowDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+          isToday: false,
+          isTomorrow: true,
+        };
+      }
       const saved = getLocalItineraries();
       if (!saved.length) return null;
       const latest = saved[0];
@@ -613,6 +746,15 @@ export default function RouteMapItinerary({
             )}
           </h3>
         </div>
+        <button
+          type="button"
+          onClick={() => { void clearItinerary(); }}
+          className="flex h-5 w-5 items-center justify-center rounded-full border border-white/15 bg-black/30 text-white/45 hover:border-red-400/50 hover:bg-red-500/15 hover:text-red-300 transition-colors"
+          aria-label="Clear itinerary"
+          title="Clear itinerary"
+        >
+          <X className="h-3 w-3" />
+        </button>
       </div>
 
       {/* WAVE + NODES */}
@@ -701,7 +843,7 @@ export default function RouteMapItinerary({
                   {/* Label */}
                   <div className="mt-1 w-[70px] text-center">
                     <span className="block text-[7px] font-bold uppercase tracking-wider text-gold-400">
-                      Kamu
+                      {isPlanningMode ? 'Titik Mulai' : 'Kamu'}
                     </span>
                   </div>
                 </div>
@@ -712,17 +854,17 @@ export default function RouteMapItinerary({
             // Use stored scheduledPeriod for resolved nodes so time stays fixed
             const slotPeriod = (slot.status === 'resolved' && slot.scheduledPeriod != null)
               ? slot.scheduledPeriod
-              : (currentPeriod + slotIndex + 1) % 4;
+              : (firstSlotPeriod + slotIndex) % 4;
             const slotMeta = BASE_SLOTS[slotPeriod];
             const isMoodPickerOpen = activeMoodPicker === slotIndex && slot.status === 'open';
 
             // ── LOCKED ──
             if (slot.status === 'locked') {
-              const canUnlockLockedSlot = slotIndex > 0 && slots.slice(0, slotIndex).every((s) => s.status === 'resolved');
+              const canUnlockLockedSlot = slotIndex === 0 || slots.slice(0, slotIndex).every((s) => s.status === 'resolved' || s.status === 'open' || s.status === 'loading' || s.status === 'confirming');
               return (
                 <div
                   key={`slot-locked-${slotIndex}`}
-                  className={`absolute flex flex-col items-center group ${canUnlockLockedSlot ? 'cursor-pointer opacity-80 hover:opacity-100' : 'opacity-40'} ${waveTranslateY}`}
+                  className={`absolute flex flex-col items-center group ${canUnlockLockedSlot ? 'cursor-pointer opacity-100' : 'opacity-65'} ${waveTranslateY}`}
                   style={nodeStyle}
                   onClick={() => {
                     if (!canUnlockLockedSlot) return;
@@ -735,14 +877,20 @@ export default function RouteMapItinerary({
                   }}
                 >
                   <div className="mb-0.5 flex items-center gap-1 h-5" />
-                  <div className="relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full bg-black/40 text-white/30 border border-white/10 shadow-md">
+                  <div className={`relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 items-center justify-center rounded-full shadow-md ${
+                    canUnlockLockedSlot
+                      ? 'bg-black/65 text-gold-400 border border-gold-400/55 hover:bg-gold-400 hover:text-royal-950'
+                      : 'bg-black/45 text-white/45 border border-white/20'
+                  }`}>
                     <HelpCircle className="h-3.5 w-3.5" />
-                    <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-white/20 text-[7px] font-mono font-bold text-white/30">
+                    <span className={`absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border text-[7px] font-mono font-bold ${
+                      canUnlockLockedSlot ? 'border-gold-400 text-gold-300' : 'border-white/25 text-white/45'
+                    }`}>
                       {waveIndex}
                     </span>
                   </div>
                   <div className="mt-1 w-[80px] sm:w-[96px] text-center">
-                    <span className="block text-[8px] font-bold uppercase tracking-wider text-white/30">
+                    <span className={`block text-[8px] font-bold uppercase tracking-wider ${canUnlockLockedSlot ? 'text-gold-400' : 'text-white/45'}`}>
                       {slotMeta.time}
                     </span>
                   </div>
@@ -808,7 +956,7 @@ export default function RouteMapItinerary({
 
                       <div className="flex flex-wrap gap-1">
                         {MOOD_OPTIONS.map((mood) => {
-                          const isSlotTomorrow = (currentPeriod + slotIndex + 1) >= 4;
+                          const isSlotTomorrow = isPlanningMode || (currentPeriod + slotIndex + 1) >= 4;
                           const isNatureOrBeach = mood.id === 'nature' || mood.id === 'beach';
                           const isCultural = mood.id === 'cultural';
                           const isLateClosed = !isSlotTomorrow && currentHour >= 17 && (isNatureOrBeach || isCultural);

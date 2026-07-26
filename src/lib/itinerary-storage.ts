@@ -9,6 +9,7 @@
 import { trips } from './api';
 
 export const STORAGE_KEY = 'explore_jogja_itineraries_v1';
+export const HERO_ROUTE_DRAFT_KEY = 'explore_jogja_hero_route_draft_v1';
 
 export interface LocalItinerarySlot {
   slotIndex: number;
@@ -34,6 +35,7 @@ export interface LocalItinerarySlot {
 export interface LocalItinerary {
   /** nanoid-like uuid generated client-side */
   id: string;
+  remoteTripId?: string;
   title: string;
   /** ISO date string of creation */
   createdAt: string;
