@@ -836,7 +836,7 @@ export default function RouteMapItinerary({
   return (
     <div className={`w-full max-w-[500px] sm:max-w-[560px] lg:max-w-none ml-0 bg-transparent overflow-visible ${className}`}>
       {/* HEADER */}
-      <div className="flex items-center justify-between mb-1 px-1 gap-1">
+      <div className="relative flex items-center justify-between mb-1 px-1 pr-8 gap-1">
         <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
           <Navigation className="h-3.5 w-3.5 text-gold-400 animate-pulse shrink-0" />
           <h3 className="text-[11px] font-bold text-white/90 tracking-wide uppercase flex items-center gap-1 min-w-0 truncate">
@@ -874,7 +874,7 @@ export default function RouteMapItinerary({
         <button
           type="button"
           onClick={() => { void clearItinerary(); }}
-          className="flex h-5 w-5 items-center justify-center rounded-full border border-white/15 bg-black/30 text-white/45 hover:border-red-400/50 hover:bg-red-500/15 hover:text-red-300 transition-colors"
+          className="absolute right-1 top-1/2 z-40 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/65 text-white/85 shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-colors hover:border-red-400/60 hover:bg-red-500/25 hover:text-red-200"
           aria-label="Clear itinerary"
           title="Clear itinerary"
         >
