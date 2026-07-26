@@ -118,10 +118,10 @@ const INITIAL_SLOTS: SlotState[] = [
 ];
 
 const BASE_SLOTS = [
-  { name: 'Pagi',  time: '07.00 AM', timeRange: '07:00 - 10:00 WIB', duration: '~2.5 jam', icon: Sun,      periodIndex: 0 },
-  { name: 'Siang', time: '12.00 PM', timeRange: '12:00 - 14:00 WIB', duration: '~1.5 jam', icon: Utensils, periodIndex: 1 },
-  { name: 'Sore',  time: '03.30 PM', timeRange: '15:30 - 18:00 WIB', duration: '~2.5 jam', icon: Leaf,     periodIndex: 2 },
-  { name: 'Malam', time: '07.30 PM', timeRange: '19:30 - 22:00 WIB', duration: '~3 jam',   icon: Moon,     periodIndex: 3 },
+  { name: 'Pagi',  time: '07:00', timeRange: '07:00 - 10:00 WIB', duration: '~2.5 jam', icon: Sun,      periodIndex: 0 },
+  { name: 'Siang', time: '12:00', timeRange: '12:00 - 14:00 WIB', duration: '~1.5 jam', icon: Utensils, periodIndex: 1 },
+  { name: 'Sore',  time: '15:30', timeRange: '15:30 - 18:00 WIB', duration: '~2.5 jam', icon: Leaf,     periodIndex: 2 },
+  { name: 'Malam', time: '19:30', timeRange: '19:30 - 22:00 WIB', duration: '~3 jam',   icon: Moon,     periodIndex: 3 },
 ];
 
 function getSlotEndDate(slotDate: Date, periodIndex: number): Date {
