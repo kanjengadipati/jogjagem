@@ -210,7 +210,7 @@
     "build_by": "Built by Giwangan Studio • 085111221044"
   },
   "header": {
-    "tagline": "Hidden Gems of Yogyakarta",
+    "tagline": "Jogja's full of stories~",
     "notification_festival_title": "Prambanan Temple Festival",
     "notification_festival_desc": "Festival starts in 5 days",
     "notification_festival_time": "2 hours ago",
@@ -551,18 +551,18 @@
     "or_continue_with": "or continue with"
   },
   "conversational_ai": {
-    "heading": "AI Local Advisor",
-    "subtitle": "Ask Yogyakarta questions and let your knowledgeable local friend suggest authentic places.",
+    "heading": "Your Jogja AI Buddy",
+    "subtitle": "Got questions about Jogja? Let's chat — I'll help you find the perfect spot!",
     "location_badge": "Yogyakarta, Indonesia",
     "suggested_itinerary": "Suggested Itinerary Matches",
     "searched_by_image": "Searched by this image",
     "suggested_inquiries": "Suggested Inquiries",
-    "guest_placeholder": "Ask your local advisor friend (e.g. 'romantic dinner with sunset' or 'hidden Javanese pools')",
+    "guest_placeholder": "Where to today? Try \"sunset beach\" or \"late night food\"~",
     "sign_in_chat": "Sign in to chat",
-    "ai_disclaimer": "AI can make mistakes. Please verify important information.",
-    "welcome_message": "Hello! 👋 I'm your AI local travel advisor for Yogyakarta. Ask me anything about destinations, culture, or culinary recommendations!",
+    "ai_disclaimer": "These are AI-generated tips, so double-check before you go!",
+    "welcome_message": "Hey there! 👋 Your travel buddy in Jogja. Looking for chill spots, nature, or good food? Just ask!",
     "image_context": "Scanned Image Context",
-    "error_fallback": "Sorry, I'm experiencing technical difficulties. Please try again.",
+    "error_fallback": "Oops, something's glitching. Try again in a sec~",
     "quick_prompt_adventure": "Outdoor adventure",
     "quick_prompt_adventure_label": "Explore",
     "quick_prompt_adventure_subtitle": "Waterfalls, caves, offroad",
@@ -588,11 +588,11 @@
     "quick_prompt_volcano_subtitle": "Volcano treks & mountain views",
     "quick_prompt_royal_label": "Culture",
     "quick_prompt_royal_subtitle": "Royal palaces & heritage",
-    "loading_phrase_1": "Preparing suggestions...",
-    "loading_phrase_2": "Searching for hidden gems...",
-    "loading_phrase_3": "Connecting to local knowledge...",
-    "loading_phrase_4": "Preparing recommendations...",
-    "loading_phrase_5": "Almost there, finding the best spots..."
+    "loading_phrase_1": "Hang on, thinking...",
+    "loading_phrase_2": "Scouting cool spots...",
+    "loading_phrase_3": "Warming up my local brain~",
+    "loading_phrase_4": "OK here we go~",
+    "loading_phrase_5": "Almost there, hang tight~"
   },
   "ai_floating": {
     "loading": "Loading...",
@@ -632,7 +632,7 @@
     "tab_profile": "Profile",
     "tab_settings": "Settings",
     "edit_heading": "Edit Profile",
-    "edit_subtitle": "Update your personal information",
+    "edit_subtitle": "Update your info",
     "full_name": "Full Name",
     "name_placeholder": "Your name",
     "email": "Email Address",
@@ -683,12 +683,19 @@
     "title": "Explore Map"
   },
   "ai_page": {
-    "title": "AI Local Advisor"
+    "title": "Chat with AI"
+  },
+  "bottom_bar": {
+    "home": "Home",
+    "explore": "Explore",
+    "ai": "AI",
+    "itinerary": "Plan",
+    "profile": "Profile"
   },
   "not_found": {
-    "heading": "Page Not Found",
-    "description": "Looks like the page you're looking for has been moved or is no longer available. Let's get back to exploring Yogyakarta.",
-    "home": "Home",
+    "heading": "Oops, lost page~",
+    "description": "This page seems to have moved or doesn't exist yet. Let's get back to exploring!",
+    "home": "Back to Home",
     "all_destinations": "All Destinations"
   },
   "layout": {

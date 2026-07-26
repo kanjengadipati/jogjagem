@@ -942,7 +942,7 @@ export default function App() {
                   <Compass className={`h-5 w-5 transition-colors ${isActive ? 'text-gold-400' : 'text-white/40'}`} />
                 </div>
                 <span className={`text-[9px] font-semibold tracking-wide transition-colors ${isActive ? 'text-gold-400' : 'text-white/30'}`}>
-                  Beranda
+                  {t('bottom_bar.home')}
                 </span>
               </button>
             );
@@ -960,7 +960,7 @@ export default function App() {
                   <Map className={`h-5 w-5 transition-colors ${isActive ? 'text-gold-400' : 'text-white/40'}`} />
                 </div>
                 <span className={`text-[9px] font-semibold tracking-wide transition-colors ${isActive ? 'text-gold-400' : 'text-white/30'}`}>
-                  Jelajahi
+                  {t('bottom_bar.explore')}
                 </span>
               </button>
             );
@@ -975,7 +975,7 @@ export default function App() {
               <div className="w-14 h-14 rounded-[20px] bg-black/90 flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.45)] border border-gold-400/30 overflow-hidden">
                 <Image src="/logo-gold-new.png" alt="Jogjagem AI" width={40} height={40} className="w-10 h-10 object-contain" />
               </div>
-              <span className="text-[9px] font-semibold tracking-wide text-gold-400">AI</span>
+              <span className="text-[9px] font-semibold tracking-wide text-gold-400">{t('bottom_bar.ai')}</span>
             </button>
           </div>
 
@@ -991,7 +991,7 @@ export default function App() {
                   <CalendarDays className={`h-5 w-5 transition-colors ${isActive ? 'text-gold-400' : 'text-white/40'}`} />
                 </div>
                 <span className={`text-[9px] font-semibold tracking-wide transition-colors ${isActive ? 'text-gold-400' : 'text-white/30'}`}>
-                  Itinerary
+                  {t('bottom_bar.itinerary')}
                 </span>
               </button>
             );
@@ -1009,7 +1009,7 @@ export default function App() {
                   <User className={`h-5 w-5 transition-colors ${isActive ? 'text-gold-400' : 'text-white/40'}`} />
                 </div>
                 <span className={`text-[9px] font-semibold tracking-wide transition-colors ${isActive ? 'text-gold-400' : 'text-white/30'}`}>
-                  Pengguna
+                  {t('bottom_bar.profile')}
                 </span>
               </button>
             );

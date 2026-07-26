@@ -210,7 +210,7 @@
     "build_by": "Dibangun oleh Giwangan Studio • 085111221044"
   },
   "header": {
-    "tagline": "Permata Tersembunyi Yogyakarta",
+    "tagline": "Jogja punya banyak cerita~",
     "notification_festival_title": "Festival Candi Prambanan",
     "notification_festival_desc": "Festival budaya dimulai 5 hari lagi",
     "notification_festival_time": "2 jam lalu",
@@ -551,18 +551,18 @@
     "or_continue_with": "atau lanjutkan dengan"
   },
   "conversational_ai": {
-    "heading": "Penasihat Lokal AI",
-    "subtitle": "Ajukan pertanyaan tentang Yogyakarta dan biarkan teman lokal berpengetahuan Anda menyarankan tempat autentik.",
+    "heading": "Teman Lokal AI",
+    "subtitle": "Ada yang mau ditanyakan soal Jogja? Yuk ngobrol, aku bantu cari tempat yang pas!",
     "location_badge": "Yogyakarta, Indonesia",
     "suggested_itinerary": "Pertandingan Itinerary Saran",
     "searched_by_image": "Dicari dengan gambar ini",
     "suggested_inquiries": "Pertanyaan yang Disarankan",
-    "guest_placeholder": "Ajukan pertanyaan tentang Yogyakarta (mis. 'makan malam romantis dengan sunset' atau 'kolam tersembunyi Jawa')",
+    "guest_placeholder": "Mau ke mana hari ini? Coba ketik \"sunset pantai\" atau \"kuliner malam\"~",
     "sign_in_chat": "Masuk untuk mengobrol",
-    "ai_disclaimer": "AI bisa membuat kesalahan. Silakan verifikasi informasi penting.",
-    "welcome_message": "Halo! 👋 Saya penasihat perjalanan lokal AI Anda untuk Yogyakarta. Tanyakan apa saja tentang destinasi, budaya, atau rekomendasi kuliner!",
+    "ai_disclaimer": "Tips dari AI, tapi cek lagi ya sebelum berangkat 😉",
+    "welcome_message": "Hai! 👋 Aku teman jalan-jalanmu di Jogja. Mau cari tempat nongkrong, wisata alam, atau kuliner enak? Tanya aja, santai~",
     "image_context": "Konteks Gambar Dipindai",
-    "error_fallback": "Maaf, saya mengalami kendala teknis. Silakan coba lagi.",
+    "error_fallback": "Aduh, lagi gangguan nih. Coba ya lagi sebentar~",
     "quick_prompt_adventure": "Petualangan alam",
     "quick_prompt_adventure_label": "Jelajahi",
     "quick_prompt_adventure_subtitle": "Air terjun, gua, offroad",
@@ -588,11 +588,11 @@
     "quick_prompt_volcano_subtitle": "Pendakian gunung berapi & panorama",
     "quick_prompt_royal_label": "Budaya",
     "quick_prompt_royal_subtitle": "Keraton & warisan kerajaan",
-    "loading_phrase_1": "Menyiapkan saran...",
-    "loading_phrase_2": "Mencari hidden gem...",
-    "loading_phrase_3": "Menghubungkan ke pengetahuan lokal...",
-    "loading_phrase_4": "Menyiapkan rekomendasi...",
-    "loading_phrase_5": "Sebentar lagi, sedang menemukan spot terbaik..."
+    "loading_phrase_1": "Bentar ya, lagi mikir...",
+    "loading_phrase_2": "Lagi cari spot kece nih...",
+    "loading_phrase_3": "Nyambung ke \"otak lokal\" dulu~",
+    "loading_phrase_4": "Oke oke, ini dia rekomendasinya~",
+    "loading_phrase_5": "Hampir ketemu, sabar~"
   },
   "ai_floating": {
     "loading": "Memuat...",
@@ -622,17 +622,17 @@
     "or_continue_with": "atau lanjutkan dengan"
   },
   "subnav": {
-    "go_back": "Kembali",
+    "go_back": "Balik",
     "save": "Simpan",
     "share": "Bagikan"
   },
   "profile": {
     "loading": "Memuat profil…",
-    "back_home": "Kembali ke Beranda",
+    "back_home": "Balik ke Beranda",
     "tab_profile": "Profil",
     "tab_settings": "Pengaturan",
     "edit_heading": "Edit Profil",
-    "edit_subtitle": "Perbarui informasi pribadi Anda",
+    "edit_subtitle": "Update data diri kamu",
     "full_name": "Nama Lengkap",
     "name_placeholder": "Nama Anda",
     "email": "Alamat Email",
@@ -683,12 +683,19 @@
     "title": "Peta Jelajah"
   },
   "ai_page": {
-    "title": "Penasihat Lokal AI"
+    "title": "Ngobrol sama AI"
+  },
+  "bottom_bar": {
+    "home": "Beranda",
+    "explore": "Jelajah",
+    "ai": "AI",
+    "itinerary": "Rencana",
+    "profile": "Profil"
   },
   "not_found": {
-    "heading": "Halaman Tidak Ditemukan",
-    "description": "Sepertinya halaman yang Anda cari sudah dipindahkan atau tidak tersedia. Mari kita kembali menjelajah Yogyakarta.",
-    "home": "Beranda",
+    "heading": "Ups, nyasar~",
+    "description": "Halaman ini kayaknya udah pindah atau belum ada. Yuk, balik jalan-jalan!",
+    "home": "Balik ke Beranda",
     "all_destinations": "Semua Destinasi"
   },
   "layout": {
