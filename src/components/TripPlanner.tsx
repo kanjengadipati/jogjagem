@@ -1,14 +1,132 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
-  CalendarDays, Trash, Sparkles,
-  PlusCircle, CheckCircle, Info, Save, Loader2, Navigation, MapPin, Clock, ArrowRight
+  CalendarDays, Trash,
+  PlusCircle, CheckCircle, Info, Save, Loader2
 } from 'lucide-react';
 import { Destination, TripPlan, TripDay } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 import { trips as tripsApi, TripDayPayload, TripResponse } from '../lib/api';
-import { getLocalItineraries, clearLocalItinerary, LocalItinerary } from '../lib/itinerary-storage';
+import { getLocalItineraries, LocalItinerary, HERO_ROUTE_DRAFT_KEY } from '../lib/itinerary-storage';
+import RouteLineDisplay from './RouteLineDisplay';
+
+const BASE_SLOT_ENDS = ['10:00', '14:00', '18:00', '22:00'];
+const BASE_SLOT_TIMES = ['07.00 AM', '12.00 PM', '03.30 PM', '07.30 PM'];
+type PlannerDestination = Destination & {
+  routeTime?: string;
+  routeDistanceFromPrev?: number;
+};
+
+function getStoredPeriodIndex(slot: { scheduledPeriod?: number; time?: string; timeRange?: string; slotIndex: number }): number {
+  if (typeof slot.scheduledPeriod === 'number') return slot.scheduledPeriod;
+  const byRange = ['07:00 - 10:00 WIB', '12:00 - 14:00 WIB', '15:30 - 18:00 WIB', '19:30 - 22:00 WIB'].indexOf(slot.timeRange ?? '');
+  if (byRange >= 0) return byRange;
+  const byTime = ['07.00 AM', '12.00 PM', '03.30 PM', '07.30 PM'].indexOf(slot.time ?? '');
+  if (byTime >= 0) return byTime;
+  return slot.slotIndex % BASE_SLOT_ENDS.length;
+}
+
+function getHeroDraftItinerary(): LocalItinerary | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(HERO_ROUTE_DRAFT_KEY);
+    if (!raw) return null;
+    const draft = JSON.parse(raw) as {
+      slots?: Array<{
+        status: string;
+        index: number;
+        scheduledPeriod?: number;
+        node?: {
+          id: string;
+          title: string;
+          category: string;
+          image: string;
+          location: string;
+          subRegion?: string;
+          rating: number;
+          distanceFromPrev?: number;
+          lat?: number;
+          lng?: number;
+          isTomorrow?: boolean;
+          scheduledFor?: string;
+        };
+      }>;
+      tripDate?: string | null;
+      remoteTripId?: string | null;
+    };
+    const resolvedSlots = (draft.slots ?? []).filter((slot) => slot.status === 'resolved' && slot.node);
+    if (resolvedSlots.length === 0) return null;
+    const createdAt = new Date().toISOString();
+    return {
+      id: 'hero-route-draft',
+      remoteTripId: draft.remoteTripId ?? undefined,
+      title: 'Draft Rute dari Hero',
+      createdAt,
+      tripDate: draft.tripDate ?? undefined,
+      slots: resolvedSlots.map((slot) => {
+        const period = slot.scheduledPeriod ?? slot.index % BASE_SLOT_ENDS.length;
+        const timeRanges = ['07:00 - 10:00 WIB', '12:00 - 14:00 WIB', '15:30 - 18:00 WIB', '19:30 - 22:00 WIB'];
+        const times = ['07.00 AM', '12.00 PM', '03.30 PM', '07.30 PM'];
+        return {
+          slotIndex: slot.index,
+          scheduledPeriod: period,
+          time: times[period],
+          timeRange: timeRanges[period],
+          isTomorrow: slot.node!.isTomorrow ?? false,
+          scheduledFor: slot.node!.scheduledFor,
+          distanceFromPrev: slot.node!.distanceFromPrev,
+          lat: slot.node!.lat,
+          lng: slot.node!.lng,
+          destination: {
+            id: slot.node!.id,
+            title: slot.node!.title,
+            category: slot.node!.category,
+            image: slot.node!.image,
+            location: slot.node!.subRegion || slot.node!.location,
+            rating: slot.node!.rating,
+          },
+        };
+      }),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function buildPlannerDestination(
+  slot: LocalItinerary['slots'][number],
+  scheduledPeriod: number,
+  found?: Destination
+): PlannerDestination {
+  return {
+    ...(found ?? ({
+      id: slot.destination.id,
+      name: slot.destination.title,
+      category: slot.destination.category,
+      location: slot.destination.location,
+      subRegion: slot.destination.location,
+      images: slot.destination.image ? [{ url: slot.destination.image }] : [],
+      rating: slot.destination.rating,
+      reviewCount: 0,
+      description: '',
+      tagline: '',
+      ticketPrice: '',
+      openingHours: '',
+      facilities: [],
+      travelTips: [],
+      bestTime: '',
+      weather: {},
+      latitude: 0,
+      longitude: 0,
+      reviews: [],
+      partners: [],
+      faqs: [],
+    } as unknown as Destination)),
+    routeTime: slot.time || BASE_SLOT_TIMES[scheduledPeriod],
+    routeDistanceFromPrev: slot.distanceFromPrev,
+  } as PlannerDestination;
+}
 
 /** Safely extract the first image URL regardless of whether images are
  *  plain strings or {url, credit} objects (both shapes come from the BE). */
@@ -30,7 +148,6 @@ interface TripPlannerProps {
 
 export default function TripPlanner({ 
   savedDestinations,
-  allDestinations = [],
   onExploreDestination,
   onRemoveFromSaved
 }: TripPlannerProps) {
@@ -43,7 +160,11 @@ export default function TripPlanner({
   // Local AI itineraries saved from home page wave control
   const [localItineraries, setLocalItineraries] = useState<LocalItinerary[]>([]);
 
-  const refreshLocalItineraries = () => setLocalItineraries(getLocalItineraries());
+  const refreshLocalItineraries = () => {
+    const draft = getHeroDraftItinerary();
+    const itineraries = draft ? [draft, ...getLocalItineraries()] : getLocalItineraries();
+    setLocalItineraries(itineraries);
+  };
 
   useEffect(() => {
     refreshLocalItineraries();
@@ -59,81 +180,6 @@ export default function TripPlanner({
     };
   }, []);
 
-  const handleDeleteLocalItinerary = (id: string) => {
-    clearLocalItinerary(id);
-    refreshLocalItineraries();
-  };
-
-  // Load saved AI itinerary into the first empty day (or Day 1)
-  const handleLoadItineraryToPlanner = (item: LocalItinerary) => {
-    // Build destination objects from slot data — lookup in allDestinations first, fallback to savedDestinations
-    const destPool = [...allDestinations, ...savedDestinations];
-    const dests: Destination[] = item.slots
-      .map((slot) => {
-        const found = destPool.find(
-          (d) => d.id === slot.destination.id ||
-                 d.name.toLowerCase() === slot.destination.title.toLowerCase()
-        );
-        if (found) return found;
-        // Fallback: build a minimal Destination from slot data so it still shows
-        return {
-          id: slot.destination.id,
-          name: slot.destination.title,
-          category: slot.destination.category,
-          location: slot.destination.location,
-          subRegion: slot.destination.location,
-          images: slot.destination.image ? [{ url: slot.destination.image }] : [],
-          rating: slot.destination.rating,
-          reviewCount: 0,
-          description: '',
-          tagline: '',
-          ticketPrice: '',
-          openingHours: '',
-          facilities: [],
-          travelTips: [],
-          bestTime: '',
-          weather: {},
-          latitude: 0,
-          longitude: 0,
-          reviews: [],
-          partners: [],
-          faqs: [],
-        } as unknown as Destination;
-      })
-      .filter(Boolean);
-
-    if (dests.length === 0) return;
-
-    setTripPlan((prev) => {
-      // Find first day with no destinations
-      const emptyDayIdx = prev.days.findIndex((d) => d.destinations.length === 0);
-      const targetIdx = emptyDayIdx >= 0 ? emptyDayIdx : 0; // fallback to Day 1
-
-      const updatedDays = prev.days.map((day, idx) => {
-        if (idx !== targetIdx) return day;
-        // Merge — avoid duplicates
-        const existingIds = new Set(day.destinations.map((d) => d.id));
-        const toAdd = dests.filter((d) => !existingIds.has(d.id));
-        return {
-          ...day,
-          destinations: [...day.destinations, ...toAdd],
-          notes: day.notes || item.title,
-        };
-      });
-
-      // Switch tab to target day
-      setActiveDayIdx(targetIdx);
-
-      return { ...prev, days: updatedDays };
-    });
-
-    // Remove the duplicate setTripPlan call — replaced above
-    // Scroll down to planner
-    setTimeout(() => {
-      document.getElementById('trip-planner-days')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 150);
-  };
-
   const [tripPlan, setTripPlan] = useState<TripPlan>({
     id: 'my-custom-trip',
     title: 'My Royal Yogyakarta Escape',
@@ -147,7 +193,12 @@ export default function TripPlanner({
   });
 
   const [activeDayIdx, setActiveDayIdx] = useState(0);
-  const [tripNotes, setTripNotes] = useState('');
+
+  useEffect(() => {
+    const hasUnassignedRoute = localItineraries.some((item) => (item.slots ?? []).length > 0);
+    const hasAllocatedDay = tripPlan.days.some((day) => day.destinations.length > 0);
+    if (hasUnassignedRoute && !hasAllocatedDay) setActiveDayIdx(-1);
+  }, [localItineraries, tripPlan.days]);
 
   // ── Load existing trip from BE on mount ────────────────────────────
   useEffect(() => {
@@ -166,7 +217,8 @@ export default function TripPlanner({
           .map((id: string) => destMap[id])
           .filter(Boolean) as Destination[],
       }));
-      if (days.length > 0) {
+      const hasRemoteDestinations = days.some((day) => day.destinations.length > 0);
+      if (hasRemoteDestinations) {
         setTripPlan({
           id: remote.id,
           title: remote.title,
@@ -203,15 +255,6 @@ export default function TripPlanner({
     });
   };
 
-  const handleUpdateDayNotes = (dayNum: number, notesText: string) => {
-    setTripPlan(prev => {
-      const updatedDays = prev.days.map(day =>
-        day.dayNumber === dayNum ? { ...day, notes: notesText } : day
-      );
-      return { ...prev, days: updatedDays };
-    });
-  };
-
   const handleAddDay = () => {
     setTripPlan(prev => {
       const newDayNum = prev.durationDays + 1;
@@ -221,7 +264,17 @@ export default function TripPlanner({
     setActiveDayIdx(tripPlan.days.length);
   };
 
-  const activeDay = tripPlan.days[activeDayIdx];
+  const unassignedRouteItinerary = localItineraries.find((item) => (item.slots ?? []).length > 0) ?? null;
+  const unassignedRouteDestinations = unassignedRouteItinerary
+    ? [...unassignedRouteItinerary.slots]
+        .sort((a, b) => a.slotIndex - b.slotIndex)
+        .map((slot) => buildPlannerDestination(slot, getStoredPeriodIndex(slot)))
+    : [];
+  const isUnassignedRouteTab = activeDayIdx === -1;
+  const activeDay = isUnassignedRouteTab ? undefined : tripPlan.days[activeDayIdx];
+  const displayedDestinations = isUnassignedRouteTab
+    ? unassignedRouteDestinations
+    : activeDay?.destinations ?? [];
 
   // Serialise local TripDay[] → TripDayPayload[] for the BE
   const buildPayload = () =>
@@ -243,7 +296,6 @@ export default function TripPlanner({
         start_date: tripPlan.startDate,
         duration_days: tripPlan.durationDays,
         days: buildPayload(),
-        notes: tripNotes,
         status: 'draft',
       };
 
@@ -270,35 +322,6 @@ export default function TripPlanner({
     } finally {
       setTimeout(() => setSaveFeedback('idle'), 2500);
     }
-  };
-
-  // Dynamic advice generator based on selected destinations in active day
-  const getDailyAIAdvice = (day: TripDay) => {
-    if (day.destinations.length === 0) {
-      return "Monggo! Choose any destinations from your saved list on the left to start planning this day.";
-    }
-
-    const hasPrambanan = day.destinations.some(d => d.id === 'prambanan');
-    const hasMerapi = day.destinations.some(d => d.id === 'merapi');
-    const hasParangtritis = day.destinations.some(d => d.id === 'parangtritis');
-    const hasJomblang = day.destinations.some(d => d.id === 'goajomblang');
-    const hasTamanSari = day.destinations.some(d => d.id === 'tamansari');
-
-    let advice = "Sugeng rawuh! ";
-    if (hasMerapi && hasPrambanan) {
-      advice += "Doing Merapi Lava Tour and Prambanan Temple on the same day is excellent. Start with the Sunrise Jeep Tour at 4:30 AM, then rest during midday, and visit Prambanan at 3:30 PM for the perfect golden spires!";
-    } else if (hasPrambanan && hasTamanSari) {
-      advice += "This is a Royal Heritage day! Explore the secret bath pools of Taman Sari in the morning (around 9:30 AM) to capture the sunbeam inside the underground mosque, then head to Prambanan for the late afternoon.";
-    } else if (hasJomblang && hasParangtritis) {
-      advice += "A Day of Contrasts! Descend into the vertical dark cave of Goa Jomblang at 9:30 AM to catch the blinding heavenly light, then drive south to catch the reflective sunset mirror of Parangtritis Beach.";
-    } else if (hasParangtritis) {
-      advice += "Remember to avoid wearing bright green out of respect for Kanjeng Ratu Kidul when visiting Parangtritis. Have a relaxing evening horse carriage ride along the coastline!";
-    } else if (hasMerapi) {
-      advice += "Be prepared with a light windbreaker jacket for the chilly morning mountain breeze at Merapi. Do not miss visiting Kopi Klotok Pakem for crispy fried bananas afterwards!";
-    } else {
-      advice += "A wonderful combination! Ensure you leave 1.5 to 2 hours between destinations to accommodate travel and enjoy Javanese roadside scenery.";
-    }
-    return advice;
   };
 
   return (
@@ -360,101 +383,6 @@ export default function TripPlanner({
             <span>Add Day</span>
           </button>
         </div>
-      </div>
-
-      {/* Saved AI Itineraries Section */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Navigation className="h-5 w-5 text-gold-600" />
-            <div>
-              <h2 className="font-manrope text-lg font-bold text-royal-950">Rencana Perjalanan AI Tersimpan</h2>
-              <p className="text-xs text-royal-700/70 font-light">Rute perjalanan otomatis yang pernah kamu buat dari halaman utama.</p>
-            </div>
-          </div>
-          <span className="text-xs font-mono font-bold text-gold-700 bg-gold-100/60 px-3 py-1 rounded-full">
-            {localItineraries.length} Rute
-          </span>
-        </div>
-
-        {localItineraries.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gold-200 bg-white p-6 text-center shadow-sm">
-            <Navigation className="h-8 w-8 text-gold-400 mx-auto mb-2 opacity-60" />
-            <p className="text-xs font-bold text-royal-950 mb-1">Belum ada Rencana Perjalanan AI tersimpan</p>
-            <p className="text-[11px] text-royal-700/60 font-light mb-3">
-              Buat rute perjalanan pertamamu di halaman utama menggunakan fitur kontrol mood interaktif.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {localItineraries.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-2xl border border-gold-100 bg-white p-4 shadow-sm hover:shadow-md transition-all space-y-3"
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between pb-2 border-b border-gold-50">
-                  <div>
-                    <h3 className="font-manrope text-sm font-bold text-royal-950 leading-tight">{item.title}</h3>
-                    <span className="text-[10px] text-royal-700/50 font-mono">
-                      {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => handleLoadItineraryToPlanner(item)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gold-800 hover:bg-gold-700 text-gold-50 text-[10px] font-bold transition-colors cursor-pointer"
-                      title="Load ke Planner"
-                    >
-                      <ArrowRight className="h-3 w-3" />
-                      Load
-                    </button>
-                    <button
-                      onClick={() => handleDeleteLocalItinerary(item.id)}
-                      className="p-1.5 rounded-lg text-royal-700/40 hover:text-red-500 hover:bg-red-50 transition-colors"
-                      title="Hapus Itinerary"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Slots flow */}
-                <div className="space-y-2">
-                  {item.slots.map((slot, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-3 p-2 rounded-xl bg-gold-50/30 border border-gold-100/50"
-                    >
-                      {slot.destination.image ? (
-                        <img
-                          src={slot.destination.image}
-                          alt={slot.destination.title}
-                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-gold-100 flex items-center justify-center text-sm flex-shrink-0">
-                          📍
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-royal-950 truncate">{slot.destination.title}</p>
-                        <div className="flex items-center gap-2 text-[10px] text-royal-700/60 mt-0.5">
-                          <span className="flex items-center gap-0.5 font-bold text-gold-700">
-                            <Clock className="h-3 w-3" />
-                            {slot.isTomorrow ? slot.scheduledFor || 'Besok' : slot.time}
-                          </span>
-                          <span>•</span>
-                          <span className="truncate">{slot.destination.location}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">
@@ -554,6 +482,18 @@ export default function TripPlanner({
         <div className="lg:col-span-7 space-y-6">
           {/* Day selection tabs */}
           <div id="trip-planner-days" className="flex space-x-2 border-b border-gold-100 pb-3 overflow-x-auto">
+            {unassignedRouteDestinations.length > 0 && (
+              <button
+                onClick={() => setActiveDayIdx(-1)}
+                className={`rounded-full px-4 py-2 text-xs font-semibold tracking-wider uppercase transition-colors shrink-0 ${
+                  isUnassignedRouteTab
+                    ? 'bg-royal-950 text-gold-300 shadow-sm'
+                    : 'bg-white text-royal-700/60 hover:bg-gold-50 border border-gold-100'
+                }`}
+              >
+                Route
+              </button>
+            )}
             {tripPlan.days.map((day, idx) => (
               <button
                 key={day.dayNumber}
@@ -570,83 +510,102 @@ export default function TripPlanner({
           </div>
 
           {/* Active day detail planner card */}
-          {activeDay && (
+          {(isUnassignedRouteTab || activeDay) && (
             <div className="rounded-3xl border border-gold-100 bg-white p-6 shadow-sm space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="font-sans text-[10px] uppercase tracking-[0.08em] text-gold-600 font-semibold">Scheduled Itinerary</span>
-                  <h3 className="font-manrope text-lg font-bold text-royal-950">Day {activeDay.dayNumber} Slots</h3>
+                  <h3 className="font-manrope text-lg font-bold text-royal-950">
+                    {isUnassignedRouteTab ? 'Route Sequence' : `Day ${activeDay?.dayNumber} Slots`}
+                  </h3>
                 </div>
                 <span className="text-xs font-mono font-medium text-royal-700/60">
-                  {activeDay.destinations.length} Allocated
+                  {displayedDestinations.length} {isUnassignedRouteTab ? 'Stops' : 'Allocated'}
                 </span>
-              </div>
-
-              {/* Day notes text field */}
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-sans uppercase tracking-[0.08em] text-royal-700/70 font-semibold">Focus of the Day</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Exploring ancient palaces or beach sunsets..."
-                  value={activeDay.notes || ''}
-                  onChange={(e) => handleUpdateDayNotes(activeDay.dayNumber, e.target.value)}
-                  className="w-full rounded-xl border border-gold-100 bg-gold-50/20 px-4 py-2 text-xs text-royal-950 focus:outline-none focus:border-gold-500"
-                />
               </div>
 
               {/* Daily allocated spots list */}
               <div className="space-y-3">
-                <span className="block text-[10px] font-sans uppercase tracking-[0.08em] text-royal-700/70 font-semibold">Planned Route Sequence</span>
+                <div className="flex items-center justify-between">
+                  <span className="block text-[10px] font-sans uppercase tracking-[0.08em] text-royal-700/70 font-semibold">Route Sequence</span>
+                  {displayedDestinations.length > 0 && (
+                    <span className="text-[10px] font-mono font-semibold text-royal-700/50">
+                      {displayedDestinations.length} stops
+                    </span>
+                  )}
+                </div>
                 
-                {activeDay.destinations.length === 0 ? (
+                {displayedDestinations.length === 0 ? (
                   <div className="text-center py-10 border border-dashed border-gold-100 rounded-2xl bg-gold-50/20 text-xs text-royal-700/60 font-light">
-                    Add destinations from your Saved Discoveries to design Day {activeDay.dayNumber}.
+                    {isUnassignedRouteTab
+                      ? 'Route dari hero belum tersedia.'
+                      : `Add destinations from your Saved Discoveries to design Day ${activeDay?.dayNumber}.`}
                   </div>
                 ) : (
-                  <div className="space-y-3 relative before:absolute before:left-6 before:top-6 before:bottom-6 before:w-0.5 before:bg-gold-100">
-                    {activeDay.destinations.map((dest, idx) => (
-                      <div 
-                        key={dest.id}
-                        id={`planner-route-card-${dest.id}`}
-                        className="relative flex items-center justify-between rounded-2xl border border-gold-100 bg-white p-3.5 hover:border-gold-300 transition-all shadow-sm pl-12"
-                      >
-                        {/* Number tracker on route */}
-                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex h-6.5 w-6.5 items-center justify-center rounded-full bg-royal-950 text-gold-300 font-mono text-[11px] font-bold border border-gold-400">
-                          {idx + 1}
-                        </div>
+                  <div className="relative space-y-0">
+                    {displayedDestinations.map((dest, idx) => {
+                      const routeDest = dest as PlannerDestination;
+                      const isLastStop = idx === displayedDestinations.length - 1;
+                      return (
+                        <div 
+                          key={dest.id}
+                          id={`planner-route-card-${dest.id}`}
+                          className="relative pl-14 pb-4 last:pb-0"
+                        >
+                          {!isLastStop && (
+                            <div className="absolute left-6 top-12 bottom-0 w-0.5 bg-gold-200/80" />
+                          )}
+                          {/* Number tracker on route */}
+                          <div className="absolute left-2.5 top-5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-royal-950 text-gold-300 font-mono text-[11px] font-bold border border-gold-400 shadow-md">
+                            {idx + 1}
+                          </div>
 
-                        <div className="flex items-center space-x-3">
-                          <Image src={getImgUrl(dest)} alt={dest.name} width={48} height={48} className="h-12 w-12 rounded-xl object-cover" />
-                          <div>
-                            <h4 className="font-manrope font-bold text-xs text-royal-950 hover:text-gold-700 transition-colors" onClick={() => onExploreDestination(dest)}>
-                              {dest.name}
-                            </h4>
-                            <span className="block text-[10px] font-mono text-royal-700/50">{dest.subRegion} • {dest.openingHours}</span>
+                        <div className="rounded-2xl border border-gold-100 bg-white p-3 hover:border-gold-300 transition-all shadow-sm">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center space-x-3 min-w-0">
+                              <Image src={getImgUrl(dest)} alt={dest.name} width={56} height={56} className="h-14 w-14 rounded-xl object-cover border border-gold-100" />
+                              <div className="min-w-0">
+                                <div className="mb-1 flex items-center gap-2">
+                                  {routeDest.routeTime && (
+                                    <span className="rounded-full bg-gold-100 px-2 py-0.5 text-[9px] font-mono font-bold text-gold-800">
+                                      {routeDest.routeTime}
+                                    </span>
+                                  )}
+                                  {routeDest.routeDistanceFromPrev != null && (
+                                    <span className="rounded-full bg-royal-950 px-2 py-0.5 text-[9px] font-mono font-bold text-gold-300">
+                                      {routeDest.routeDistanceFromPrev.toFixed(1)} km
+                                    </span>
+                                  )}
+                                </div>
+                                <h4 className="font-manrope font-bold text-sm text-royal-950 hover:text-gold-700 transition-colors truncate cursor-pointer" onClick={() => onExploreDestination(dest)}>
+                                  {dest.name}
+                                </h4>
+                                <span className="block text-[10px] font-mono text-royal-700/50 truncate">{dest.subRegion || dest.location}</span>
+                              </div>
+                            </div>
+                            {!isUnassignedRouteTab && activeDay && (
+                              <button
+                                onClick={() => handleRemoveFromDay(dest.id, activeDay?.dayNumber ?? 0)}
+                                className="rounded-full p-2 text-royal-700/30 hover:text-red-500 hover:bg-red-50 transition-all shrink-0"
+                                aria-label={`Remove ${dest.name}`}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         </div>
-
-                        <button
-                          onClick={() => handleRemoveFromDay(dest.id, activeDay.dayNumber)}
-                          className="rounded-full p-2 text-royal-700/30 hover:text-red-500 hover:bg-red-50 transition-all"
-                        >
-                          <Trash className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
-              {/* Dynamic Javanese Local Advisor advice box */}
-              <div className="rounded-2xl bg-royal-950 text-white p-5 border border-royal-900 shadow-md">
-                <div className="flex items-center space-x-2 text-gold-400 mb-2.5">
-                  <Sparkles className="h-4 w-4" />
-                  <span className="font-mono text-[9px] uppercase tracking-wider font-bold">Advisor Route Insights</span>
-                </div>
-                <p className="text-xs italic text-gold-100/90 leading-relaxed font-light">
-                  "{getDailyAIAdvice(activeDay)}"
-                </p>
-              </div>
+              {/* Route line visual */}
+              {displayedDestinations.length > 1 && (
+                <RouteLineDisplay destinations={displayedDestinations} />
+              )}
+
             </div>
           )}
         </div>
