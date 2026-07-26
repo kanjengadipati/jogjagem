@@ -696,22 +696,25 @@ export default function RouteMapItinerary({
   );
   const measuredSegmentDistances = resolvedSegmentDistances.filter((dist): dist is number => typeof dist === 'number' && dist > 0);
   const hasMeasuredSegments = measuredSegmentDistances.length === slots.length;
+  const routeStartX = 4;
+  const routeEndX = 96;
+  const routeSpanX = routeEndX - routeStartX;
   const routeNodePositions = hasMeasuredSegments
     ? (() => {
       const totalDistance = measuredSegmentDistances.reduce((sum, dist) => sum + dist, 0);
       let cumulativeDistance = 0;
       return [
-        4,
+        routeStartX,
         ...measuredSegmentDistances.map((dist) => {
           cumulativeDistance += dist;
-          return 4 + (cumulativeDistance / totalDistance) * 92;
+          return routeStartX + (cumulativeDistance / totalDistance) * routeSpanX;
         }),
       ];
     })()
     : Array.from({ length: slots.length + 1 }, (_, index) =>
-        4 + (index / Math.max(1, slots.length)) * 92
+        routeStartX + (index / Math.max(1, slots.length)) * routeSpanX
       );
-  const routeLineY = (waveIndex: number) => (waveIndex === 0 ? 49 : waveIndex % 2 === 0 ? 30 : 46);
+  const routeLineY = (waveIndex: number) => (waveIndex === 0 ? 43 : waveIndex % 2 === 0 ? 28 : 42);
   const routeLinePath = routeNodePositions.slice(1).reduce((path, x, index) => {
     const startX = routeNodePositions[index] ?? 12.5;
     const endY = routeLineY(index + 1);

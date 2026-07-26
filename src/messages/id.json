@@ -731,6 +731,11 @@
     "schedule_main": "Main Performance",
     "schedule_closing": "Penutupan"
   },
+  "route_map": {
+    "title": "Rencana Perjalanan",
+    "today": "Hari Ini",
+    "tomorrow": "Besok"
+  },
   "blog": {
     "title": "Blog & Panduan Wisata",
     "subtitle": "Artikel, tips, dan panduan lengkap untuk menjelajahi Yogyakarta",
@@ -759,4 +764,3 @@
     "search_placeholder": "Cari artikel..."
   }
 }
-

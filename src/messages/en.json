@@ -731,6 +731,11 @@
     "schedule_main": "Main Performance",
     "schedule_closing": "Closing"
   },
+  "route_map": {
+    "title": "Travel Plan",
+    "today": "Today",
+    "tomorrow": "Tomorrow"
+  },
   "blog": {
     "title": "Blog & Travel Guides",
     "subtitle": "Articles, tips, and complete guides to exploring Yogyakarta",

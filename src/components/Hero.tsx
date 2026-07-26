@@ -520,14 +520,16 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
 
 
           {/* RouteMap — desktop only, pinned above Trending */}
-          <div className="hidden lg:block absolute bottom-[220px] left-0 right-0 z-10">
+          <div className="hidden lg:block absolute bottom-[214px] left-0 right-0 z-10">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <RouteMapItinerary
-                destinations={destinations}
-                events={events}
-                coords={coords}
-                onExploreDestination={onExploreDestination}
-              />
+              <div className="max-w-[calc(100%-360px)]">
+                <RouteMapItinerary
+                  destinations={destinations}
+                  events={events}
+                  coords={coords}
+                  onExploreDestination={onExploreDestination}
+                />
+              </div>
             </div>
           </div>
 
