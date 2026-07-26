@@ -33,9 +33,15 @@ export async function generateMetadata({
     return { title: 'Article Not Found' };
   }
 
-  const title = article.seo_title || article.title;
-  const description = article.seo_description || article.excerpt || '';
-  const keywords = article.seo_keywords || '';
+  const title = locale === 'en'
+    ? (article.seo_title_en || article.seo_title || article.title)
+    : (article.seo_title || article.title);
+  const description = locale === 'en'
+    ? (article.seo_description_en || article.seo_description || article.excerpt || '')
+    : (article.seo_description || article.excerpt || '');
+  const keywords = locale === 'en'
+    ? (article.seo_keywords_en || article.seo_keywords || '')
+    : (article.seo_keywords || '');
   const ogImage = article.og_image || article.cover_image || '';
   const canonicalUrl = `${SITE_URL}${locale === 'en' ? '/en' : ''}/blog/${slug}`;
 

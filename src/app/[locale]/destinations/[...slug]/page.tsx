@@ -86,21 +86,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   
   const pageUrl = locale === 'en' ? `${SITE_URL}/en/destinations/${slugStr}` : `${SITE_URL}/destinations/${slugStr}`;
 
-  const seoTitle = dest.seo_title || dest.SeoTitle || '';
-  const seoKeywords = dest.seo_keywords || dest.SeoKeywords || '';
-  const seoDescription = dest.seo_description || dest.SeoDescription || '';
+  const seoTitle = locale === 'en'
+    ? (dest.seo_title_en || dest.SeoTitleEn || dest.seo_title || dest.SeoTitle || '')
+    : (dest.seo_title || dest.SeoTitle || '');
+  const seoKeywords = locale === 'en'
+    ? (dest.seo_keywords_en || dest.SeoKeywordsEn || dest.seo_keywords || dest.SeoKeywords || '')
+    : (dest.seo_keywords || dest.SeoKeywords || '');
+  const seoDescription = locale === 'en'
+    ? (dest.seo_description_en || dest.SeoDescriptionEn || dest.seo_description || dest.SeoDescription || '')
+    : (dest.seo_description || dest.SeoDescription || '');
   const ogImageUrl = dest.og_image_url || dest.OgImageUrl || '';
 
-  const title = seoTitle || `${name} — Wisata Yogyakarta`;
+  const title = seoTitle || (locale === 'en' ? `${name} — Yogyakarta Tourism` : `${name} — Wisata Yogyakarta`);
   const metaDescription = seoDescription || (description.length > 160 ? description.slice(0, 157) + '...' : description);
   const ogImage = ogImageUrl || defaultOgImage;
+
+  const fallbackKeywords = locale === 'en'
+    ? [name, `${name} Yogyakarta`, `${name} jogja`, category, 'yogyakarta tourism', 'things to do in Yogyakarta']
+    : [name, `wisata ${name}`, `${name} Yogyakarta`, `${name} jogja`, category, 'wisata jogja', 'tempat wisata Yogyakarta'];
 
   return {
     title,
     description: metaDescription,
     keywords: seoKeywords
       ? seoKeywords.split(',').map((k: string) => k.trim()).filter(Boolean)
-      : [name, `wisata ${name}`, `${name} Yogyakarta`, `${name} jogja`, category, 'wisata jogja', 'tempat wisata Yogyakarta'],
+      : fallbackKeywords,
     openGraph: {
       type: 'article',
       locale: locale === 'en' ? 'en_US' : 'id_ID',

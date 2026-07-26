@@ -42,8 +42,11 @@ function PlannerPageContent() {
           googleMapsUrl:      raw.google_maps_url      || raw.googleMapsUrl      || '',
           googleReviewCount:  raw.google_review_count  || raw.googleReviewCount  || 0,
           seoTitle:       raw.seo_title       || raw.seoTitle       || '',
+          seoTitleEn:     raw.seo_title_en    || raw.seoTitleEn     || '',
           seoKeywords:    raw.seo_keywords    || raw.seoKeywords    || '',
+          seoKeywordsEn:  raw.seo_keywords_en || raw.seoKeywordsEn  || '',
           seoDescription: raw.seo_description || raw.seoDescription || '',
+          seoDescriptionEn: raw.seo_description_en || raw.seoDescriptionEn || '',
           ogImageUrl:     raw.og_image_url    || raw.ogImageUrl     || '',
         }));
         setAllDestinations(mapped as Destination[]);

@@ -60,8 +60,11 @@ export interface Destination {
   googleMapsUrl?: string;
   googleReviewCount?: number;
   seoTitle?: string;
+  seoTitleEn?: string;
   seoKeywords?: string;
+  seoKeywordsEn?: string;
   seoDescription?: string;
+  seoDescriptionEn?: string;
   ogImageUrl?: string;
   badge?: string;
   badges?: string[];  videoUrl?: string;

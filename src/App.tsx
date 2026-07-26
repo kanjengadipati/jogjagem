@@ -65,8 +65,11 @@ export default function App() {
           googleMapsUrl: raw.google_maps_url || raw.GoogleMapsURL || raw.googleMapsUrl || '',
           googleReviewCount: raw.google_review_count || raw.GoogleReviewCount || raw.googleReviewCount || 0,
           seoTitle: raw.seo_title || raw.SeoTitle || raw.seoTitle || '',
+          seoTitleEn: raw.seo_title_en || raw.SeoTitleEn || raw.seoTitleEn || '',
           seoKeywords: raw.seo_keywords || raw.SeoKeywords || raw.seoKeywords || '',
+          seoKeywordsEn: raw.seo_keywords_en || raw.SeoKeywordsEn || raw.seoKeywordsEn || '',
           seoDescription: raw.seo_description || raw.SeoDescription || raw.seoDescription || '',
+          seoDescriptionEn: raw.seo_description_en || raw.SeoDescriptionEn || raw.seoDescriptionEn || '',
           ogImageUrl: raw.og_image_url || raw.OgImageUrl || raw.ogImageUrl || '',
         }));
         setAllDestinations(mapped as Destination[]);
@@ -125,8 +128,11 @@ export default function App() {
           googleMapsUrl: raw.google_maps_url || raw.GoogleMapsURL || raw.googleMapsUrl || '',
           googleReviewCount: raw.google_review_count || raw.GoogleReviewCount || raw.googleReviewCount || 0,
           seoTitle: raw.seo_title || raw.SeoTitle || raw.seoTitle || '',
+          seoTitleEn: raw.seo_title_en || raw.SeoTitleEn || raw.seoTitleEn || '',
           seoKeywords: raw.seo_keywords || raw.SeoKeywords || raw.seoKeywords || '',
+          seoKeywordsEn: raw.seo_keywords_en || raw.SeoKeywordsEn || raw.seoKeywordsEn || '',
           seoDescription: raw.seo_description || raw.SeoDescription || raw.seoDescription || '',
+          seoDescriptionEn: raw.seo_description_en || raw.SeoDescriptionEn || raw.seoDescriptionEn || '',
           ogImageUrl: raw.og_image_url || raw.OgImageUrl || raw.ogImageUrl || '',
         });
 
@@ -273,8 +279,11 @@ export default function App() {
           googleMapsUrl: raw.google_maps_url || raw.GoogleMapsURL || raw.googleMapsUrl || '',
           googleReviewCount: raw.google_review_count || raw.GoogleReviewCount || raw.googleReviewCount || 0,
           seoTitle: raw.seo_title || raw.SeoTitle || raw.seoTitle || '',
+          seoTitleEn: raw.seo_title_en || raw.SeoTitleEn || raw.seoTitleEn || '',
           seoKeywords: raw.seo_keywords || raw.SeoKeywords || raw.seoKeywords || '',
+          seoKeywordsEn: raw.seo_keywords_en || raw.SeoKeywordsEn || raw.seoKeywordsEn || '',
           seoDescription: raw.seo_description || raw.SeoDescription || raw.seoDescription || '',
+          seoDescriptionEn: raw.seo_description_en || raw.SeoDescriptionEn || raw.seoDescriptionEn || '',
           ogImageUrl: raw.og_image_url || raw.OgImageUrl || raw.ogImageUrl || '',
         }));
         setAllDestinations(prev => [...prev, ...(mapped as Destination[])]);
