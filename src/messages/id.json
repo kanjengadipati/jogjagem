@@ -92,6 +92,8 @@
   },
   "hero": {
     "good_morning": "Selamat Pagi, {name} 👋",
+    "good_afternoon": "Selamat Siang, {name} 👋",
+    "good_evening": "Selamat Malam, {name} 👋",
     "trending": "Trending Sekarang",
     "ai_pick": "Pilihan AI Untukmu",
     "search_placeholder": "Mau jalan-jalan ke mana kita hari ini?",

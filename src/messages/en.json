@@ -92,6 +92,8 @@
   },
   "hero": {
     "good_morning": "Good Morning, {name} 👋",
+    "good_afternoon": "Good Afternoon, {name} 👋",
+    "good_evening": "Good Evening, {name} 👋",
     "trending": "Trending Now",
     "ai_pick": "AI Pick for You",
     "search_placeholder": "Where are we exploring today?",

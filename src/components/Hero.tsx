@@ -75,6 +75,9 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
   const heroTitleWords = t('home.hero_title').split(' ');
   const heroTitleMain = heroTitleWords.slice(0, -1).join(' ');
   const heroTitleAccent = heroTitleWords[heroTitleWords.length - 1];
+  const hour = new Date().getHours();
+  const greetingKey = hour < 11 ? 'hero.good_morning' : hour < 18 ? 'hero.good_afternoon' : 'hero.good_evening';
+  const userName = isAuthenticated && user?.name ? user.name : 'Traveler';
   const heroConfig = {
     title: heroTitleMain,
     titleAccent: heroTitleAccent,
@@ -93,7 +96,6 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
 
   useEffect(() => {
     if (destinations.length === 0) return;
-    const hour = new Date().getHours();
     const timeOfDay = hour < 11 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
     const fallbackDest = destinations.find(d => d.id === 'merapi' || d.id === 'prambanan') || destinations[0];
     if (fallbackDest) {
@@ -415,7 +417,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
             <div className="flex-1 flex items-center lg:block lg:flex-none lg:items-start">
               <div className="max-w-2xl space-y-0.5 sm:space-y-1 text-left animate-fade-in pr-36 sm:pr-0">
                 <span className="inline-flex items-center space-x-2 font-sans text-[10px] uppercase tracking-[0.08em] text-gold-400 font-semibold drop-shadow-md">
-                  <span>{t('hero.good_morning', { name: isAuthenticated && user?.name ? user.name : 'Traveler' })}</span>
+                  <span>{t(greetingKey, { name: userName })}</span>
                 </span>
                 <h1 className="font-display text-4xl xs:text-5xl sm:text-6xl lg:text-7xl font-medium tracking-tight text-white drop-shadow-lg leading-[1.1]">
                   {heroConfig.title} <br />
