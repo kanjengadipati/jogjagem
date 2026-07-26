@@ -442,6 +442,14 @@ export default function MobileDiscoverView({
 
           {/* ── Bottom: slide info + search + trending ── */}
           <div className="shrink-0 flex flex-col gap-3 max-[380px]:gap-2">
+            {/* ── Route Map Itinerary (Above Search) ── */}
+            <RouteMapItinerary
+              destinations={allDestinations}
+              events={allEvents}
+              coords={coords}
+              className="mb-1"
+            />
+
             {/* Slide info + dots */}
             <div className="px-1 flex items-center justify-between text-[10px] text-white/50">
               <div className="flex items-center gap-1.5 min-w-0">
@@ -462,14 +470,6 @@ export default function MobileDiscoverView({
                 ))}
               </div>
             </div>
-
-            {/* ── Route Map Itinerary (Above Search) ── */}
-            <RouteMapItinerary
-              destinations={allDestinations}
-              events={allEvents}
-              coords={coords}
-              className="mb-1"
-            />
 
             {/* Search — full width, all sizes */}
             <form onSubmit={handleSearchSubmit} className="relative flex items-center rounded-full border border-white/20 bg-black/40 hover:bg-black/50 backdrop-blur-md p-1 shadow-xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400 w-full sm:max-w-lg">

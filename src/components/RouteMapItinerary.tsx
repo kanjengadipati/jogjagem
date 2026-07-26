@@ -836,8 +836,8 @@ export default function RouteMapItinerary({
   return (
     <div className={`w-full max-w-[500px] sm:max-w-[560px] lg:max-w-none ml-0 bg-transparent overflow-visible ${className}`}>
       {/* HEADER */}
-      <div className="relative flex items-center justify-between mb-1 px-1 pr-8 gap-1">
-        <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
+      <div className="relative z-10 flex translate-y-16 items-center mb-1 px-1 gap-1.5 lg:translate-y-0">
+        <div className="flex max-w-[calc(100%-30px)] items-center gap-1.5 overflow-hidden">
           <Navigation className="h-3.5 w-3.5 text-gold-400 animate-pulse shrink-0" />
           <h3 className="text-[11px] font-bold text-white/90 tracking-wide uppercase flex items-center gap-1 min-w-0 truncate">
             <span>{t('route_map.title')}</span>
@@ -874,7 +874,7 @@ export default function RouteMapItinerary({
         <button
           type="button"
           onClick={() => { void clearItinerary(); }}
-          className="absolute right-1 top-1/2 z-40 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/65 text-white/85 shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-colors hover:border-red-400/60 hover:bg-red-500/25 hover:text-red-200"
+          className="z-40 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/25 bg-black/65 text-white/85 shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-colors hover:border-red-400/60 hover:bg-red-500/25 hover:text-red-200"
           aria-label="Clear itinerary"
           title="Clear itinerary"
         >
@@ -883,7 +883,7 @@ export default function RouteMapItinerary({
       </div>
 
       {/* WAVE + NODES */}
-      <div className="relative h-[190px] lg:h-[126px] bg-transparent overflow-visible">
+      <div className="relative h-[168px] lg:h-[126px] bg-transparent overflow-visible">
         {/* WAVY SVG LINE */}
         <svg
           width="100%"
@@ -964,7 +964,7 @@ export default function RouteMapItinerary({
         )}
 
         {/* Nodes: pulled up on top of wave */}
-        <div className="absolute inset-x-0 top-16 bottom-0 lg:inset-0 z-10">
+        <div className="absolute inset-x-0 top-16 bottom-0 lg:inset-0">
           {waveNodes.map((slot, waveIndex) => {
             const getNodeTop = () => {
               if (waveIndex === 0) return '21px';
@@ -1063,7 +1063,7 @@ export default function RouteMapItinerary({
               return (
                 <div
                   key={`slot-open-${slotIndex}`}
-                  className={`absolute flex flex-col items-center cursor-pointer group ${waveTranslateY}`}
+                  className={`absolute flex flex-col items-center cursor-pointer group ${isMoodPickerOpen ? 'z-[90]' : ''} ${waveTranslateY}`}
                   style={nodeStyle}
                   onClick={() => setActiveMoodPicker(isMoodPickerOpen ? null : slotIndex)}
                 >
@@ -1312,7 +1312,7 @@ export default function RouteMapItinerary({
                   // Clicking the pin toggles pinned state (stays open!)
                   setPinnedNodeId(pinnedNodeId === nodeKey ? null : nodeKey);
                 }}
-                className={`absolute flex flex-col items-center cursor-pointer group transition-transform ${waveTranslateY}`}
+                className={`absolute flex flex-col items-center cursor-pointer group transition-transform ${isPopupOpen ? 'z-[90]' : ''} ${waveTranslateY}`}
                 style={nodeStyle}
               >
                 {/* Distance Badge + Tomorrow / Selesai Tag */}
