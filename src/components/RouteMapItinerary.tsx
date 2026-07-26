@@ -228,8 +228,8 @@ export default function RouteMapItinerary({
   // Track which slots are strictly in "Night/Open destinations only" filter mode (disabling nature/beach/etc.)
   const [nightOnlySlots, setNightOnlySlots] = useState<Record<number, boolean>>({});
 
-  // Which node's mood picker is expanded (click to open)
-  const [activeMoodPicker, setActiveMoodPicker] = useState<number | null>(null);
+  // Which nodes' mood pickers are expanded (supports multiple open simultaneously)
+  const [openMoodPickers, setOpenMoodPickers] = useState<Set<number>>(new Set());
   
   // Hover & Pinned states for resolved node popups (click pins popup open until explicitly closed)
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
@@ -278,7 +278,7 @@ export default function RouteMapItinerary({
           didHydrateStoredRoute = true;
           skipNextDraftWriteRef.current = true;
           setSlots(normalizeDraftSlots(draft.slots));
-          setActiveMoodPicker(null);
+          setOpenMoodPickers(new Set());
           return;
         }
       }
@@ -336,14 +336,14 @@ export default function RouteMapItinerary({
         isResumedRef.current = true;
         skipNextDraftWriteRef.current = true;
         setSlots(normalizedSlots);
-        setActiveMoodPicker(null);
+        setOpenMoodPickers(new Set());
       }
     } catch {
       // ignore
     } finally {
       hasHydratedRouteRef.current = true;
       if (!didHydrateStoredRoute) {
-        setActiveMoodPicker(0);
+        setOpenMoodPickers(new Set([0]));
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -541,7 +541,7 @@ export default function RouteMapItinerary({
       }
       return next;
     });
-    setActiveMoodPicker(slotIndex);
+    setOpenMoodPickers(prev => new Set([...prev, slotIndex]));
   }
 
   function resetSlotWithNightFilter(slotIndex: number) {
@@ -569,7 +569,7 @@ export default function RouteMapItinerary({
     setToast(null);
     setNightOnlySlots({});
     setSlots(INITIAL_SLOTS.map((slot) => ({ ...slot })));
-    setActiveMoodPicker(null);
+    setOpenMoodPickers(new Set());
   }
 
   function cancelConfirmationWithNightFilter(slotIndex: number) {
@@ -602,7 +602,7 @@ export default function RouteMapItinerary({
         }
         return next;
       });
-      setActiveMoodPicker(null);
+      setOpenMoodPickers(new Set());
     } else {
       setSlots((prev) => {
         const next = [...prev];
@@ -620,7 +620,7 @@ export default function RouteMapItinerary({
   }
 
   async function resolveSlot(slotIndex: number, mood: string) {
-    setActiveMoodPicker(null);
+    setOpenMoodPickers(new Set());
     setSlots((prev) => {
       const next = [...prev];
       next[slotIndex] = { status: 'loading', index: slotIndex, mood };
@@ -741,7 +741,7 @@ export default function RouteMapItinerary({
         next[slotIndex] = { status: 'open', index: slotIndex };
         return next;
       });
-      setActiveMoodPicker(slotIndex);
+      setOpenMoodPickers(prev => new Set([...prev, slotIndex]));
     }
   }
 
@@ -1014,7 +1014,7 @@ export default function RouteMapItinerary({
               ? slot.scheduledPeriod
               : (firstSlotPeriod + slotIndex) % 4;
             const slotMeta = BASE_SLOTS[slotPeriod];
-            const isMoodPickerOpen = activeMoodPicker === slotIndex && slot.status === 'open';
+            const isMoodPickerOpen = openMoodPickers.has(slotIndex) && slot.status === 'open';
 
             // ── LOCKED ──
             if (slot.status === 'locked') {
@@ -1031,7 +1031,7 @@ export default function RouteMapItinerary({
                       next[slotIndex] = { status: 'open', index: slotIndex };
                       return next;
                     });
-                    setActiveMoodPicker(slotIndex);
+                    setOpenMoodPickers(prev => new Set([...prev, slotIndex]));
                   }}
                 >
                   <div className="mb-0.5 flex items-center gap-1 h-5" />
@@ -1065,7 +1065,7 @@ export default function RouteMapItinerary({
                   key={`slot-open-${slotIndex}`}
                   className={`absolute flex flex-col items-center cursor-pointer group ${isMoodPickerOpen ? 'z-[90]' : ''} ${waveTranslateY}`}
                   style={nodeStyle}
-                  onClick={() => setActiveMoodPicker(isMoodPickerOpen ? null : slotIndex)}
+                  onClick={() => setOpenMoodPickers(prev => { const next = new Set(prev); if (next.has(slotIndex)) next.delete(slotIndex); else next.add(slotIndex); return next; })}
                 >
                   <div className="mb-0.5 flex items-center gap-1 h-5" />
                   {/* Pulsing ? pin */}
@@ -1102,7 +1102,7 @@ export default function RouteMapItinerary({
                           {t(startsTomorrow ? 'route_map.mood_title_tomorrow' : 'route_map.mood_title_today')}
                         </p>
                         <button
-                          onClick={(e) => { e.stopPropagation(); setActiveMoodPicker(null); }}
+                          onClick={(e) => { e.stopPropagation(); setOpenMoodPickers(new Set()); }}
                           className="flex items-center justify-center w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white text-[10px] font-bold transition-all cursor-pointer"
                           aria-label="Tutup"
                         >
