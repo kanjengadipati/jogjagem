@@ -187,6 +187,9 @@ export default function MobileDiscoverView({
   const expandingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const hour = new Date().getHours();
+  const greetingKey = hour < 11 ? 'hero.good_morning' : hour < 18 ? 'hero.good_afternoon' : 'hero.good_evening';
+  const userName = isAuthenticated && user?.name ? user.name : 'Traveler';
   const heroSlides = allDestinations.length > 0
     ? [...allDestinations]
         .filter(d => d.images?.[0]?.url && d.category !== 'event' && d.category !== 'weekend' && d.category !== 'culinary')
@@ -417,7 +420,7 @@ export default function MobileDiscoverView({
           {/* ── Content: single column on mobile, optimized for tablet ── */}
           <div className="flex-1 flex flex-col justify-center min-w-0 pr-[196px] max-[380px]:pr-[176px] sm:pr-[236px] lg:pr-[310px]">
             <p className="text-gold-400 text-[13px] sm:text-[14px] lg:text-[15px] font-semibold uppercase tracking-widest mb-2.5">
-              {t('hero.good_morning', { name: isAuthenticated && user?.name ? user.name : 'Traveler' })}
+              {t(greetingKey, { name: userName })}
             </p>
             <h1 className="font-manrope text-[32px] max-[380px]:text-[29px] sm:text-[42px] lg:text-[56px] font-extrabold leading-[1.08] text-white tracking-tight">
               {(() => { const w = t('home.hero_title').split(' '); const main = w.slice(0, -1).join(' '); const accent = w[w.length - 1]; return <>{main}<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-amber-400 to-gold-500">{accent}</span></>; })()}
