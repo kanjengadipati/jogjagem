@@ -836,10 +836,10 @@ export default function RouteMapItinerary({
   return (
     <div className={`w-full max-w-[500px] sm:max-w-[560px] lg:max-w-none ml-0 bg-transparent overflow-visible ${className}`}>
       {/* HEADER */}
-      <div className="flex items-center justify-between mb-1 px-1">
-        <div className="flex items-center gap-1.5">
-          <Navigation className="h-3.5 w-3.5 text-gold-400 animate-pulse" />
-          <h3 className="text-[11px] font-bold text-white/90 tracking-wide uppercase flex items-center gap-1">
+      <div className="flex items-center justify-between mb-1 px-1 gap-1">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
+          <Navigation className="h-3.5 w-3.5 text-gold-400 animate-pulse shrink-0" />
+          <h3 className="text-[11px] font-bold text-white/90 tracking-wide uppercase flex items-center gap-1 min-w-0 truncate">
             <span>{t('route_map.title')}</span>
             {tripDateInfo && (
               <span className="flex items-center gap-1">

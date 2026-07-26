@@ -352,7 +352,7 @@ export default function MobileDiscoverView({
     <div className="xl:hidden min-h-screen bg-[#F5F0E8] text-white">
 
       {/* ═══ Full-bleed hero section (slideshow bg behind header → hero → search → trending) ═══ */}
-      <div className="relative bg-[#1a1814] h-svh flex flex-col overflow-hidden shrink-0">
+      <div className="relative bg-[#1a1814] min-h-0 sm:min-h-svh flex flex-col overflow-hidden shrink-0">
         {/* Background slideshow — covers entire first screen */}
         <div className="absolute inset-0 overflow-hidden -z-0">
           {heroSlides.map((slide, idx) => (
@@ -396,11 +396,11 @@ export default function MobileDiscoverView({
         </div>
 
         {/* ── Hero body ── */}
-        <div className="relative z-10 flex-1 flex flex-col pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] px-4 sm:px-8 min-h-0">
+        <div className="relative z-10 flex-1 flex flex-col pt-4 max-[380px]:pt-2 pb-8 sm:pb-[calc(88px+env(safe-area-inset-bottom,0px))] px-4 sm:px-8 min-h-0">
 
           {/* ── AI Card: absolute top-right for ALL screen sizes ── */}
           {recommendation ? (
-            <div className="absolute top-2 right-4 sm:right-6 bottom-auto w-[184px] sm:w-[220px] lg:w-[290px] z-20 animate-[float_4s_ease-in-out_infinite]">
+            <div className="absolute top-2 right-4 sm:right-6 bottom-auto w-[184px] max-[380px]:w-[168px] sm:w-[220px] lg:w-[290px] z-20 animate-[float_4s_ease-in-out_infinite]">
               <AIPickCard
                 recommendation={recommendation}
                 isSaved={isSaved}
@@ -411,15 +411,15 @@ export default function MobileDiscoverView({
               />
             </div>
           ) : (
-            <div className="absolute top-2 right-4 sm:right-6 w-[184px] sm:w-[220px] lg:w-[290px] aspect-[2/3] rounded-2xl border border-white/5 animate-pulse bg-white/5 z-20" />
+            <div className="absolute top-2 right-4 sm:right-6 w-[184px] max-[380px]:w-[168px] sm:w-[220px] lg:w-[290px] aspect-[2/3] rounded-2xl border border-white/5 animate-pulse bg-white/5 z-20" />
           )}
 
           {/* ── Content: single column on mobile, optimized for tablet ── */}
-          <div className="flex-1 flex flex-col justify-center min-w-0 pr-[196px] sm:pr-[236px] lg:pr-[310px]">
+          <div className="flex-1 flex flex-col justify-center min-w-0 pr-[196px] max-[380px]:pr-[176px] sm:pr-[236px] lg:pr-[310px]">
             <p className="text-gold-400 text-[13px] sm:text-[14px] lg:text-[15px] font-semibold uppercase tracking-widest mb-2.5">
               {t('hero.good_morning', { name: isAuthenticated && user?.name ? user.name : 'Traveler' })}
             </p>
-            <h1 className="font-manrope text-[32px] sm:text-[42px] lg:text-[56px] font-extrabold leading-[1.08] text-white tracking-tight">
+            <h1 className="font-manrope text-[32px] max-[380px]:text-[29px] sm:text-[42px] lg:text-[56px] font-extrabold leading-[1.08] text-white tracking-tight">
               {(() => { const w = t('home.hero_title').split(' '); const main = w.slice(0, -1).join(' '); const accent = w[w.length - 1]; return <>{main}<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-amber-400 to-gold-500">{accent}</span></>; })()}
             </h1>
             <p className="text-white/70 text-[13px] sm:text-[15px] lg:text-[16px] mt-3.5 leading-relaxed max-w-[220px] sm:max-w-md lg:max-w-lg">
@@ -441,7 +441,7 @@ export default function MobileDiscoverView({
           </div>
 
           {/* ── Bottom: slide info + search + trending ── */}
-          <div className="shrink-0 flex flex-col gap-3">
+          <div className="shrink-0 flex flex-col gap-3 max-[380px]:gap-2">
             {/* Slide info + dots */}
             <div className="px-1 flex items-center justify-between text-[10px] text-white/50">
               <div className="flex items-center gap-1.5 min-w-0">
@@ -491,10 +491,10 @@ export default function MobileDiscoverView({
 
             {/* Trending */}
             {(trendingLoading || trendingItems.length > 0) && (
-              <div className="shrink-0 mt-3">
+              <div className="shrink-0 mt-3 max-[380px]:mt-1">
                 <SectionHeader title={t('hero.trending')} dark onSeeAll={() => router.push('/destinations')} />
                 <div
-                  className="flex gap-3 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-1"
+                  className="flex gap-3 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-3"
                   onScroll={() => { if (!expandingRef.current && expandedTrendingKey) setExpandedTrendingKey(null); }}
                 >
                   {trendingLoading
@@ -543,8 +543,8 @@ export default function MobileDiscoverView({
                             className={`shrink-0 snap-start relative rounded-2xl overflow-hidden border text-left cursor-pointer select-none
                               transition-all duration-300 ease-out
                               ${isExpanded
-                                ? 'w-[200px] h-[240px] border-gold-500/40'
-                                : 'w-[126px] h-[166px] border-white/10 active:scale-95'}
+                                ? 'w-[200px] h-[240px] max-[380px]:h-[224px] border-gold-500/40'
+                                : 'w-[126px] h-[166px] max-[380px]:h-[154px] border-white/10 active:scale-95'}
                             `}
                           >
                             {/* Image — full card */}
@@ -631,7 +631,7 @@ export default function MobileDiscoverView({
       </div>
 
       {/* ═══ Rest of the page (no slideshow bg) ═══ */}
-      <div className="bg-[#F5F0E8] space-y-6 pt-6 pb-[calc(96px+env(safe-area-inset-bottom,0px))] relative z-20 -mt-4">
+      <div className="bg-[#F5F0E8] space-y-6 pt-6 pb-[calc(96px+env(safe-area-inset-bottom,0px))] relative z-20 mt-0 sm:-mt-4">
 
         {/* ── Category pills ── */}
         {(() => {
