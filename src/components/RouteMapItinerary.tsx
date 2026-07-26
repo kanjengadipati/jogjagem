@@ -47,15 +47,47 @@ function getCategoryIcon(type: string, category: string) {
 }
 
 const MOOD_OPTIONS = [
-  { id: 'all',      label: 'Semua',   icon: '✨' },
-  { id: 'nature',   label: 'Alam',    icon: '🌲' },
-  { id: 'beach',    label: 'Pantai',  icon: '🏖️' },
-  { id: 'cultural', label: 'Budaya',  icon: '🏛️' },
-  { id: 'culinary', label: 'Kuliner', icon: '🍲' },
+  { id: 'beach',    label: 'Pantai',            icon: '🏖️', category: 'beach' },
+  { id: 'mountain', label: 'Gunung',            icon: '⛰️', category: 'nature' },
+  { id: 'culinary', label: 'Kulineran',         icon: '🍲', category: 'culinary' },
+  { id: 'show',     label: 'Nonton pertunjukan', icon: '🎭', category: 'cultural' },
+  { id: 'valley',   label: 'Sungai/lembah',     icon: '🏞️', category: 'nature' },
+  { id: 'hill',     label: 'Bukit',             icon: '🌄', category: 'nature' },
+  { id: 'temple',   label: 'Candi',             icon: '🏛️', category: 'cultural' },
+  { id: 'keraton',  label: 'Keraton',           icon: '👑', category: 'cultural' },
+  { id: 'malioboro', label: 'Malioboro',        icon: '🛍️', category: 'cultural' },
+  { id: 'batik',    label: 'Batik',             icon: '🧵', category: 'cultural' },
+  { id: 'kopi',     label: 'Kopi sore',         icon: '☕', category: 'culinary' },
+  { id: 'angkringan', label: 'Angkringan',      icon: '🍢', category: 'culinary' },
+  { id: 'sunset',   label: 'Sunset',            icon: '🌅', category: 'beach' },
+  { id: 'jeep',     label: 'Jeep Merapi',       icon: '🚙', category: 'nature' },
 ];
 
 function getMoodIcon(mood: string) {
   return MOOD_OPTIONS.find((m) => m.id === mood)?.icon ?? '✨';
+}
+
+function destinationMatchesCategory(destination: Pick<Destination, 'category' | 'name' | 'tagline' | 'description'>, category: string): boolean {
+  if (category === 'all') return true;
+  const categoryText = destination.category.toLowerCase();
+  const nameText = destination.name.toLowerCase();
+  const summaryText = [destination.category, destination.name, destination.tagline].join(' ').toLowerCase();
+  const fullText = [destination.category, destination.name, destination.tagline, destination.description].join(' ').toLowerCase();
+
+  if (category === 'culinary') {
+    return /culinary|kuliner|food|restaurant|resto|cafe|coffee|kopi/.test(categoryText) ||
+      /gudeg|bakpia|angkringan|sate|kopi|coffee|cafe|resto|restaurant|warung|kuliner/.test(nameText);
+  }
+  if (category === 'cultural') {
+    return /cultural|culture|heritage|temple|candi|keraton|museum|batik|budaya|sejarah|pertunjukan/.test(summaryText);
+  }
+  if (category === 'beach') {
+    return /beach|pantai|sunset|coast|laut/.test(summaryText);
+  }
+  if (category === 'nature') {
+    return /nature|alam|mountain|gunung|bukit|river|sungai|lembah|forest|hutan|adventure|jeep|merapi/.test(fullText);
+  }
+  return fullText.includes(category);
 }
 
 interface ResolvedNode {
@@ -172,7 +204,7 @@ export default function RouteMapItinerary({
   const [nightOnlySlots, setNightOnlySlots] = useState<Record<number, boolean>>({});
 
   // Which node's mood picker is expanded (click to open)
-  const [activeMoodPicker, setActiveMoodPicker] = useState<number | null>(0);
+  const [activeMoodPicker, setActiveMoodPicker] = useState<number | null>(null);
   
   // Hover & Pinned states for resolved node popups (click pins popup open until explicitly closed)
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
@@ -494,7 +526,7 @@ export default function RouteMapItinerary({
     setToast(null);
     setNightOnlySlots({});
     setSlots(INITIAL_SLOTS.map((slot) => ({ ...slot })));
-    setActiveMoodPicker(0);
+    setActiveMoodPicker(null);
   }
 
   function cancelConfirmationWithNightFilter(slotIndex: number) {
@@ -527,8 +559,7 @@ export default function RouteMapItinerary({
         }
         return next;
       });
-      // Keep mood picker open on current slot for tonight
-      setActiveMoodPicker(slotIndex);
+      setActiveMoodPicker(null);
     } else {
       setSlots((prev) => {
         const next = [...prev];
@@ -555,14 +586,40 @@ export default function RouteMapItinerary({
 
     try {
       const excludeIds = getResolvedIds();
-      const res = await ai.getNextStop(userLat, userLng, mood, excludeIds, isPlanningMode ? 7 : currentHour);
+      const selectedMood = MOOD_OPTIONS.find((option) => option.id === mood);
+      const apiCategory = selectedMood?.category ?? mood;
+      const res = await ai.getNextStop(userLat, userLng, apiCategory, excludeIds, isPlanningMode ? 7 : currentHour);
       if (res.data) {
-        const rawDest = destinations.find((d) => d.id === res.data!.id)
+        const apiRawDest = destinations.find((d) => d.id === res.data!.id)
           ?? destinations.find((d) => d.id.toLowerCase() === res.data!.id.toLowerCase());
+        const apiResultMatchesMood = apiRawDest
+          ? destinationMatchesCategory(apiRawDest, apiCategory)
+          : apiCategory === 'all';
+        const fallbackDest = apiResultMatchesMood
+          ? undefined
+          : destinations.find((destination) =>
+              !excludeIds.includes(destination.id) &&
+              destination.id !== res.data!.id &&
+              destinationMatchesCategory(destination, apiCategory)
+            );
+        const rawDest = fallbackDest ?? apiRawDest;
         const destLat = rawDest?.latitude;
         const destLng = rawDest?.longitude;
+        const nodeSource = fallbackDest
+          ? {
+              id: fallbackDest.id,
+              title: fallbackDest.name,
+              category: fallbackDest.category,
+              image: fallbackDest.images?.[0]?.url ?? res.data.image,
+              location: fallbackDest.location,
+              subRegion: fallbackDest.subRegion,
+              rating: fallbackDest.rating,
+              distanceKm: haversineKm(userLat, userLng, fallbackDest.latitude, fallbackDest.longitude),
+              isTomorrow: false,
+            }
+          : res.data!;
         const resolvedData: ResolvedNode = {
-          ...res.data!,
+          ...nodeSource,
           mood,
           rawItem: rawDest,
           lat: destLat,
@@ -571,7 +628,7 @@ export default function RouteMapItinerary({
 
         const isTargetSlotTomorrow = isPlanningMode || (currentPeriod + slotIndex + 1) >= 4;
 
-        if (res.data.isTomorrow && !isTargetSlotTomorrow) {
+        if (nodeSource.isTomorrow && !isTargetSlotTomorrow) {
           // Ask user confirmation ONLY if picking an unreachable mood on a TODAY slot
           setSlots((prev) => {
             const next = [...prev];
@@ -622,13 +679,12 @@ export default function RouteMapItinerary({
               node: {
                 ...resolvedData,
                 distanceFromPrev,
-                isTomorrow: isTargetSlotTomorrow ? false : res.data!.isTomorrow,
+                isTomorrow: isTargetSlotTomorrow ? false : nodeSource.isTomorrow,
               },
             };
             if (slotIndex + 1 < next.length) {
               if (next[slotIndex + 1].status === 'locked') {
                 next[slotIndex + 1] = { status: 'open', index: slotIndex + 1 };
-                setActiveMoodPicker(slotIndex + 1);
               }
             }
             return next;
@@ -835,7 +891,7 @@ export default function RouteMapItinerary({
                   style={nodeStyle}
                 >
                   {/* Distance badge */}
-                  <div className="mb-0.5 flex items-center gap-1 h-5" />
+                  <div className="mb-0.5 flex items-center gap-1 h-2" />
                   {/* Pin */}
                   <div className="relative flex h-3 w-3 items-center justify-center rounded-full bg-gold-500 text-royal-950 ring-1 ring-gold-400/80 shadow-[0_0_5px_rgba(234,179,8,0.5)] transition-all duration-300 shadow-sm">
                     <MapPin className="h-1.5 w-1.5" />
@@ -934,14 +990,14 @@ export default function RouteMapItinerary({
                   {/* Mood Picker Dropdown */}
                   {isMoodPickerOpen && (
                     <div
-                      className={`absolute bottom-full mb-3 z-50 w-56 p-2.5 rounded-xl border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.9)] animate-fade-in ${
+                      className={`absolute bottom-[calc(100%-18px)] z-50 w-[260px] max-w-[72vw] p-2 rounded-xl border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_8px_22px_rgba(0,0,0,0.85)] animate-fade-in ${
                         waveIndex === 0 ? 'left-0' : waveIndex === 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
                       }`}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="absolute -bottom-1.5 h-3 w-3 rotate-45 border-b border-r border-gold-400/60 bg-royal-950/95 left-1/2 -translate-x-1/2" />
-                      <div className="flex items-center justify-between mb-1.5">
-                        <p className="text-[9px] font-bold text-gold-400 uppercase tracking-wide">Pilih Mood Perjalanan</p>
+                      <div className="absolute -bottom-1 h-2.5 w-2.5 rotate-45 border-b border-r border-gold-400/60 bg-royal-950/95 left-1/2 -translate-x-1/2" />
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[9.5px] font-bold text-gold-400 tracking-wide">Mau kemana hari ini?</p>
                         <button
                           onClick={(e) => { e.stopPropagation(); setActiveMoodPicker(null); }}
                           className="flex items-center justify-center w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white text-[10px] font-bold transition-all cursor-pointer"
@@ -957,11 +1013,11 @@ export default function RouteMapItinerary({
                         </p>
                       )}
 
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex gap-1 overflow-x-auto whitespace-nowrap pb-0.5 scrollbar-none">
                         {MOOD_OPTIONS.map((mood) => {
                           const isSlotTomorrow = isPlanningMode || (currentPeriod + slotIndex + 1) >= 4;
-                          const isNatureOrBeach = mood.id === 'nature' || mood.id === 'beach';
-                          const isCultural = mood.id === 'cultural';
+                          const isNatureOrBeach = mood.category === 'nature' || mood.category === 'beach';
+                          const isCultural = mood.category === 'cultural';
                           const isLateClosed = !isSlotTomorrow && currentHour >= 17 && (isNatureOrBeach || isCultural);
 
                           const isDisabled = isNightFiltered && isLateClosed;
@@ -977,7 +1033,7 @@ export default function RouteMapItinerary({
                                   resolveSlot(slotIndex, mood.id);
                                 }
                               }}
-                              className={`flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-bold transition-all ${
+                              className={`flex shrink-0 items-center gap-1 px-1.5 py-1 rounded-full text-[8.5px] font-bold transition-all ${
                                 isDisabled
                                   ? 'bg-white/5 text-white/20 border border-white/10 cursor-not-allowed line-through'
                                   : 'bg-black/40 text-gold-300/80 border border-gold-400/30 hover:bg-gold-500 hover:text-royal-950 hover:border-gold-400 active:scale-95 cursor-pointer'
