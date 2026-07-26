@@ -734,7 +734,9 @@
   "route_map": {
     "title": "Travel Plan",
     "today": "Today",
-    "tomorrow": "Tomorrow"
+    "tomorrow": "Tomorrow",
+    "mood_title_today": "Where do you want to go today?",
+    "mood_title_tomorrow": "Where should tomorrow start?"
   },
   "blog": {
     "title": "Blog & Travel Guides",

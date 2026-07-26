@@ -485,7 +485,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
             </div>
 
             {/* Route Map Itinerary — mobile/tablet only (in-flow) */}
-            <div className="block lg:hidden mt-6 mb-4">
+            <div className="block lg:hidden mt-12 mb-4">
               <RouteMapItinerary
                 destinations={destinations}
                 events={events}

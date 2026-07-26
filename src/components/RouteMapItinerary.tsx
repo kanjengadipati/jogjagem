@@ -230,9 +230,11 @@ export default function RouteMapItinerary({
   };
   const currentPeriod = isPlanningMode ? 3 : getCurrentPeriod(currentHour);
   const firstSlotPeriod = isPlanningMode ? 0 : (currentPeriod + 1) % 4;
+  const startsTomorrow = isPlanningMode || currentHour >= 19;
 
   // Resume itinerary — silently hydrate slots from the most recent localStorage entry on mount
   useEffect(() => {
+    let didHydrateStoredRoute = false;
     try {
       const rawDraft = localStorage.getItem(HERO_ROUTE_DRAFT_KEY);
       if (rawDraft) {
@@ -248,6 +250,7 @@ export default function RouteMapItinerary({
           remoteTripIdRef.current = draft.remoteTripId ?? null;
           savedItineraryIdRef.current = draft.savedItineraryId ?? null;
           isResumedRef.current = true;
+          didHydrateStoredRoute = true;
           skipNextDraftWriteRef.current = true;
           setSlots(normalizeDraftSlots(draft.slots));
           setActiveMoodPicker(null);
@@ -259,6 +262,7 @@ export default function RouteMapItinerary({
       if (!saved.length) return;
       const latest = saved[0];
       if (!latest.slots || latest.slots.length === 0) return;
+      didHydrateStoredRoute = true;
       remoteTripIdRef.current = latest.remoteTripId ?? null;
 
       const nowDate = new Date();
@@ -313,6 +317,9 @@ export default function RouteMapItinerary({
       // ignore
     } finally {
       hasHydratedRouteRef.current = true;
+      if (!didHydrateStoredRoute) {
+        setActiveMoodPicker(0);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -779,7 +786,7 @@ export default function RouteMapItinerary({
   const nextDestinationSlotIndex = slots.findIndex((slot) => slot.status === 'resolved' && !slot.node.isDone);
 
   return (
-    <div className={`w-full max-w-[500px] sm:max-w-[560px] lg:max-w-none ml-0 bg-transparent ${className}`}>
+    <div className={`w-full max-w-[500px] sm:max-w-[560px] lg:max-w-none ml-0 bg-transparent overflow-visible ${className}`}>
       {/* HEADER */}
       <div className="flex items-center justify-between mb-1 px-1">
         <div className="flex items-center gap-1.5">
@@ -817,14 +824,14 @@ export default function RouteMapItinerary({
       </div>
 
       {/* WAVE + NODES */}
-      <div className="relative h-[126px] bg-transparent">
+      <div className="relative h-[190px] lg:h-[126px] bg-transparent overflow-visible">
         {/* WAVY SVG LINE */}
         <svg
           width="100%"
           height="64"
           viewBox="0 0 100 64"
           preserveAspectRatio="none"
-          className="absolute left-0 top-0 block w-full pointer-events-none"
+          className="absolute left-0 top-16 lg:top-0 block w-full pointer-events-none"
           style={{ display: 'block' }}
           aria-hidden="true"
         >
@@ -841,7 +848,7 @@ export default function RouteMapItinerary({
         </svg>
 
         {/* Distance labels — Absolute positioning di antara node */}
-        <div className="absolute inset-0 z-20 pointer-events-none">
+        <div className="absolute inset-x-0 top-16 bottom-0 lg:inset-0 z-20 pointer-events-none">
           {slots.map((slot, i) => {
             const dist = slot?.status === 'resolved' ? slot.node.distanceFromPrev : undefined;
             if (dist == null) return null;
@@ -865,7 +872,7 @@ export default function RouteMapItinerary({
         </div>
 
         {/* Nodes: pulled up on top of wave */}
-        <div className="absolute inset-0 z-10">
+        <div className="absolute inset-x-0 top-16 bottom-0 lg:inset-0 z-10">
           {waveNodes.map((slot, waveIndex) => {
             const getNodeTop = () => {
               if (waveIndex === 0) return '21px';
@@ -990,14 +997,18 @@ export default function RouteMapItinerary({
                   {/* Mood Picker Dropdown */}
                   {isMoodPickerOpen && (
                     <div
-                      className={`absolute bottom-[calc(100%-18px)] z-50 w-[260px] max-w-[72vw] p-2 rounded-xl border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_8px_22px_rgba(0,0,0,0.85)] animate-fade-in ${
-                        waveIndex === 0 ? 'left-0' : waveIndex === 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                      className={`absolute bottom-[calc(100%-18px)] z-50 w-[236px] p-1.5 rounded-lg border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_8px_22px_rgba(0,0,0,0.85)] animate-fade-in lg:w-[min(360px,calc(100vw-32px))] lg:p-2 lg:rounded-xl ${
+                        waveIndex <= 1 ? 'left-1/2 -translate-x-[35%] lg:left-0 lg:translate-x-0' : waveIndex >= 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
                       }`}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="absolute -bottom-1 h-2.5 w-2.5 rotate-45 border-b border-r border-gold-400/60 bg-royal-950/95 left-1/2 -translate-x-1/2" />
+                      <div className={`absolute -bottom-1 h-2.5 w-2.5 rotate-45 border-b border-r border-gold-400/60 bg-royal-950/95 ${
+                        waveIndex <= 1 ? 'left-[28%]' : waveIndex >= 3 ? 'left-[72%]' : 'left-1/2 -translate-x-1/2'
+                      }`} />
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-[9.5px] font-bold text-gold-400 tracking-wide">Mau kemana hari ini?</p>
+                        <p className="text-[8.5px] lg:text-[9.5px] font-bold text-gold-400 tracking-wide">
+                          {t(startsTomorrow ? 'route_map.mood_title_tomorrow' : 'route_map.mood_title_today')}
+                        </p>
                         <button
                           onClick={(e) => { e.stopPropagation(); setActiveMoodPicker(null); }}
                           className="flex items-center justify-center w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white text-[10px] font-bold transition-all cursor-pointer"
@@ -1033,7 +1044,7 @@ export default function RouteMapItinerary({
                                   resolveSlot(slotIndex, mood.id);
                                 }
                               }}
-                              className={`flex shrink-0 items-center gap-1 px-1.5 py-1 rounded-full text-[8.5px] font-bold transition-all ${
+                              className={`flex shrink-0 items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] lg:gap-1 lg:py-1 lg:text-[8.5px] font-bold transition-all ${
                                 isDisabled
                                   ? 'bg-white/5 text-white/20 border border-white/10 cursor-not-allowed line-through'
                                   : 'bg-black/40 text-gold-300/80 border border-gold-400/30 hover:bg-gold-500 hover:text-royal-950 hover:border-gold-400 active:scale-95 cursor-pointer'

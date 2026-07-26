@@ -734,7 +734,9 @@
   "route_map": {
     "title": "Rencana Perjalanan",
     "today": "Hari Ini",
-    "tomorrow": "Besok"
+    "tomorrow": "Besok",
+    "mood_title_today": "Mau kemana hari ini?",
+    "mood_title_tomorrow": "Mau mulai dari mana besok?"
   },
   "blog": {
     "title": "Blog & Panduan Wisata",
