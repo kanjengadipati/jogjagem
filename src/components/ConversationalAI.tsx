@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Send, Brain, Bot, User, RefreshCw, CornerDownRight, MapPin, ChevronDown, Sparkles, Lock } from 'lucide-react';
+import { Send, Brain, Bot, User, RefreshCw, CornerDownRight, MapPin, ChevronDown, Sparkles } from 'lucide-react';
 import { Destination } from '../types';
 import DestinationCard from './DestinationCard';
 import { ai, destinations as destinationApi } from '../lib/api';
-import { useAuth } from '../contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
-import AuthModal from './AuthModal';
 
 interface Message {
   id: string;
@@ -42,15 +40,7 @@ export default function ConversationalAI({
   onToggleSave,
   isSaved,
 }: ConversationalAIProps) {
-  const { isAuthenticated } = useAuth();
   const { t } = useLocale();
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [pendingQuery, setPendingQuery] = useState<string | null>(null);
-  const [freePromptsUsed, setFreePromptsUsed] = useState(() => {
-    if (typeof window === 'undefined') return 0;
-    return parseInt(localStorage.getItem('ai_free_prompts_used') ?? '0', 10);
-  });
-  const FREE_PROMPT_LIMIT = 5;
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -181,16 +171,6 @@ export default function ConversationalAI({
     return () => clearInterval(timer);
   }, [loading]);
 
-  // Fire pending query after successful login
-  useEffect(() => {
-    if (isAuthenticated && pendingQuery) {
-      const q = pendingQuery;
-      setPendingQuery(null);
-      setAuthModalOpen(false);
-      handleSendQuery(q);
-    }
-  }, [isAuthenticated]);
-
   // Scroll to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -198,19 +178,6 @@ export default function ConversationalAI({
 
   const handleSendQuery = async (textToSend: string) => {
     if (!textToSend.trim()) return;
-
-    if (!isAuthenticated) {
-      // Allow FREE_PROMPT_LIMIT prompts before requiring login
-      if (freePromptsUsed >= FREE_PROMPT_LIMIT) {
-        setPendingQuery(textToSend);
-        setAuthModalOpen(true);
-        return;
-      }
-      // Still within free tier — increment counter and allow
-      const next = freePromptsUsed + 1;
-      setFreePromptsUsed(next);
-      try { localStorage.setItem('ai_free_prompts_used', String(next)); } catch { /* ignore */ }
-    }
 
     const userMsg: Message = {
       id: Math.random().toString(),
@@ -537,25 +504,14 @@ export default function ConversationalAI({
             className="flex-1 bg-transparent text-sm text-royal-950 placeholder-stone-400 focus:outline-none min-w-0 py-1"
           />
 
-          {/* Send button — shows lock icon for guests at limit, otherwise send */}
-          {!isAuthenticated && freePromptsUsed >= FREE_PROMPT_LIMIT ? (
-            <button
-              type="button"
-              onClick={() => setAuthModalOpen(true)}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gold-600 text-white text-xs font-semibold hover:bg-gold-500 transition-colors shadow"
-            >
-              <Lock className="h-3 w-3" />
-              {t('conversational_ai.sign_in_chat')}
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={loading || !input.trim()}
-              className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-royal-950 text-gold-300 hover:bg-royal-800 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow"
-            >
-              <Send className="h-4 w-4" />
-            </button>
-          )}
+          {/* Send button */}
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-royal-950 text-gold-300 hover:bg-royal-800 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow"
+          >
+            <Send className="h-4 w-4" />
+          </button>
         </form>
 
         {/* Disclaimer */}
@@ -577,12 +533,6 @@ export default function ConversationalAI({
           {t('conversational_ai.ai_disclaimer')}
         </p>
       </div>
-
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        defaultMode="login"
-      />
     </div>
   );
 }
