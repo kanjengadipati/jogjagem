@@ -130,7 +130,9 @@
     "ai_recommendation": "AI Recommendation",
     "search_placeholder_mobile": "Search destinations, food, or activities...",
     "browse_categories": "Browse Categories",
-    "jogjagem_rekom": "Jogjagem Pick"
+    "jogjagem_rekom": "Jogjagem Pick",
+    "explore_cta": "Explore",
+    "event_cta": "View Event"
   },
   "badges": {
     "trending": "Trending",
@@ -514,8 +516,7 @@
     "season_detail_balanced": "Pleasant weather",
     "error_submit_review": "Failed to submit review",
     "error_network": "Network connection issue. Please try again.",
-    "anonymous_user": "Anonymous",
-    "review_tag": "{rating}★ Review"
+    "anonymous_user": "Anonymous"
   },
   "destination_detail_client": {
     "not_found": "Destination not found",
@@ -582,8 +583,6 @@
     "quick_prompt_beach_sunset_subtitle": "Ocean views & beach",
     "quick_prompt_hidden_gems_label": "Hidden Gems",
     "quick_prompt_hidden_gems_subtitle": "Secret caves & light columns",
-    "quick_prompt_culinary_label": "Culinary",
-    "quick_prompt_culinary_subtitle": "Gudeg, bakpia, angkringan",
     "quick_prompt_volcano_label": "Adventure",
     "quick_prompt_volcano_subtitle": "Volcano treks & mountain views",
     "quick_prompt_royal_label": "Culture",

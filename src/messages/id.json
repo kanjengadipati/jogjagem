@@ -130,7 +130,9 @@
     "ai_recommendation": "Rekomendasi AI",
     "search_placeholder_mobile": "Cari destinasi, kuliner, atau aktivitas...",
     "browse_categories": "Jelajahi Kategori",
-    "jogjagem_rekom": "Pilihan Jogjagem"
+    "jogjagem_rekom": "Pilihan Jogjagem",
+    "explore_cta": "Jelajahi",
+    "event_cta": "Lihat Event"
   },
   "badges": {
     "trending": "Trending",
@@ -514,8 +516,7 @@
     "season_detail_balanced": "Cuaca bersahabat",
     "error_submit_review": "Gagal mengirim ulasan",
     "error_network": "Koneksi bermasalah. Coba lagi ya.",
-    "anonymous_user": "Anonim",
-    "review_tag": "{rating}★ Ulasan"
+    "anonymous_user": "Anonim"
   },
   "destination_detail_client": {
     "not_found": "Destinasi tidak ditemukan",
@@ -582,8 +583,6 @@
     "quick_prompt_beach_sunset_subtitle": "Pemandangan laut & pantai",
     "quick_prompt_hidden_gems_label": "Hidden Gems",
     "quick_prompt_hidden_gems_subtitle": "Gua rahasia & cahaya surga",
-    "quick_prompt_culinary_label": "Kuliner",
-    "quick_prompt_culinary_subtitle": "Gudeg, bakpia, angkringan",
     "quick_prompt_volcano_label": "Petualangan",
     "quick_prompt_volcano_subtitle": "Pendakian gunung berapi & panorama",
     "quick_prompt_royal_label": "Budaya",
