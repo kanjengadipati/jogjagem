@@ -3,9 +3,11 @@
 import React from 'react';
 import { MapPin, Sparkles } from 'lucide-react';
 import { useRouter } from '@/i18n/navigation';
+import { useLocale } from '../../contexts/LocaleContext';
 
 export default function AICtaBanner() {
   const router = useRouter();
+  const { t } = useLocale();
 
   return (
     <div className="bg-[#F7F3EE] rounded-3xl border border-stone-200/60 px-6 py-5 flex items-center justify-between gap-4">
@@ -26,9 +28,9 @@ export default function AICtaBanner() {
         </div>
 
         <div>
-          <p className="font-manrope font-bold text-sm text-stone-950">Ready for your next adventure?</p>
+          <p className="font-manrope font-bold text-sm text-stone-950">{t('ai_cta_banner.title')}</p>
           <p className="text-xs text-stone-400 mt-0.5">
-            Let AI Assistant help you discover the best places in Jogja.
+            {t('ai_cta_banner.subtitle')}
           </p>
         </div>
       </div>
@@ -39,7 +41,7 @@ export default function AICtaBanner() {
         className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-stone-950 hover:bg-stone-800 text-white text-sm font-bold rounded-xl transition-all duration-200 whitespace-nowrap"
       >
         <Sparkles className="w-4 h-4" />
-        Ask AI Assistant
+        {t('ai_cta_banner.button')}
       </button>
     </div>
   );

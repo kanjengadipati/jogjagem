@@ -653,7 +653,22 @@
     "passwords_no_match": "Kata sandi tidak cocok",
     "password_min_chars": "Kata sandi harus minimal 8 karakter",
     "password_changed": "Kata sandi berhasil diubah",
-    "password_change_failed": "Gagal mengubah kata sandi"
+    "password_change_failed": "Gagal mengubah kata sandi",
+    "uploading": "Mengunggah…",
+    "change_cover": "Ganti Sampul",
+    "copied": "Disalin!",
+    "share_profile": "Bagikan Profil",
+    "traveler": "Traveler",
+    "level_explorer": "Level {level} Explorer",
+    "stat_destinations_saved": "Destinasi\nTersimpan",
+    "stat_visited": "Dikunjungi",
+    "stat_reviews_written": "Ulasan\nDitulis",
+    "stat_likes_given": "Suka\nDiberikan"
+  },
+  "ai_cta_banner": {
+    "title": "Siap untuk petualangan berikutnya?",
+    "subtitle": "Biarkan Asisten AI membantu kamu menemukan tempat terbaik di Jogja.",
+    "button": "Tanya Asisten AI"
   },
   "destinations_page": {
     "back_to_explore": "Kembali ke Jelajahi",

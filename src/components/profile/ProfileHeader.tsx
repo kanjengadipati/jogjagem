@@ -2,16 +2,15 @@
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Check, MapPin, Share2, Compass, MessageSquare, Heart, CalendarDays, Pencil, Camera, Loader2 } from 'lucide-react';
+import { Check, MapPin, Share2, Compass, MessageSquare, Heart, Pencil, Camera, Loader2 } from 'lucide-react';
 import { auth, type ProfileResponse } from '../../lib/api';
 import { uploadToCloudinary } from '../../lib/cloudinary';
+import { useLocale } from '../../contexts/LocaleContext';
 
 interface ProfileHeaderProps {
   profile: ProfileResponse;
   savedCount?: number;
   visitedCount?: number;
-  tripsCount?: number;
-  likesCount?: number;
   onShareProfile?: () => void;
   onProfileUpdate?: (profile: ProfileResponse) => void;
 }
@@ -19,11 +18,11 @@ interface ProfileHeaderProps {
 export default function ProfileHeader({
   profile,
   savedCount = 0,
-  tripsCount = 0,
-  likesCount = 0,
+  visitedCount = 0,
   onShareProfile,
   onProfileUpdate,
 }: ProfileHeaderProps) {
+  const { t } = useLocale();
   const [copied, setCopied] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -107,10 +106,10 @@ export default function ProfileHeader({
   };
 
   const stats = [
-    { icon: Compass,      label: 'Destinations\nSaved',  value: savedCount,                  color: 'text-violet-500',  bg: 'bg-violet-50'  },
-    { icon: MessageSquare, label: 'Reviews\nWritten',     value: profile.reviews_count || 0,  color: 'text-amber-500',   bg: 'bg-amber-50'   },
-    { icon: Heart,         label: 'Likes\nGiven',         value: likesCount,                  color: 'text-pink-500',    bg: 'bg-pink-50'    },
-    { icon: CalendarDays,  label: 'Trips\nPlanned',       value: tripsCount,                  color: 'text-indigo-500',  bg: 'bg-indigo-50'  },
+    { icon: Compass,      label: t('profile.stat_destinations_saved'),  value: savedCount,                  color: 'text-violet-500',  bg: 'bg-violet-50'  },
+    { icon: MapPin,       label: t('profile.stat_visited'),            value: visitedCount,                color: 'text-amber-500',   bg: 'bg-amber-50'   },
+    { icon: MessageSquare, label: t('profile.stat_reviews_written'),   value: profile.reviews_count || 0,  color: 'text-pink-500',    bg: 'bg-pink-50'    },
+    { icon: Heart,         label: t('profile.stat_likes_given'),       value: 0,                           color: 'text-indigo-500',  bg: 'bg-indigo-50'  },
   ];
 
   return (
@@ -131,7 +130,7 @@ export default function ProfileHeader({
             ) : (
               <Camera className="w-4 h-4" />
             )}
-            {uploadingCover ? 'Uploading...' : 'Change Cover'}
+            {uploadingCover ? t('profile.uploading') : t('profile.change_cover')}
           </div>
         </div>
 
@@ -198,7 +197,7 @@ export default function ProfileHeader({
             className="flex items-center gap-2 px-4 py-2.5 bg-stone-950 hover:bg-stone-800 text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-sm"
           >
             <Share2 className="w-4 h-4" />
-            {copied ? 'Copied!' : 'Share Profile'}
+            {copied ? t('profile.copied') : t('profile.share_profile')}
           </button>
         </div>
 
@@ -215,11 +214,11 @@ export default function ProfileHeader({
             )}
           </div>
           <div className="flex items-center gap-2 text-sm text-stone-500 mb-2">
-            <span>Traveler</span>
+            <span>{t('profile.traveler')}</span>
             <span className="text-stone-300">•</span>
             <div className="flex items-center gap-1">
               <Compass className="w-3.5 h-3.5 text-stone-400" />
-              <span>Level {level} Explorer</span>
+              <span>{t('profile.level_explorer', { level })}</span>
             </div>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-stone-500">
