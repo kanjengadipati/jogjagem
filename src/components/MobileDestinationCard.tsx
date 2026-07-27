@@ -23,15 +23,11 @@ function getBadge(dest: Destination): Badge {
   const tp = (ticketPrice || '').toLowerCase();
   const nm = (name || '').toLowerCase();
 
-  // Hidden Gem — kualitas tinggi tapi belum banyak yang tahu
-  if (rating >= 4.5 && reviewCount < 2500)
-    return { label: 'Hidden Gem', color: 'bg-teal-600' };
-
   // Sunrise Spot — bestTime mengandung sunrise/fajar
   if (bt.includes('sunrise') || bt.includes('fajar') || bt.includes('dawn'))
     return { label: 'Sunrise Spot', color: 'bg-amber-400' };
 
-  // Sunset Spot — bestTime mengandung sore/sunset, tapi hanya untuk kategori nature/beach
+  // Sunset Spot — bestTime mengandung sore/sunset, tapi hanya untuk nature/beach
   if ((category === 'nature' || category === 'beach') && (bt.includes('sore') || bt.includes('sunset')))
     return { label: 'Sunset Spot', color: 'bg-orange-500' };
 
@@ -54,10 +50,6 @@ function getBadge(dest: Destination): Badge {
   // Night Spot — waktu terbaik malam
   if (bt.includes('malam') || bt.includes('night') || bt.includes('stargaz'))
     return { label: 'Night Spot', color: 'bg-indigo-600' };
-
-  // Budget Friendly — tiket gratis/gratis
-  if (tp === '' || tp.includes('gratis') || tp.includes('free'))
-    return { label: 'Budget Friendly', color: 'bg-emerald-600' };
 
   // Photographer Pick — travel tips mengandung foto/photo
   const tips = (dest.travelTips || []).join(' ').toLowerCase();
@@ -91,6 +83,14 @@ function getBadge(dest: Destination): Badge {
   // Weekend Ideas
   if (category === 'weekend')
     return { label: 'Akhir Pekan', color: 'bg-purple-600' };
+
+  // Hidden Gem — kualitas tinggi tapi belum banyak yang tahu (after category-specific badges)
+  if (rating >= 4.5 && reviewCount < 2500)
+    return { label: 'Hidden Gem', color: 'bg-teal-600' };
+
+  // Budget Friendly — tiket gratis/free
+  if (tp.includes('gratis') || tp.includes('free'))
+    return { label: 'Budget Friendly', color: 'bg-emerald-600' };
 
   // Fallback — category saja
   return { label: dest.category.replace(/-/g, ' '), color: 'bg-stone-600' };

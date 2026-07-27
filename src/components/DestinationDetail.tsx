@@ -799,12 +799,37 @@ export default function DestinationDetail({
 
               {/* Badges */}
               <div className="flex flex-wrap items-center gap-2">
-                {(destination.badges?.length ? destination.badges : [destination.badge || 'Hidden Gem']).map((b, i) => (
-                  <span key={i} className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${i === 0 ? 'bg-gold-500 text-white' : 'bg-amber-400/20 text-amber-300 border border-amber-400/30'}`}>
-                    {i === 0 && <Award className="h-3 w-3" />}
-                    {b}
-                  </span>
-                ))}
+                {(destination.badges?.length ? destination.badges : [destination.badge || 'Hidden Gem']).map((b, i) => {
+                  const badgeKey = b.toLowerCase().replace(/[\s-]/g, '_');
+                  const label = t(`badges.${badgeKey}`) || b;
+                  const BADGE_STYLES: Record<string, string> = {
+                    'trending': 'bg-red-500/90 text-white',
+                    'hidden_gem': 'bg-teal-500/90 text-white',
+                    'best_for_healing': 'bg-green-600/90 text-white',
+                    'sunset_spot': 'bg-orange-500/90 text-white',
+                    'sunrise_spot': 'bg-amber-400/90 text-white',
+                    'perfect_morning': 'bg-amber-500/90 text-white',
+                    'night_spot': 'bg-indigo-500/90 text-white',
+                    'night_vibes': 'bg-indigo-500/90 text-white',
+                    'cultural': 'bg-amber-600/90 text-white',
+                    'adventure': 'bg-red-500/90 text-white',
+                    'instagramable': 'bg-pink-500/90 text-white',
+                    'camping_spot': 'bg-lime-600/90 text-white',
+                    'budget_friendly': 'bg-emerald-500/90 text-white',
+                    'waterfall': 'bg-cyan-500/90 text-white',
+                    'photographer_pick': 'bg-fuchsia-500/90 text-white',
+                    'culinary': 'bg-yellow-500/90 text-white',
+                    'heritage': 'bg-amber-600/90 text-white',
+                    'unesco': 'bg-blue-600/90 text-white',
+                  };
+                  const color = BADGE_STYLES[badgeKey] || (i === 0 ? 'bg-gold-500 text-white' : 'bg-white/10 text-white/80 border border-white/20');
+                  return (
+                    <span key={i} className={`flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full ${color}`}>
+                      {i === 0 && <Award className="h-3 w-3" />}
+                      {label.toUpperCase()}
+                    </span>
+                  );
+                })}
               </div>
 
               {/* Rating + Location */}
