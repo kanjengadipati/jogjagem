@@ -2,11 +2,12 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { ChevronRight, Award, MapPin } from 'lucide-react';
+import { ChevronRight, Award, MapPin, MessageCircle } from 'lucide-react';
 import { Destination } from '@/types';
 import { EcosystemPartner } from '@/types';
 import { useLocale } from '@/contexts/LocaleContext';
 import { IntentProfile } from '@/lib/travelerIntent';
+import { getHouseAd, getHouseAdLink } from '@/lib/houseAds';
 import SponsoredBadge from './SponsoredBadge';
 
 export interface AIRecommendation {
@@ -172,9 +173,11 @@ export default function DestinationInfoPanel({
 
         {/* Partner Card list */}
         <div className="space-y-3 pt-1">
-          {activeEcosystemPartners.length === 0 ? (
-            <p className="text-xs text-stone-500 italic py-4 text-center">{t('destination_detail.no_partner_found')}</p>
-          ) : (
+          {activeEcosystemPartners.length === 0 && (
+            <p className="py-4 text-center text-xs italic text-stone-500">{t('destination_detail.no_partner_found')}</p>
+          )}
+
+          {activeEcosystemPartners.length > 0 &&
             [...activeEcosystemPartners]
               .sort((a, b) => {
                 const tierA = a.isSponsored ? (a.sponsorTier || 99) : 100;
@@ -212,7 +215,29 @@ export default function DestinationInfoPanel({
                 </div>
               </div>
             ))
-          )}
+          }
+
+          {(() => {
+            const houseAd = getHouseAd('destination_detail');
+
+            return (
+              <a
+                href={getHouseAdLink(houseAd)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 rounded-xl border border-dashed border-stone-300 p-2.5 text-left transition-all duration-300 hover:border-gold-300 hover:bg-stone-50/50"
+              >
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-dashed border-stone-300 bg-stone-50">
+                  <MessageCircle className="h-5 w-5 text-stone-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-manrope truncate text-xs font-bold text-stone-700">{houseAd.headline}</h4>
+                  <p className="truncate text-[9px] font-light text-stone-500">{houseAd.subline}</p>
+                  <span className="mt-0.5 inline-block text-[9px] font-bold text-gold-700">{houseAd.ctaLabel} -&gt;</span>
+                </div>
+              </a>
+            );
+          })()}
         </div>
       </div>
 

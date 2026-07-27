@@ -3,16 +3,25 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ads, type BeAdCampaign } from '@/lib/api';
 import SponsoredBadge from './SponsoredBadge';
+import HouseAd from './HouseAd';
 
 interface AdBannerProps {
   placement: string;
   category?: string;
   variant?: 'wide' | 'native';
   className?: string;
+  showHouseAdFallback?: boolean;
 }
 
-export default function AdBanner({ placement, category, variant = 'wide', className = '' }: AdBannerProps) {
+export default function AdBanner({
+  placement,
+  category,
+  variant = 'wide',
+  className = '',
+  showHouseAdFallback = true,
+}: AdBannerProps) {
   const [campaign, setCampaign] = useState<BeAdCampaign | null>(null);
+  const [status, setStatus] = useState<'loading' | 'resolved'>('loading');
   const [loaded, setLoaded] = useState(false);
   const trackedRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,13 +29,17 @@ export default function AdBanner({ placement, category, variant = 'wide', classN
   useEffect(() => {
     let cancelled = false;
     trackedRef.current = false;
+    setStatus('loading');
+    setCampaign(null);
     setLoaded(false);
     ads.getBanner(placement, category).then((res) => {
-      if (!cancelled && res.status === 'success') {
-        setCampaign(res.data ?? null);
-      }
+      if (cancelled) return;
+      setCampaign(res.status === 'success' ? res.data ?? null : null);
+      setStatus('resolved');
     }).catch(() => {
-      if (!cancelled) setCampaign(null);
+      if (cancelled) return;
+      setCampaign(null);
+      setStatus('resolved');
     });
     return () => {
       cancelled = true;
@@ -52,7 +65,13 @@ export default function AdBanner({ placement, category, variant = 'wide', classN
     return () => observer.disconnect();
   }, [campaign]);
 
-  if (!campaign) return null;
+  if (status === 'loading') return null;
+
+  if (!campaign) {
+    return showHouseAdFallback ? (
+      <HouseAd placement={placement} variant={variant} className={className} />
+    ) : null;
+  }
 
   const aspect = variant === 'wide' ? 'aspect-[16/5] sm:aspect-[21/5]' : 'aspect-[3/4]';
 
