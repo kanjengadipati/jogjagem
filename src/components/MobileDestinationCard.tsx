@@ -31,8 +31,8 @@ function getBadge(dest: Destination): Badge {
   if (bt.includes('sunrise') || bt.includes('fajar') || bt.includes('dawn'))
     return { label: 'Sunrise Spot', color: 'bg-amber-400' };
 
-  // Sunset Spot — bestTime mengandung sore/sunset
-  if (bt.includes('sore') || bt.includes('sunset'))
+  // Sunset Spot — bestTime mengandung sore/sunset, tapi hanya untuk kategori nature/beach
+  if ((category === 'nature' || category === 'beach') && (bt.includes('sore') || bt.includes('sunset')))
     return { label: 'Sunset Spot', color: 'bg-orange-500' };
 
   // Camping Spot — bestTime mengandung camping
