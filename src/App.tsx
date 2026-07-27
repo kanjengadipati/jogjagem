@@ -852,7 +852,7 @@ export default function App() {
             {/* Social icons */}
             <div className="flex items-center gap-4 mb-7">
               {[
-                { icon: 'IG', href: 'https://instagram.com' },
+                { icon: 'IG', href: 'https://www.instagram.com/jogja.gem/' },
                 { icon: 'TK', href: 'https://tiktok.com' },
                 { icon: 'YT', href: 'https://youtube.com' },
                 { icon: 'FB', href: 'https://facebook.com' },
