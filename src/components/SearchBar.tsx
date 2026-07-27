@@ -48,7 +48,7 @@ export default function SearchBar({
     <form
       id={id}
       onSubmit={handleSubmit}
-      className={`relative flex items-center rounded-full border border-white/20 bg-black/35 hover:bg-black/45 backdrop-blur-md p-1 shadow-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400 ${className}`}
+      className={`relative flex items-center rounded-full border border-white/20 bg-black/35 hover:bg-black/45 backdrop-blur-md p-1 shadow-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400 overflow-hidden ${className}`}
     >
       <Search className="ml-3.5 sm:ml-4 h-4.5 w-4.5 sm:h-5 sm:w-5 text-white/70 shrink-0 pointer-events-none" />
       <input

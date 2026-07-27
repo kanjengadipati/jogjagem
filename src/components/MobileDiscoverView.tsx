@@ -475,7 +475,7 @@ export default function MobileDiscoverView({
             </div>
 
             {/* Search — full width, all sizes */}
-            <form onSubmit={handleSearchSubmit} className="relative flex items-center rounded-full border border-white/20 bg-black/40 hover:bg-black/50 backdrop-blur-md p-1 shadow-xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400 w-full sm:max-w-lg">
+            <form onSubmit={handleSearchSubmit} className="relative flex items-center rounded-full border border-white/20 bg-black/40 hover:bg-black/50 backdrop-blur-md p-1 shadow-xl transition-all duration-300 focus-within:ring-2 focus-within:ring-gold-500/50 focus-within:border-gold-400 w-full sm:max-w-lg overflow-hidden">
               <Search className="ml-3.5 h-4 w-4 text-white/70 shrink-0" />
               <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t('hero.search_placeholder')} className="flex-1 bg-transparent py-2.5 sm:py-3 pl-2 pr-2 text-xs sm:text-sm text-white placeholder-white/60 focus:outline-none font-sans min-w-0" />
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
