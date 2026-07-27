@@ -604,6 +604,22 @@ export const partners = {
   async search(query: string) {
     return request<BePartner[]>(`/partners/search?q=${encodeURIComponent(query)}`);
   },
+
+  async getSponsored(params?: { destinationId?: string; category?: string }) {
+    const qs = new URLSearchParams();
+    if (params?.destinationId) qs.set('destination_id', params.destinationId);
+    if (params?.category) qs.set('category', params.category);
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request<BePartner[]>(`/partners/sponsored${suffix}`);
+  },
+
+  trackImpression(externalId: string) {
+    void request(`/partners/${encodeURIComponent(externalId)}/track/impression`, { method: 'POST' });
+  },
+
+  trackClick(externalId: string) {
+    void request(`/partners/${encodeURIComponent(externalId)}/track/click`, { method: 'POST' });
+  },
 };
 
 // BE partner shape (snake_case from the API)
@@ -622,7 +638,35 @@ interface BePartner {
   website?: string;
   latitude?: number;
   longitude?: number;
+  is_sponsored?: boolean;
+  sponsor_tier?: number;
 }
+
+interface BeAdCampaign {
+  id: string;
+  partner_name: string;
+  placement: string;
+  image_url: string;
+  target_url: string;
+  category?: string;
+  weight?: number;
+}
+
+export const ads = {
+  async getBanner(placement: string, category?: string) {
+    const qs = new URLSearchParams({ placement });
+    if (category) qs.set('category', category);
+    return request<BeAdCampaign | null>(`/ads/banners?${qs.toString()}`);
+  },
+
+  trackImpression(externalId: string) {
+    void request(`/ads/campaigns/${encodeURIComponent(externalId)}/track/impression`, { method: 'POST' });
+  },
+
+  trackClick(externalId: string) {
+    void request(`/ads/campaigns/${encodeURIComponent(externalId)}/track/click`, { method: 'POST' });
+  },
+};
 
 export const articles = {
   async getAll(params?: { limit?: number; page?: number; category?: string }) {
@@ -646,7 +690,7 @@ export const articles = {
   },
 };
 
-export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BePartner };
+export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BePartner, BeAdCampaign };
 
 export interface TripDayPayload {
   dayNumber: number;

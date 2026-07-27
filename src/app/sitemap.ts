@@ -1,14 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { toSlug } from '@/lib/slug';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jogjagem.com';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
-
-function toSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
 
 const FIXED_DATE = '2025-01-01T00:00:00.000Z';
 

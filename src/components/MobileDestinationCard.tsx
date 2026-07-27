@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Destination } from '../types';
 import { useLocale } from '@/contexts/LocaleContext';
+import { toSlug } from '@/lib/slug';
 
 // ─── Badge config ─────────────────────────────────────────────────────────────
 // Badge ditentukan dari data destinasi (category, rating, reviewCount, bestTime)
@@ -94,10 +95,6 @@ function getBadge(dest: Destination): Badge {
 
   // Fallback — category saja
   return { label: dest.category.replace(/-/g, ' '), color: 'bg-stone-600' };
-}
-
-function toSlug(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
 // ─── Quick action config ──────────────────────────────────────────────────────

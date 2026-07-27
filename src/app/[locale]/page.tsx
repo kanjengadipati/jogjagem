@@ -4,12 +4,11 @@ import ClientShell from '@/components/ClientShell';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jogjagem.com';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 
-function toSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+if (!process.env.NEXT_PUBLIC_API_BASE) {
+  console.warn('[SEO Shell] NEXT_PUBLIC_API_BASE is not set — falling back to localhost:8081. SEO shell will be empty in production unless env var is configured.');
 }
+
+import { toSlug } from '@/lib/slug';
 
 async function getTopDestinations() {
   try {
@@ -32,7 +31,8 @@ async function getTopDestinations() {
         return { id, name, slug: toSlug(name), imageUrl, tagline, category };
       })
       .filter((d): d is { id: string; name: string; slug: string; imageUrl: string; tagline: string; category: string } => d !== null);
-  } catch {
+  } catch (err) {
+    console.error('[SEO Shell] Failed to fetch top destinations:', err);
     return [];
   }
 }

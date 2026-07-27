@@ -7,6 +7,7 @@ import { Destination } from '@/types';
 import { EcosystemPartner } from '@/types';
 import { useLocale } from '@/contexts/LocaleContext';
 import { IntentProfile } from '@/lib/travelerIntent';
+import SponsoredBadge from './SponsoredBadge';
 
 export interface AIRecommendation {
   text: string;
@@ -174,18 +175,29 @@ export default function DestinationInfoPanel({
           {activeEcosystemPartners.length === 0 ? (
             <p className="text-xs text-stone-500 italic py-4 text-center">{t('destination_detail.no_partner_found')}</p>
           ) : (
-            activeEcosystemPartners.map(partner => (
+            [...activeEcosystemPartners]
+              .sort((a, b) => {
+                const tierA = a.isSponsored ? (a.sponsorTier || 99) : 100;
+                const tierB = b.isSponsored ? (b.sponsorTier || 99) : 100;
+                return tierA - tierB;
+              })
+              .map(partner => (
               <div
                 key={partner.id}
                 onClick={() => onSelectPartner(partner)}
-                className="group border border-stone-100 p-2.5 rounded-xl flex space-x-3 hover:border-gold-300 hover:bg-stone-50/50 transition-all duration-300 text-left cursor-pointer"
+                className={`group border p-2.5 rounded-xl flex space-x-3 hover:border-gold-300 hover:bg-stone-50/50 transition-all duration-300 text-left cursor-pointer ${
+                  partner.isSponsored ? 'border-gold-200 bg-gold-50/30' : 'border-stone-100'
+                }`}
               >
                 <Image src={partner.image} alt={partner.name} className="h-14 w-14 rounded-lg object-cover border shrink-0 bg-stone-100" width={56} height={56} />
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <span className="text-[8px] font-mono font-bold tracking-widest text-gold-700 uppercase leading-none">{partner.category}</span>
-                      <span className="text-[9px] font-bold text-amber-500 font-mono">★ {partner.rating}</span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {partner.isSponsored && <SponsoredBadge />}
+                        <span className="text-[9px] font-bold text-amber-500 font-mono">★ {partner.rating}</span>
+                      </div>
                     </div>
                     <h4 className="font-manrope text-xs font-bold text-stone-900 group-hover:text-gold-700 transition-all truncate mt-0.5">{partner.name}</h4>
                     <p className="text-[9px] text-stone-500 font-light truncate">{partner.description}</p>

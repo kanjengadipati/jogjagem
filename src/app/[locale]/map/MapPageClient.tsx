@@ -9,13 +9,11 @@ import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
 import InteractiveMap from '@/components/InteractiveMap';
 import { Destination } from '@/types';
+import { toSlug } from '@/lib/slug';
 
 function MapPageContent() {
   const router = useRouter();
   const { t } = useLocale();
-
-  const toSlug = (name: string) =>
-    name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   const handleExploreDestination = (dest: Destination) => {
     router.push(`/destinations/${toSlug(dest.name)}`);

@@ -56,34 +56,61 @@ export default function DestinationDetail({
   const [selectedMapFilter, setSelectedMapFilter] = useState<'all' | 'partner' | 'parking' | 'hotel' | 'resto' | 'guide' | 'toilet' | 'hospital'>('all');
   const [selectedMapPartner, setSelectedMapPartner] = useState<EcosystemPartner | null>(destination.partners[0] || null);
 
-  // Enrich ecosystem partners from BE when embedded list is empty
+  const mapBePartner = (p: BePartner): EcosystemPartner => ({
+    id: p.id,
+    name: p.name,
+    category: (['hotel','restaurant','cafe','guide','souvenir','rental','agent','transport'].includes((p.category || '').toLowerCase())
+      ? p.category!.toLowerCase()
+      : 'hotel') as EcosystemPartner['category'],
+    image: p.image || '',
+    rating: p.rating || 0,
+    price: p.price || '',
+    distance: p.distance || '',
+    description: p.description || '',
+    address: p.address || p.location || '',
+    phone: p.phone,
+    coordinates: { lat: p.latitude || 0, lng: p.longitude || 0 },
+    isSponsored: p.is_sponsored,
+    sponsorTier: p.sponsor_tier,
+  });
+
+  // Enrich ecosystem partners from BE and merge active sponsored partners.
   const [enrichedPartners, setEnrichedPartners] = useState<EcosystemPartner[]>(destination.partners);
   useEffect(() => {
-    if (destination.partners.length > 0) {
-      setEnrichedPartners(destination.partners);
-      return;
+    let cancelled = false;
+
+    async function loadPartners() {
+      const base = destination.partners;
+      const [allRes, sponsoredRes] = await Promise.all([
+        base.length > 0 ? Promise.resolve(null) : partnersApi.getAll(),
+        partnersApi.getSponsored({ destinationId: destination.id, category: destination.category }),
+      ]);
+
+      if (cancelled) return;
+
+      const mappedBase = base.length > 0
+        ? base
+        : (allRes?.status === 'success' && Array.isArray(allRes.data) ? (allRes.data as BePartner[]).map(mapBePartner) : []);
+      const sponsored = sponsoredRes.status === 'success' && Array.isArray(sponsoredRes.data)
+        ? (sponsoredRes.data as BePartner[]).map(mapBePartner)
+        : [];
+
+      const merged = new globalThis.Map<string, EcosystemPartner>();
+      mappedBase.forEach((partner) => merged.set(partner.id, partner));
+      sponsored.forEach((partner) => merged.set(partner.id, { ...merged.get(partner.id), ...partner, isSponsored: true }));
+
+      const list = Array.from(merged.values());
+      setEnrichedPartners(list);
+      if (!selectedMapPartner && list.length > 0) setSelectedMapPartner(list[0]);
     }
-    partnersApi.getAll().then(res => {
-      if (res.status === 'success' && Array.isArray(res.data)) {
-        const mapped: EcosystemPartner[] = (res.data as BePartner[]).map(p => ({
-          id: p.id,
-          name: p.name,
-          category: (['hotel','restaurant','cafe','guide','souvenir','rental','agent','transport'].includes((p.category || '').toLowerCase())
-            ? p.category!.toLowerCase()
-            : 'hotel') as EcosystemPartner['category'],
-          image: p.image || '',
-          rating: p.rating || 0,
-          price: p.price || '',
-          distance: p.distance || '',
-          description: p.description || '',
-          address: p.address || p.location || '',
-          phone: p.phone,
-          coordinates: { lat: p.latitude || 0, lng: p.longitude || 0 },
-        }));
-        setEnrichedPartners(mapped);
-        if (!selectedMapPartner && mapped.length > 0) setSelectedMapPartner(mapped[0]);
-      }
-    }).catch(() => {});
+
+    loadPartners().catch(() => {
+      if (!cancelled) setEnrichedPartners(destination.partners);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [destination.id]);
   const [likedReviewIds, setLikedReviewIds] = useState<Set<string>>(new Set());
@@ -632,6 +659,15 @@ export default function DestinationDetail({
     if (activeEcosystemTab === 'guide') return p.category === 'guide';
     return true;
   });
+  const trackedSponsoredPartnersRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    activeEcosystemPartners.forEach((partner) => {
+      if (partner.isSponsored && !trackedSponsoredPartnersRef.current.has(partner.id)) {
+        trackedSponsoredPartnersRef.current.add(partner.id);
+        partnersApi.trackImpression(partner.id);
+      }
+    });
+  }, [activeEcosystemPartners]);
 
   // Dynamic curator quote based on destination data
   const getCuratorQuote = () => {
@@ -1339,7 +1375,10 @@ export default function DestinationDetail({
             onSelectEcosystemTab={setActiveEcosystemTab}
             ecosystemPausedUntilRef={ecosystemPausedUntilRef}
             activeEcosystemPartners={activeEcosystemPartners}
-            onSelectPartner={setSelectedPartner}
+            onSelectPartner={(partner) => {
+              if (partner.isSponsored) partnersApi.trackClick(partner.id);
+              setSelectedPartner(partner);
+            }}
             travelerIntent={travelerIntent}
             similarDestinations={similarDestinations}
             onNavigateToSimilar={(similar) => {

@@ -12,6 +12,7 @@ import {
 import { Destination, Festival } from '../types';
 import { auth, ai } from '../lib/api';
 import { useLocation } from '@/contexts/LocationContext';
+import { toSlug } from '@/lib/slug';
 import {
   TuguJogjaIcon,
   HiddenGemsIcon,
@@ -94,10 +95,6 @@ function badgePriority(badge?: string): number {
   if (badge === 'trending') return 0;
   if (badge === 'hidden_gem') return 1;
   return 2;
-}
-
-function toSlug(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
 const HERO_SLIDES = [

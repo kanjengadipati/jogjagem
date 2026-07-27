@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Sparkles, Bookmark, Star, X, ArrowRight } from 'lucide-react';
 import { Destination } from '../types';
 import { useLocale } from '@/contexts/LocaleContext';
+import { toSlug } from '@/lib/slug';
 
 export interface AIPickCardProps {
   recommendation: {
@@ -17,10 +18,6 @@ export interface AIPickCardProps {
   onDismiss?: () => void;
   className?: string;
   sizes?: string;
-}
-
-export function toSlug(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
 function getCtaText(destName: string, category: string, t: (key: string) => string): string {

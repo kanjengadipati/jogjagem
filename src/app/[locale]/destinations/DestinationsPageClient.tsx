@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Fragment, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -8,9 +8,11 @@ import Header from '@/components/Header';
 import DestinationCard from '@/components/DestinationCard';
 import { DestinationCardSkeleton, TrendingCardSkeleton } from '@/components/CardSkeleton';
 import CategoryLinks from '@/components/CategoryLinks';
+import AdBanner from '@/components/AdBanner';
 import SearchBar from '@/components/SearchBar';
 import { Destination } from '@/types';
 import { destinations as destinationApi, ai } from '@/lib/api';
+import { toSlug } from '@/lib/slug';
 import Image from 'next/image';
 import {
   Search, ArrowLeft, ChevronLeft, ChevronRight,
@@ -320,8 +322,7 @@ function DestinationsPageInner() {
     }), []);
 
   const isSaved = useCallback((id: string) => savedIdsRef.current.has(id), []);
-  const toSlug  = useCallback((name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), []);
-  const handleExplore = useCallback((dest: Destination) => router.push(`/destinations/${toSlug(dest.name)}`), [toSlug]);
+  const handleExplore = useCallback((dest: Destination) => router.push(`/destinations/${toSlug(dest.name)}`), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -579,14 +580,22 @@ function DestinationsPageInner() {
             <>
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
                 {filteredDestinations.map((dest, index) => (
-                  <DestinationCard
-                    key={dest.id}
-                    destination={dest}
-                    onExplore={handleExplore}
-                    onToggleSave={handleToggleSave}
-                    isSaved={isSaved(dest.id)}
-                    className={index % 7 === 0 ? 'col-span-2' : ''}
-                  />
+                  <Fragment key={dest.id}>
+                    <DestinationCard
+                      destination={dest}
+                      onExplore={handleExplore}
+                      onToggleSave={handleToggleSave}
+                      isSaved={isSaved(dest.id)}
+                      className={index % 7 === 0 ? 'col-span-2' : ''}
+                    />
+                    {index === 3 && (
+                      <AdBanner
+                        placement="listing_native"
+                        category={selectedCategory ?? undefined}
+                        variant="native"
+                      />
+                    )}
+                  </Fragment>
                 ))}
               </div>
               {loadingMore && (

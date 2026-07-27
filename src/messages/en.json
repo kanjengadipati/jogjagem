@@ -1,4 +1,7 @@
 {
+  "ads": {
+    "sponsored_label": "Sponsored"
+  },
   "common": {
     "explore": "Explore",
     "ai_assistant": "AI Assistant",

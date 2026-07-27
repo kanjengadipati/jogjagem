@@ -21,6 +21,8 @@ export interface EcosystemPartner {
   promotion?: string;
   phone?: string;
   coordinates: { lat: number; lng: number };
+  isSponsored?: boolean;
+  sponsorTier?: number;
 }
 
 export interface FAQ {

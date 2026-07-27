@@ -1,16 +1,10 @@
 import type { Metadata } from 'next';
 import DestinationDetailClient from '@/components/DestinationDetailClient';
 import { TouristDestinationJsonLd, BreadcrumbJsonLd, FAQJsonLd } from '@/components/JsonLd';
+import { toSlug } from '@/lib/slug';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jogjagem.com';
 const SITE_NAME = 'Jogjagem';
-
-function toSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-}
 
 async function fetchDestinationBySlug(slugStr: string) {
   try {

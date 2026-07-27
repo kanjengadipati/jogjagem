@@ -7,10 +7,12 @@ import Header from './components/Header';
 import AuthModal from './components/AuthModal';
 import Hero from './components/Hero';
 import CategoryLinks from './components/CategoryLinks';
+import AdBanner from './components/AdBanner';
 import DestinationCard from './components/DestinationCard';
 import MobileDiscoverView from './components/MobileDiscoverView';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useLocation } from '@/contexts/LocationContext';
+import { toSlug } from '@/lib/slug';
 
 import { Destination, Festival } from './types';
 import { destinations, events, config, auth, ai, APIResponse } from '@/lib/api';
@@ -215,19 +217,18 @@ export default function App() {
   }, [savedDestinations, hydrated]);
 
   const handleToggleSave = async (dest: Destination) => {
-    // Optimistic update — always save locally first, no login required
+    let willBeSaved = false;
     setSavedDestinations((prev) => {
       const exists = prev.some(d => d.id === dest.id);
+      willBeSaved = !exists;
       const newSaved = exists ? prev.filter(d => d.id !== dest.id) : [...prev, dest];
       localStorage.setItem('explore_jogja_saved_v1', JSON.stringify(newSaved));
       return newSaved;
     });
 
-    // Sync with API only if logged in
     if (auth.isLoggedIn()) {
       try {
-        const isSavedNow = !savedDestinations.some(d => d.id === dest.id);
-        await auth.updateDestinationStatus(dest.id, isSavedNow ? 'saved' : 'removed');
+        await auth.updateDestinationStatus(dest.id, willBeSaved ? 'saved' : 'removed');
       } catch (err) {
         console.error('Failed to sync save status', err);
       }
@@ -254,8 +255,6 @@ export default function App() {
     } catch { /* ignore */ }
     router.push('/ai');
   };
-
-  const toSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   const handleExploreDestination = (dest: Destination) => {
     router.push(`/destinations/${toSlug(dest.name)}`);
@@ -480,7 +479,9 @@ export default function App() {
                   dark
                 />
 
-
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                  <AdBanner placement="homepage_hero" category={selectedCategory ?? undefined} />
+                </div>
 
                 {/* Destinations Showcase Grids */}
                 <section id="trending-destinations-showcase" className="mx-auto max-w-7xl px-4 pt-1 pb-8 sm:px-6 lg:px-8 sm:pt-2">
@@ -518,15 +519,24 @@ export default function App() {
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6">
                       {displayDestinations.map((dest, index) => (
-                      <DestinationCard
-                          key={dest.id}
-                          destination={dest}
-                          onExplore={handleExploreDestination}
-                          onToggleSave={handleToggleSave}
-                          onAuthRequired={() => openAuth('login')}
-                          isSaved={isSaved(dest.id)}
-                          className={index % 7 === 0 ? 'col-span-2 lg:col-span-2' : 'col-span-1 lg:col-span-1'}
-                        />
+                        <React.Fragment key={dest.id}>
+                          <DestinationCard
+                            destination={dest}
+                            onExplore={handleExploreDestination}
+                            onToggleSave={handleToggleSave}
+                            onAuthRequired={() => openAuth('login')}
+                            isSaved={isSaved(dest.id)}
+                            className={index % 7 === 0 ? 'col-span-2 lg:col-span-2' : 'col-span-1 lg:col-span-1'}
+                          />
+                          {index === 3 && (
+                            <AdBanner
+                              placement="listing_native"
+                              category={selectedCategory ?? undefined}
+                              variant="native"
+                              className="col-span-1 rounded-3xl"
+                            />
+                          )}
+                        </React.Fragment>
                       ))}
                     </div>
                   )}
