@@ -90,7 +90,7 @@ export default function DestinationDetail({
   const [bookmarkedTipIds, setBookmarkedTipIds] = useState<Set<number>>(new Set());
   const [activeEcosystemTab, setActiveEcosystemTab] = useState<'stay' | 'eat' | 'experience' | 'shop' | 'move' | 'guide'>('stay');
   const ecosystemPausedUntilRef = React.useRef<number>(0);
-  const ecosystemTabs = ['stay', 'eat', 'experience', 'shop', 'guide'] as const;
+  const ecosystemTabs = ['stay', 'eat', 'experience', 'shop', 'guide', 'move'] as const;
   const [selectedPartner, setSelectedPartner] = useState<EcosystemPartner | null>(null);
   const { coords } = useLocation();
   const routePolylineRef = useRef<any>(null);
@@ -1056,20 +1056,20 @@ export default function DestinationDetail({
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {(travelerIntent && travelerIntent.intent !== 'general'
                   ? orderCardsByIntent([
-                      { title: t('destination_detail.card_stay'), icon: Hotel, desc: t('destination_detail.card_stay_desc'), color: "text-[#2e4d3c] bg-emerald-50 border-emerald-100", label: t('destination_detail.card_label_stay') },
-                      { title: t('destination_detail.card_eat'), icon: Utensils, desc: t('destination_detail.card_eat_desc'), color: "text-[#7c4d12] bg-amber-50 border-amber-100", label: t('destination_detail.card_label_culinary') },
-                      { title: t('destination_detail.card_experiences'), icon: Sparkles, desc: t('destination_detail.card_experiences_desc'), color: "text-[#6c2e7c] bg-purple-50 border-purple-100", label: t('destination_detail.card_label_discover') },
-                      { title: t('destination_detail.card_shopping'), icon: ShoppingBag, desc: t('destination_detail.card_shopping_desc'), color: "text-[#7c1212] bg-red-50 border-red-100", label: t('destination_detail.card_label_craft') },
-                      { title: t('destination_detail.card_guide'), icon: Users, desc: t('destination_detail.card_guide_desc'), color: "text-[#125c7c] bg-blue-50 border-blue-100", label: t('destination_detail.card_label_service') },
-                      { title: t('destination_detail.card_transport'), icon: MapPinned, desc: t('destination_detail.card_transport_desc'), color: "text-[#4d4d4d] bg-stone-50 border-stone-100", label: t('destination_detail.card_label_ride') }
+                      { title: t('destination_detail.card_stay'), icon: Hotel, desc: t('destination_detail.card_stay_desc'), color: "text-[#2e4d3c] bg-emerald-50 border-emerald-100", label: t('destination_detail.card_label_stay'), tabId: 'stay' as const },
+                      { title: t('destination_detail.card_eat'), icon: Utensils, desc: t('destination_detail.card_eat_desc'), color: "text-[#7c4d12] bg-amber-50 border-amber-100", label: t('destination_detail.card_label_culinary'), tabId: 'eat' as const },
+                      { title: t('destination_detail.card_experiences'), icon: Sparkles, desc: t('destination_detail.card_experiences_desc'), color: "text-[#6c2e7c] bg-purple-50 border-purple-100", label: t('destination_detail.card_label_discover'), tabId: 'experience' as const },
+                      { title: t('destination_detail.card_shopping'), icon: ShoppingBag, desc: t('destination_detail.card_shopping_desc'), color: "text-[#7c1212] bg-red-50 border-red-100", label: t('destination_detail.card_label_craft'), tabId: 'shop' as const },
+                      { title: t('destination_detail.card_guide'), icon: Users, desc: t('destination_detail.card_guide_desc'), color: "text-[#125c7c] bg-blue-50 border-blue-100", label: t('destination_detail.card_label_service'), tabId: 'guide' as const },
+                      { title: t('destination_detail.card_transport'), icon: MapPinned, desc: t('destination_detail.card_transport_desc'), color: "text-[#4d4d4d] bg-stone-50 border-stone-100", label: t('destination_detail.card_label_ride'), tabId: 'move' as const }
                     ], travelerIntent)
                   : [
-                      { title: t('destination_detail.card_stay'), icon: Hotel, desc: t('destination_detail.card_stay_desc'), color: "text-[#2e4d3c] bg-emerald-50 border-emerald-100", label: t('destination_detail.card_label_stay') },
-                      { title: t('destination_detail.card_eat'), icon: Utensils, desc: t('destination_detail.card_eat_desc'), color: "text-[#7c4d12] bg-amber-50 border-amber-100", label: t('destination_detail.card_label_culinary') },
-                      { title: t('destination_detail.card_experiences'), icon: Sparkles, desc: t('destination_detail.card_experiences_desc'), color: "text-[#6c2e7c] bg-purple-50 border-purple-100", label: t('destination_detail.card_label_discover') },
-                      { title: t('destination_detail.card_shopping'), icon: ShoppingBag, desc: t('destination_detail.card_shopping_desc'), color: "text-[#7c1212] bg-red-50 border-red-100", label: t('destination_detail.card_label_craft') },
-                      { title: t('destination_detail.card_guide'), icon: Users, desc: t('destination_detail.card_guide_desc'), color: "text-[#125c7c] bg-blue-50 border-blue-100", label: t('destination_detail.card_label_service') },
-                      { title: t('destination_detail.card_transport'), icon: MapPinned, desc: t('destination_detail.card_transport_desc'), color: "text-[#4d4d4d] bg-stone-50 border-stone-100", label: t('destination_detail.card_label_ride') }
+                      { title: t('destination_detail.card_stay'), icon: Hotel, desc: t('destination_detail.card_stay_desc'), color: "text-[#2e4d3c] bg-emerald-50 border-emerald-100", label: t('destination_detail.card_label_stay'), tabId: 'stay' as const },
+                      { title: t('destination_detail.card_eat'), icon: Utensils, desc: t('destination_detail.card_eat_desc'), color: "text-[#7c4d12] bg-amber-50 border-amber-100", label: t('destination_detail.card_label_culinary'), tabId: 'eat' as const },
+                      { title: t('destination_detail.card_experiences'), icon: Sparkles, desc: t('destination_detail.card_experiences_desc'), color: "text-[#6c2e7c] bg-purple-50 border-purple-100", label: t('destination_detail.card_label_discover'), tabId: 'experience' as const },
+                      { title: t('destination_detail.card_shopping'), icon: ShoppingBag, desc: t('destination_detail.card_shopping_desc'), color: "text-[#7c1212] bg-red-50 border-red-100", label: t('destination_detail.card_label_craft'), tabId: 'shop' as const },
+                      { title: t('destination_detail.card_guide'), icon: Users, desc: t('destination_detail.card_guide_desc'), color: "text-[#125c7c] bg-blue-50 border-blue-100", label: t('destination_detail.card_label_service'), tabId: 'guide' as const },
+                      { title: t('destination_detail.card_transport'), icon: MapPinned, desc: t('destination_detail.card_transport_desc'), color: "text-[#4d4d4d] bg-stone-50 border-stone-100", label: t('destination_detail.card_label_ride'), tabId: 'move' as const }
                     ]
                 ).map((item, idx) => {
                   const Icon = item.icon;
@@ -1077,12 +1077,7 @@ export default function DestinationDetail({
                     <div 
                       key={idx}
                       onClick={() => {
-                        const tabId = item.title.toLowerCase().includes('stay') ? 'stay' :
-                                      item.title.toLowerCase().includes('eat') ? 'eat' :
-                                      item.title.toLowerCase().includes('exp') ? 'experience' :
-                                      item.title.toLowerCase().includes('shop') ? 'shop' :
-                                      item.title.toLowerCase().includes('guide') ? 'guide' : 'move';
-                        setActiveEcosystemTab(tabId as any);
+                        setActiveEcosystemTab(item.tabId);
                         const el = document.getElementById('ecosystem-section');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}

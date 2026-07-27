@@ -127,6 +127,7 @@ export default function DestinationInfoPanel({
             { id: 'experience' as const, label: t('destination_detail.tab_vibe') },
             { id: 'shop' as const, label: t('destination_detail.tab_shop') },
             { id: 'guide' as const, label: t('destination_detail.tab_guide') },
+            { id: 'move' as const, label: t('destination_detail.tab_move') },
           ].map(item => (
             <button
               key={item.id}
@@ -154,7 +155,7 @@ export default function DestinationInfoPanel({
 
         {/* Slideshow progress dots */}
         <div className="flex justify-center gap-1.5 pt-2 pb-1">
-          {(['stay','eat','experience','shop','guide'] as const).map(tab => (
+          {(['stay','eat','experience','shop','guide','move'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => {
