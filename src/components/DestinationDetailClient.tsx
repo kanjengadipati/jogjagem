@@ -10,6 +10,7 @@ import { AlertCircle } from 'lucide-react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
 import { useLocale } from '@/contexts/LocaleContext';
+import { toSlug } from '@/lib/slug';
 
 function mapApiToDestination(raw: any): Destination {
   return {
@@ -45,14 +46,9 @@ function mapApiToDestination(raw: any): Destination {
     seoDescriptionEn: raw.seo_description_en || raw.SeoDescriptionEn || raw.seoDescriptionEn || '',
     ogImageUrl: raw.og_image_url || raw.OgImageUrl || raw.ogImageUrl || '',
     videoUrl: raw.video_url || raw.VideoURL || raw.videoUrl || '',
+    badge: raw.badge || raw.Badge || '',
+    badges: raw.badges || raw.Badges || [],
   };
-}
-
-function toSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
 }
 
 export default function DestinationDetailClient({ slug }: { slug: string[] }) {
