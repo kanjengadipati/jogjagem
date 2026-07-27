@@ -11,6 +11,7 @@ import { Destination } from '../types';
 import { destinations as destinationApi } from '../lib/api';
 import { useLocation } from '../contexts/LocationContext';
 import { useLeafletMap } from '../hooks/useLeafletMap';
+import { useLocale } from '../contexts/LocaleContext';
 
 interface InteractiveMapProps {
   onExploreDestination: (dest: Destination) => void;
@@ -46,6 +47,7 @@ type LayerFilter = 'all' | 'destinations' | 'transport';
 
 export default function InteractiveMap({ onExploreDestination, selectedDestination }: InteractiveMapProps) {
   const { coords } = useLocation();
+  const { t } = useLocale();
   const { mapRef, mapInstance, leafletRef, markerGroup, whenReady } = useLeafletMap({
     center: [-7.7956, 110.3695],
     zoom: 11,
@@ -244,7 +246,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
         });
         const marker = L.marker([hub.lat, hub.lng], { icon });
         marker.on('click', () => {
-          setSelectedPin({ id: hub.id, name: hub.name, type: 'transport', desc: `${hub.type === 'rail' ? 'Railway' : 'Bus'} station serving Yogyakarta.` });
+          setSelectedPin({ id: hub.id, name: hub.name, type: 'transport', desc: hub.type === 'rail' ? t('map_page.railway_desc') : t('map_page.bus_desc') });
           setSheetOpen(true);
         });
         marker.addTo(markers);
@@ -277,9 +279,9 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
   };
 
   const layerOptions: { id: LayerFilter; label: string; icon: typeof MapPin }[] = [
-    { id: 'all', label: 'All', icon: Layers },
-    { id: 'destinations', label: 'Places', icon: MapPin },
-    { id: 'transport', label: 'Transport', icon: Bus },
+    { id: 'all', label: t('map_page.layer_all'), icon: Layers },
+    { id: 'destinations', label: t('map_page.layer_places'), icon: MapPin },
+    { id: 'transport', label: t('map_page.layer_transport'), icon: Bus },
   ];
 
   return (
@@ -317,7 +319,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
           }`}
         >
           <Car className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Parking</span>
+          <span className="hidden sm:inline">{t('map_page.parking')}</span>
         </button>
       </div>
 
@@ -338,8 +340,8 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
               <MapIcon className="w-4 h-4 text-gold-600" />
             </div>
             <div>
-              <h3 className="font-manrope text-sm font-bold text-royal-950">Explore Map</h3>
-              <p className="text-[10px] text-stone-400">Click pins for details & routes</p>
+              <h3 className="font-manrope text-sm font-bold text-royal-950">{t('map_page.explore_map')}</h3>
+              <p className="text-[10px] text-stone-400">{t('map_page.click_pins')}</p>
             </div>
           </div>
 
@@ -359,11 +361,11 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                   {/* Stats */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-stone-50 rounded-xl p-2.5 border border-stone-100">
-                      <span className="text-[9px] text-stone-400 font-mono uppercase block">Price</span>
+                      <span className="text-[9px] text-stone-400 font-mono uppercase block">{t('map_page.price')}</span>
                       <span className="text-xs font-bold text-royal-950">{selectedPin.data.ticketPrice}</span>
                     </div>
                     <div className="bg-stone-50 rounded-xl p-2.5 border border-stone-100">
-                      <span className="text-[9px] text-stone-400 font-mono uppercase block">Rating</span>
+                      <span className="text-[9px] text-stone-400 font-mono uppercase block">{t('map_page.rating')}</span>
                       <span className="text-xs font-bold text-royal-950 flex items-center gap-0.5">
                         <Star className="w-3 h-3 fill-gold-400 text-gold-400" />
                         {selectedPin.data.rating?.toFixed(1)}
@@ -374,14 +376,14 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                   {/* Route selector */}
                   <div className="bg-stone-50 rounded-xl p-3 border border-stone-100 space-y-2">
                     <label className="text-[9px] font-mono font-bold text-stone-500 uppercase tracking-wider block">
-                      Route to:
+                      {t('map_page.route_to')}
                     </label>
                     <select
                       value={routeTargetId}
                       onChange={(e) => setRouteTargetId(e.target.value)}
                       className="w-full text-[11px] bg-white border border-stone-200 px-3 py-2 rounded-xl focus:outline-none focus:border-gold-500 font-medium"
                     >
-                      <option value="">Choose destination</option>
+                      <option value="">{t('map_page.choose_destination')}</option>
                       {destinations
                         .filter((d) => d.id !== selectedPin.id)
                         .map((d) => (
@@ -392,25 +394,25 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                     {routingLoading && (
                       <div className="text-[10px] text-stone-400 flex items-center justify-center gap-1 py-1">
                         <RefreshCw className="w-3 h-3 animate-spin text-gold-600" />
-                        Calculating route...
+                        {t('map_page.calculating_route')}
                       </div>
                     )}
 
                     {routeInfo && (
                       <div className="space-y-2 animate-fade-in">
                         <div className="flex justify-between text-[11px] border-b border-stone-200/60 pb-1.5">
-                          <span className="text-stone-400">Distance</span>
+                          <span className="text-stone-400">{t('map_page.distance')}</span>
                           <span className="font-bold text-royal-950">{routeInfo.distanceKm.toFixed(1)} km</span>
                         </div>
                         <div className="flex justify-between text-[11px] border-b border-stone-200/60 pb-1.5">
-                          <span className="text-stone-400">Duration</span>
+                          <span className="text-stone-400">{t('map_page.duration')}</span>
                           <span className="font-bold text-royal-950">{Math.round(routeInfo.durationMin)} min</span>
                         </div>
 
                         {routeInfo.isRushHour && (
                           <div className="bg-red-50 border border-red-200 text-red-700 p-2 rounded-xl text-[10px] leading-relaxed flex items-start gap-1.5">
                             <ShieldAlert className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                            <span><strong>Rush hour</strong> — expect +15 min delay.</span>
+                            <span><strong>{t('map_page.rush_hour')}</strong> — {t('map_page.rush_hour_delay')}</span>
                           </div>
                         )}
 
@@ -420,7 +422,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                           rel="noopener noreferrer"
                           className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-royal-950 text-white hover:bg-royal-900 text-[10px] font-bold transition-colors"
                         >
-                          Open in Google Maps
+                          {t('map_page.open_google_maps')}
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
@@ -429,7 +431,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
 
                   {/* Nearby destinations */}
                   <div className="space-y-1.5">
-                    <span className="text-[9px] font-mono font-bold text-stone-400 uppercase tracking-wider block">Nearby</span>
+                    <span className="text-[9px] font-mono font-bold text-stone-400 uppercase tracking-wider block">{t('map_page.nearby')}</span>
                     <div className="max-h-32 overflow-y-auto space-y-1 scrollbar-none">
                       {destinations
                         .filter((d) => d.id !== selectedPin.id)
@@ -462,7 +464,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                     onClick={() => onExploreDestination(selectedPin.data)}
                     className="w-full py-2.5 rounded-xl bg-gold-600 text-white text-[11px] font-bold hover:bg-gold-700 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
                   >
-                    View Full Details
+                    {t('map_page.view_full_details')}
                     <Compass className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -490,8 +492,8 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
           ) : (
             <div className="text-center py-8 border border-dashed border-stone-200 rounded-2xl bg-stone-50/50">
               <MapPin className="w-8 h-8 text-stone-300 mx-auto mb-2" />
-              <p className="text-[11px] font-medium text-stone-500">Tap a pin to explore</p>
-              <p className="text-[10px] text-stone-400 mt-0.5">Get directions, ratings & more</p>
+              <p className="text-[11px] font-medium text-stone-500">{t('map_page.tap_pin')}</p>
+              <p className="text-[10px] text-stone-400 mt-0.5">{t('map_page.tap_pin_desc')}</p>
             </div>
           )}
         </div>
@@ -499,7 +501,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
         {/* GPS note */}
         <div className="px-4 py-3 border-t border-stone-100 bg-stone-50/50">
           <p className="text-[9px] text-stone-400 leading-relaxed">
-            Yogyakarta attractions span across natural subregions. Use Google Maps redirect for real-time traffic.
+            {t('map_page.map_footer')}
           </p>
         </div>
       </div>
@@ -547,11 +549,11 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-stone-50 rounded-xl p-2.5 border border-stone-100">
-                      <span className="text-[9px] text-stone-400 font-mono uppercase block">Price</span>
+                      <span className="text-[9px] text-stone-400 font-mono uppercase block">{t('map_page.price')}</span>
                       <span className="text-xs font-bold text-royal-950">{selectedPin.data.ticketPrice}</span>
                     </div>
                     <div className="bg-stone-50 rounded-xl p-2.5 border border-stone-100">
-                      <span className="text-[9px] text-stone-400 font-mono uppercase block">Rating</span>
+                      <span className="text-[9px] text-stone-400 font-mono uppercase block">{t('map_page.rating')}</span>
                       <span className="text-xs font-bold text-royal-950 flex items-center gap-0.5">
                         <Star className="w-3 h-3 fill-gold-400 text-gold-400" />
                         {selectedPin.data.rating?.toFixed(1)}
@@ -565,7 +567,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                       onChange={(e) => setRouteTargetId(e.target.value)}
                       className="w-full text-[11px] bg-white border border-stone-200 px-3 py-2 rounded-xl focus:outline-none focus:border-gold-500 font-medium"
                     >
-                      <option value="">Route to...</option>
+                      <option value="">{t('map_page.route_placeholder')}</option>
                       {destinations.filter((d) => d.id !== selectedPin.id).map((d) => (
                         <option key={d.id} value={d.id}>{d.name}</option>
                       ))}
@@ -574,24 +576,24 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                     {routingLoading && (
                       <div className="text-[10px] text-stone-400 flex items-center justify-center gap-1 py-1">
                         <RefreshCw className="w-3 h-3 animate-spin text-gold-600" />
-                        Calculating...
+                        {t('map_page.calculating')}
                       </div>
                     )}
 
                     {routeInfo && (
                       <div className="space-y-1.5 animate-fade-in">
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-stone-400">Distance</span>
+                          <span className="text-stone-400">{t('map_page.distance')}</span>
                           <span className="font-bold text-royal-950">{routeInfo.distanceKm.toFixed(1)} km</span>
                         </div>
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-stone-400">Duration</span>
+                          <span className="text-stone-400">{t('map_page.duration')}</span>
                           <span className="font-bold text-royal-950">{Math.round(routeInfo.durationMin)} min</span>
                         </div>
                         {routeInfo.isRushHour && (
                           <div className="bg-red-50 border border-red-200 text-red-700 p-2 rounded-xl text-[10px] flex items-start gap-1.5">
                             <ShieldAlert className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                            <span><strong>Rush hour</strong> — expect +15 min.</span>
+                            <span><strong>{t('map_page.rush_hour')}</strong> — {t('map_page.rush_hour_delay')}</span>
                           </div>
                         )}
                         <a
@@ -600,7 +602,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                           rel="noopener noreferrer"
                           className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-royal-950 text-white text-[10px] font-bold"
                         >
-                          Open in Google Maps <ExternalLink className="w-3 h-3" />
+                          {t('map_page.open_google_maps')} <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
                     )}
@@ -610,7 +612,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
                     onClick={() => onExploreDestination(selectedPin.data)}
                     className="w-full py-2.5 rounded-xl bg-gold-600 text-white text-[11px] font-bold flex items-center justify-center gap-1.5"
                   >
-                    View Details <Compass className="w-3.5 h-3.5" />
+                    {t('map_page.view_details')} <Compass className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
@@ -626,7 +628,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
           ) : (
             <div className="text-center py-6">
               <MapPin className="w-8 h-8 text-stone-300 mx-auto mb-2" />
-              <p className="text-[11px] font-medium text-stone-500">Tap a pin to explore</p>
+              <p className="text-[11px] font-medium text-stone-500">{t('map_page.tap_pin')}</p>
             </div>
           )}
         </div>

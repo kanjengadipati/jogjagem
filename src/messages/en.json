@@ -680,7 +680,33 @@
     "title": "Trip Planner"
   },
   "map_page": {
-    "title": "Explore Map"
+    "title": "Explore Map",
+    "layer_all": "All",
+    "layer_places": "Places",
+    "layer_transport": "Transport",
+    "parking": "Parking",
+    "explore_map": "Explore Map",
+    "click_pins": "Click pins for details & routes",
+    "price": "Price",
+    "rating": "Rating",
+    "route_to": "Route to:",
+    "choose_destination": "Choose destination",
+    "calculating_route": "Calculating route...",
+    "calculating": "Calculating...",
+    "distance": "Distance",
+    "duration": "Duration",
+    "rush_hour": "Rush hour",
+    "rush_hour_delay": "expect +15 min delay.",
+    "open_google_maps": "Open in Google Maps",
+    "nearby": "Nearby",
+    "view_full_details": "View Full Details",
+    "view_details": "View Details",
+    "tap_pin": "Tap a pin to explore",
+    "tap_pin_desc": "Get directions, ratings & more",
+    "map_footer": "Yogyakarta attractions span across natural subregions. Use Google Maps redirect for real-time traffic.",
+    "route_placeholder": "Route to...",
+    "railway_desc": "Railway station serving Yogyakarta.",
+    "bus_desc": "Bus terminal serving Yogyakarta."
   },
   "ai_page": {
     "title": "Chat with AI"

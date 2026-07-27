@@ -680,7 +680,33 @@
     "title": "Trip Planner"
   },
   "map_page": {
-    "title": "Peta Jelajah"
+    "title": "Peta Jelajah",
+    "layer_all": "Semua",
+    "layer_places": "Tempat",
+    "layer_transport": "Transport",
+    "parking": "Parkir",
+    "explore_map": "Peta Jelajah",
+    "click_pins": "Klik pin untuk detail & rute",
+    "price": "Harga",
+    "rating": "Rating",
+    "route_to": "Rute ke:",
+    "choose_destination": "Pilih destinasi",
+    "calculating_route": "Menghitung rute...",
+    "calculating": "Menghitung...",
+    "distance": "Jarak",
+    "duration": "Durasi",
+    "rush_hour": "Jam ramai",
+    "rush_hour_delay": "estimasi +15 menit.",
+    "open_google_maps": "Buka di Google Maps",
+    "nearby": "Terdekat",
+    "view_full_details": "Lihat Detail Lengkap",
+    "view_details": "Lihat Detail",
+    "tap_pin": "Ketuk pin untuk menjelajah",
+    "tap_pin_desc": "Dapatkan arahan, rating & lainnya",
+    "map_footer": "Atraksi Yogyakarta tersebar di berbagai sub-wilayah. Gunakan Google Maps untuk info lalu lintas real-time.",
+    "route_placeholder": "Rute ke...",
+    "railway_desc": "Stasiun kereta api melayani Yogyakarta.",
+    "bus_desc": "Terminal bus melayani Yogyakarta."
   },
   "ai_page": {
     "title": "Ngobrol sama AI"
