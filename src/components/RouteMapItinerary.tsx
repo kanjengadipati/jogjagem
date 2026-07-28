@@ -1096,12 +1096,12 @@ export default function RouteMapItinerary({
                   {isMoodPickerOpen && (
                     <div
                       className={`absolute bottom-[calc(100%-18px)] z-50 w-[236px] p-1.5 rounded-lg border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_8px_22px_rgba(0,0,0,0.85)] animate-fade-in lg:w-[min(360px,calc(100vw-32px))] lg:p-2 lg:rounded-xl ${
-                        waveIndex <= 1 ? 'left-[-20px]' : waveIndex >= 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                        waveIndex <= 1 ? 'left-1/2 -translate-x-1/4' : waveIndex >= 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
                       }`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className={`absolute -bottom-1 h-2.5 w-2.5 rotate-45 border-b border-r border-gold-400/60 bg-royal-950/95 ${
-                        waveIndex <= 1 ? 'left-4' : waveIndex >= 3 ? 'right-4' : 'left-1/2 -translate-x-1/2'
+                        waveIndex <= 1 ? 'left-[18%]' : waveIndex >= 3 ? 'right-4' : 'left-1/2 -translate-x-1/2'
                       }`} />
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-[8.5px] lg:text-[9.5px] font-bold text-gold-400 tracking-wide">
