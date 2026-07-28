@@ -180,7 +180,7 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
             <button
               key={String(id)}
               id={id ? `category-btn-${id}` : 'category-btn-all'}
-              onClick={() => onSelectCategory(selected ? null : id)}
+              onClick={() => { if (!selected) onSelectCategory(id); }}
               className={pillCls(selected)}
             >
               <Icon className={iconCls(selected)} />
