@@ -832,6 +832,7 @@ export default function RouteMapItinerary({
     return `${path} C ${startX + (x - startX) * 0.35} ${index % 2 === 0 ? 20 : 54}, ${startX + (x - startX) * 0.65} ${index % 2 === 0 ? 54 : 20}, ${x} ${endY}`;
   }, `M ${routeNodePositions[0] ?? 4} ${routeLineY(0)}`);
   const nextDestinationSlotIndex = slots.findIndex((slot) => slot.status === 'resolved' && !slot.node.isDone);
+  const firstOpenSlotIndex = slots.findIndex((slot) => slot.status === 'open');
 
   return (
     <div className={`w-full max-w-[500px] sm:max-w-[560px] lg:max-w-none ml-0 bg-transparent overflow-visible ${className}`}>
@@ -1080,8 +1081,10 @@ export default function RouteMapItinerary({
                     <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-royal-950 border border-gold-400 text-[7px] font-mono font-bold text-gold-300">
                       {waveIndex}
                     </span>
-                    {/* Pulse ring */}
-                    <span className="absolute inset-0 rounded-full bg-gold-400 opacity-20 animate-ping" />
+                    {/* Pulse ring — only on the first open slot */}
+                    {slotIndex === firstOpenSlotIndex && (
+                      <span className="absolute inset-0 rounded-full bg-gold-400 opacity-20 animate-ping" />
+                    )}
                   </div>
                   <div className="mt-1 w-[80px] sm:w-[96px] text-center">
                     <span className="block text-[8px] font-bold uppercase tracking-wider text-gold-400">
