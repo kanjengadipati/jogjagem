@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import EventDetailPageClient from './EventDetailPageClient';
 import { EventJsonLd, BreadcrumbJsonLd } from '@/components/JsonLd';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jogjagem.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
 interface EventData {
   id: string;
@@ -43,11 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const event = await fetchEvent(id);
 
   if (!event) {
-    return {
-      title: 'Event Tidak Ditemukan',
-      description: 'Event yang Anda cari tidak ditemukan di Jogjagem.',
-      robots: { index: false },
-    };
+    notFound();
   }
 
   const title = `${event.title} — Events & Festivals Jogjagem`;

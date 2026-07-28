@@ -34,7 +34,7 @@ const dmSerifDisplay = DM_Serif_Display({
   display: 'optional',
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jogjagem.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const SITE_NAME = 'Jogjagem';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 

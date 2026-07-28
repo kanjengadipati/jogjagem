@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import DestinationDetailClient from '@/components/DestinationDetailClient';
 import { TouristDestinationJsonLd, BreadcrumbJsonLd, FAQJsonLd } from '@/components/JsonLd';
 import { toSlug } from '@/lib/slug';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jogjagem.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const SITE_NAME = 'Jogjagem';
 
 async function fetchDestinationBySlug(slugStr: string) {
@@ -58,11 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const dest = await fetchDestinationBySlug(slugStr);
 
   if (!dest) {
-    return {
-      title: 'Destinasi Tidak Ditemukan',
-      description: 'Destinasi wisata yang Anda cari tidak ditemukan di Jogjagem.',
-      robots: { index: false },
-    };
+    notFound();
   }
 
   const name = dest.name || dest.Name || '';

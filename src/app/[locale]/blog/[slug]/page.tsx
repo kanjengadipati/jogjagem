@@ -5,7 +5,7 @@ import BlogDetailClient from './BlogDetailClient';
 import type { Article } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jogjagem.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
 async function fetchArticle(slug: string, locale: string): Promise<Article | null> {
   try {

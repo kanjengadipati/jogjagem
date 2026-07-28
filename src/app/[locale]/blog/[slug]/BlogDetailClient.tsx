@@ -79,7 +79,7 @@ export default function BlogDetailClient({
   messages: DetailMessages;
 }) {
   const [copied, setCopied] = useState(false);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jogjagem.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
   const catInfo = article.category ? CATEGORY_LABELS[article.category] : undefined;
   const catLabel = catInfo ? (locale === 'en' ? catInfo.en : catInfo.id) : article.category;

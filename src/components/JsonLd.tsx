@@ -11,7 +11,7 @@ export default function JsonLd({ data }: JsonLdProps) {
   );
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jogjagem.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const SITE_NAME = 'Jogjagem';
 
 export function WebsiteJsonLd() {
