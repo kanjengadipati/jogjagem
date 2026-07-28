@@ -27,7 +27,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (!auth.isLoggedIn()) {
-      // Try to hydrate from the httpOnly session cookie first
       await auth.hydrateSession();
     }
     if (!auth.isLoggedIn()) {
@@ -59,49 +58,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch { /* ignore */ }
   }, []);
 
+  // On mount: handle social login callback OR hydrate existing session
   useEffect(() => {
     const handleAuth = async () => {
-      if (typeof window !== 'undefined') {
-        let idToken = null;
+      if (typeof window === 'undefined') return;
 
-        // Try getting id_token from hash
-        if (window.location.hash) {
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          idToken = hashParams.get('id_token');
-        }
+      let idToken: string | null = null;
 
-        // Try getting id_token from search query if not found in hash
-        if (!idToken && window.location.search) {
-          const searchParams = new URLSearchParams(window.location.search);
-          idToken = searchParams.get('id_token');
-        }
+      if (window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        idToken = hashParams.get('id_token');
+      }
+      if (!idToken && window.location.search) {
+        const searchParams = new URLSearchParams(window.location.search);
+        idToken = searchParams.get('id_token');
+      }
 
-        if (idToken) {
-          setState(prev => ({ ...prev, isLoading: true }));
-          try {
-            const res = await auth.socialLogin('google', idToken);
-            if (res.status === 'success') {
-              // Clean up URL: remove hash and/or id_token search param
-              if (window.history && window.history.replaceState) {
-                const searchParams = new URLSearchParams(window.location.search);
-                searchParams.delete('id_token');
-                const searchStr = searchParams.toString();
-                const cleanUrl = window.location.pathname + (searchStr ? `?${searchStr}` : '');
-                window.history.replaceState(null, '', cleanUrl);
-              } else {
-                window.location.hash = '';
-              }
-              await refreshProfile();
-              maybeRedirectToAdmin();
+      if (idToken) {
+        // Social login callback
+        try {
+          const res = await auth.socialLogin('google', idToken);
+          if (res.status === 'success') {
+            if (window.history?.replaceState) {
+              const searchParams = new URLSearchParams(window.location.search);
+              searchParams.delete('id_token');
+              const searchStr = searchParams.toString();
+              window.history.replaceState(null, '', window.location.pathname + (searchStr ? `?${searchStr}` : ''));
             } else {
-              console.error('Social login failed:', res.message);
-              setState(prev => ({ ...prev, isLoading: false }));
+              window.location.hash = '';
             }
-          } catch (err) {
-            console.error('Error in social login callback:', err);
+            await refreshProfile();
+            maybeRedirectToAdmin();
+          } else {
+            console.error('Social login failed:', res.message);
             setState(prev => ({ ...prev, isLoading: false }));
           }
+        } catch (err) {
+          console.error('Error in social login callback:', err);
+          setState(prev => ({ ...prev, isLoading: false }));
         }
+      } else {
+        // Normal page load — hydrate session if token exists
+        await refreshProfile();
       }
     };
 
@@ -113,7 +111,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await auth.login(email, password);
       if (res.status === 'success') {
         await refreshProfile();
-        // Sync any locally saved itineraries to DB in background
         syncLocalItinerariesToDB().catch(() => {});
         maybeRedirectToAdmin();
         return { success: true };
@@ -141,7 +138,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await auth.socialLogin(provider, token);
       if (res.status === 'success') {
         await refreshProfile();
-        // Sync any locally saved itineraries to DB in background
         syncLocalItinerariesToDB().catch(() => {});
         maybeRedirectToAdmin();
         return { success: true };
