@@ -99,15 +99,7 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
     })),
   ];
 
-  // Reorder so active selected category is in 1st order (right after "Semua Perjalanan")
-  const allCats = React.useMemo(() => {
-    if (!selectedCategory) return rawCats;
-    const activeIdx = rawCats.findIndex(c => c.id === selectedCategory);
-    if (activeIdx <= 0) return rawCats;
-    const activeItem = rawCats[activeIdx];
-    const rest = rawCats.filter((_, idx) => idx !== activeIdx);
-    return [rest[0], activeItem, ...rest.slice(1)];
-  }, [categories, selectedCategory, t]);
+  const allCats = rawCats;
 
   // Mobile: 4 primary + "Lainnya" button, rest in expanded drawer
   const PRIMARY_COUNT = 4;
@@ -180,7 +172,7 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
             <button
               key={String(id)}
               id={id ? `category-btn-${id}` : 'category-btn-all'}
-              onClick={() => { if (!selected) onSelectCategory(id); }}
+              onClick={() => onSelectCategory(selected ? null : id)}
               className={pillCls(selected)}
             >
               <Icon className={iconCls(selected)} />
