@@ -4,7 +4,7 @@
   },
   "common": {
     "explore": "Explore",
-    "ai_assistant": "AI Assistant",
+    "ai_assistant": "AI",
     "planner": "Planner",
     "map": "Map",
     "saved": "Saved",
@@ -58,7 +58,7 @@
     "local_favorites": "Locals' Favorites",
     "curated_collection": "Top Picks",
     "popular_destinations": "Popular Destinations",
-    "upcoming_festivals": "Upcoming Events & Festivals",
+    "upcoming_festivals": "Events",
     "ai_picks": "AI Picks Just for You",
     "ai_suggested_journey": "Your Chill Itinerary Idea",
     "one_perfect_day": "One fun & relaxed day in Jogja",

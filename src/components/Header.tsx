@@ -246,7 +246,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                       height={20}
                     />
                     <span className="text-xs font-medium text-white/90 max-w-[80px] truncate">
-                      {user?.name || t('common.user')}
+                      {(user?.name || t('common.user')).split(' ')[0]}
                     </span>
                     <ChevronRight className={`h-3 w-3 text-white/40 transition-transform duration-200 ${profileOpen ? 'rotate-90' : ''}`} />
                   </button>
