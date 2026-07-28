@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from '@/i18n/navigation';
-import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, ShieldCheck, Settings, HelpCircle, Bookmark, ChevronRight, Home, Languages, MapPin, Briefcase } from 'lucide-react';
+import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, ShieldCheck, Settings, HelpCircle, Bookmark, ChevronRight, MapPin, Briefcase, User, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -21,11 +21,13 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
   const { t } = useLocale();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   const { isAuthenticated, user, logout } = useAuth();
   const { coords, requestLocation } = useLocation();
   const [locationName, setLocationName] = useState('Yogyakarta');
+  const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!coords) return;
@@ -48,13 +50,25 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
       .catch(() => {});
   }, [coords]);
 
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [profileOpen]);
+
+  // Saved is accessible via heart icon — keep it out of nav to avoid duplication
   const navItems = [
     { id: 'discover', label: t('common.explore'), icon: Compass },
     { id: 'events', label: t('home.upcoming_festivals'), icon: CalendarDays },
     { id: 'planner', label: t('common.planner'), icon: CalendarDays },
     { id: 'ai-assistant', label: t('common.ai_assistant'), icon: Brain },
     { id: 'map', label: t('common.map'), icon: Map },
-    { id: 'saved', label: t('common.saved'), icon: Bookmark },
   ];
 
   useEffect(() => {
@@ -92,8 +106,8 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
           </div>
 
           {/* Desktop Navigation — lg and above only */}
-          <nav id="desktop-navbar" className="hidden lg:flex items-center whitespace-nowrap space-x-3 xl:space-x-6">
-            {navItems.filter(item => item.id !== 'saved' || isAuthenticated).map((item) => {
+          <nav id="desktop-navbar" className="hidden lg:flex items-center whitespace-nowrap space-x-1 xl:space-x-5">
+            {navItems.map((item) => {
               const isActive = activeTab === item.id || 
                 (item.id === 'events' && activeTab === 'discover-events') || 
                 (item.id === 'experiences' && activeTab === 'discover-experiences');
@@ -195,24 +209,14 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             {/* Auth Section */}
             {isAuthenticated ? (
               <div className="flex items-center space-x-2">
-                {(user?.role === 'admin' || user?.role === 'superadmin') && (
-                  <a
-                    href={process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-gold-400 hover:text-gold-300"
-                    title={t('common.admin_panel')}
-                  >
-                    <ShieldCheck className="h-4.5 w-4.5" />
-                  </a>
-                )}
+                {/* Jadi Mitra / Dashboard Partner — compact badge only */}
                 {user?.role === 'user' && (
                   <a
                     href="/partner"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-xs font-medium"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
                   >
-                    <Briefcase className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Jadi Mitra</span>
+                    <Briefcase className="h-3 w-3 shrink-0" />
+                    <span>Jadi Mitra</span>
                   </a>
                 )}
                 {user?.role === 'partner' && (
@@ -220,34 +224,84 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                     href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/partner/listings`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-xs font-medium"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
                   >
-                    <Briefcase className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Dashboard Partner</span>
+                    <Briefcase className="h-3 w-3 shrink-0" />
+                    <span>Partner</span>
                   </a>
                 )}
-                <button
-                  onClick={() => router.push('/profile')}
-                  className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer"
-                >
-                  <Image
-                    src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || t('common.user'))}`}
-                    className="h-5 w-5 rounded-full bg-stone-200"
-                    alt={user?.name || t('common.user')}
-                    width={20}
-                    height={20}
-                  />
-                  <span className="text-xs font-medium text-white/90 max-w-[100px] truncate">
-                    {user?.name || t('common.user')}
-                  </span>
-                </button>
-                <button
-                  onClick={logout}
-                  className="p-1.5 rounded-full hover:bg-white/10 transition-colors text-white/70 hover:text-white"
-                  title={t('common.logout')}
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
+
+                {/* Profile button + dropdown */}
+                <div className="relative" ref={profileRef}>
+                  <button
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 hover:bg-white/15 transition-colors cursor-pointer"
+                  >
+                    <Image
+                      src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || t('common.user'))}`}
+                      className="h-5 w-5 rounded-full bg-stone-200"
+                      alt={user?.name || t('common.user')}
+                      width={20}
+                      height={20}
+                    />
+                    <span className="text-xs font-medium text-white/90 max-w-[80px] truncate">
+                      {user?.name || t('common.user')}
+                    </span>
+                    <ChevronRight className={`h-3 w-3 text-white/40 transition-transform duration-200 ${profileOpen ? 'rotate-90' : ''}`} />
+                  </button>
+
+                  {profileOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden z-50 animate-fade-in">
+                        <div className="px-4 py-3 border-b border-stone-100 flex items-center gap-2.5">
+                          <Image
+                            src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || '')}`}
+                            className="h-8 w-8 rounded-full bg-stone-200 shrink-0"
+                            alt={user?.name || ''}
+                            width={32}
+                            height={32}
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-royal-950 truncate">{user?.name}</p>
+                            <p className="text-[10px] text-stone-400 truncate">{user?.email}</p>
+                          </div>
+                        </div>
+                        <div className="py-1">
+                          <button
+                            onClick={() => { router.push('/profile'); setProfileOpen(false); }}
+                            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 transition-colors"
+                          >
+                            <User className="h-3.5 w-3.5 text-stone-400" />
+                            {t('common.profile')}
+                          </button>
+                          {(user?.role === 'admin' || user?.role === 'superadmin') && (
+                            <a
+                              href={process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => setProfileOpen(false)}
+                              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-stone-700 hover:bg-stone-50 transition-colors"
+                            >
+                              <ShieldCheck className="h-3.5 w-3.5 text-gold-500" />
+                              {t('common.admin_panel')}
+                              <ExternalLink className="h-3 w-3 text-stone-300 ml-auto" />
+                            </a>
+                          )}
+                          <div className="border-t border-stone-100 mt-1 pt-1">
+                            <button
+                              onClick={() => { logout(); setProfileOpen(false); }}
+                              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 transition-colors"
+                            >
+                              <LogOut className="h-3.5 w-3.5" />
+                              {t('common.logout')}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
@@ -332,7 +386,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          {navItems.filter(item => item.id !== 'saved' || isAuthenticated).map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id ||
               (item.id === 'events' && activeTab === 'discover-events') ||
@@ -342,8 +396,8 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                 key={item.id}
                 onClick={() => {
                     if (item.id === 'planner') { setDrawerOpen(false); router.push('/planner'); }
-                    else if (item.id === 'saved') { setDrawerOpen(false); router.push('/saved'); }
                     else if (item.id === 'ai-assistant') { setDrawerOpen(false); router.push('/ai'); }
+                    else if (item.id === 'map') { setDrawerOpen(false); router.push('/map'); }
                     else handleNav(item.id);
                   }}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group ${
