@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { X, Mail, Lock, User, Loader2, Check, Info } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
+import { useRouter } from '@/i18n/navigation';
 import SocialLoginButtons from './SocialLoginButtons';
 
 interface AuthModalProps {
@@ -23,6 +24,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
 
   const { login, register } = useAuth();
   const { t } = useLocale();
+  const router = useRouter();
 
   if (!isOpen) return null;
 
@@ -54,8 +56,19 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
       const result = await login(email, password);
       if (result.success) {
         onClose();
-        onSuccess?.();
         resetForm();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          // Redirect to the page that required auth, or /profile as default
+          const returnTo = sessionStorage.getItem('auth_return_to');
+          if (returnTo) {
+            sessionStorage.removeItem('auth_return_to');
+            router.push(returnTo);
+          } else {
+            router.push('/profile');
+          }
+        }
       } else {
         setError(result.error || t('auth.login_failed'));
       }
@@ -195,7 +208,21 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
 
           {/* Social Login */}
           <div className="mt-5">
-            <SocialLoginButtons onError={setError} onSuccess={() => { onClose(); resetForm(); }} />
+            <SocialLoginButtons onError={setError} onSuccess={() => {
+              onClose();
+              resetForm();
+              if (!onSuccess) {
+                const returnTo = sessionStorage.getItem('auth_return_to');
+                if (returnTo) {
+                  sessionStorage.removeItem('auth_return_to');
+                  router.push(returnTo);
+                } else {
+                  router.push('/profile');
+                }
+              } else {
+                onSuccess();
+              }
+            }} />
           </div>
 
           {/* Toggle */}

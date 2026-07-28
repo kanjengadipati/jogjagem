@@ -99,7 +99,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               window.location.replace(returnTo);
               return;
             }
-            maybeRedirectToAdmin();
+            // Default redirect for regular users
+            const profile = await auth.getProfile();
+            const role = profile?.data?.role;
+            if (role === 'admin' || role === 'superadmin') {
+              maybeRedirectToAdmin();
+            } else if (role === 'user') {
+              window.location.replace('/profile');
+            }
+            // partner role stays on /partner — no redirect
           } else {
             console.error('Social login failed:', res.message);
             setState(prev => ({ ...prev, isLoading: false }));
