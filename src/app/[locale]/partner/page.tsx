@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { partners } from '@/lib/api';
 import { useRouter } from '@/i18n/navigation';
+import Image from 'next/image';
 import { ArrowLeft, Briefcase, CheckCircle2, Clock, XCircle, ExternalLink } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
 import type { BePartner } from '@/lib/api';
@@ -12,6 +13,36 @@ const CATEGORIES = [
   'Hotel', 'Restaurant', 'Cafe', 'Tour Guide', 'Transport',
   'Souvenir', 'Activity', 'Spa', 'Nightlife', 'Other',
 ];
+
+function HeroBanner({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <section className="relative bg-[#0f100c] text-white overflow-hidden">
+      <div className="absolute inset-0">
+        <Image
+          src="https://images.unsplash.com/photo-1707378174003-418d6262d355?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dHVndSUyMGpvZ2phfGVufDB8fDB8fHww"
+          alt="Tugu Jogja"
+          fill
+          priority
+          className="object-cover opacity-90 scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0f100c]/90 via-[#0f100c]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f100c]/60 via-transparent to-[#0f100c]/30" />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
+        <p className="text-xs font-mono text-gold-400 uppercase tracking-widest mb-1.5">
+          Jogjagem Partner
+        </p>
+        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight">
+          {title}
+        </h1>
+        <p className="text-sm text-white/75 leading-relaxed max-w-lg font-light mt-3">
+          {subtitle}
+        </p>
+      </div>
+    </section>
+  );
+}
 
 export default function PartnerPage() {
   const { isAuthenticated, user, isLoading: authLoading, refreshProfile } = useAuth();
@@ -65,7 +96,6 @@ export default function PartnerPage() {
     if (res.status === 'success') {
       setSubmitted(true);
       await refreshProfile();
-      // Open partner dashboard in new tab after successful apply
       const token = (await import('@/lib/api')).auth.getAccessToken();
       if (token) {
         window.open(
@@ -91,23 +121,28 @@ export default function PartnerPage() {
   // Not authenticated — show auth modal
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center px-4">
-        <div className="max-w-md w-full text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-gold-50 border border-gold-200 flex items-center justify-center mx-auto">
-            <Briefcase className="w-8 h-8 text-gold-600" />
+      <div className="min-h-screen bg-stone-50">
+        <HeroBanner title="Jadi Mitra Bisnis" subtitle="Daftarkan usaha Anda di Jogjagem dan jangkau ribuan wisatawan setiap hari." />
+        <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
+          <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center space-y-5 shadow-lg">
+            <div className="w-14 h-14 rounded-2xl bg-gold-50 border border-gold-200 flex items-center justify-center mx-auto">
+              <Briefcase className="w-7 h-7 text-gold-600" />
+            </div>
+            <div>
+              <h2 className="font-display text-lg font-bold text-stone-900">Mulai Sekarang</h2>
+              <p className="text-xs text-stone-500 mt-1">
+                Masuk atau daftar untuk mengajukan bisnis Anda sebagai mitra Jogjagem.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="px-6 py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors"
+            >
+              Masuk / Daftar
+            </button>
           </div>
-          <h1 className="font-display text-2xl font-bold text-stone-900">Jadi Mitra Bisnis</h1>
-          <p className="text-sm text-stone-500">
-            Daftarkan usaha Anda di Jogjagem dan jangkau ribuan wisatawan setiap hari.
-          </p>
-          <button
-            onClick={() => setShowAuthModal(true)}
-            className="px-6 py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors"
-          >
-            Masuk / Daftar
-          </button>
-          <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
         </div>
+        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       </div>
     );
   }
@@ -125,18 +160,15 @@ export default function PartnerPage() {
 
     return (
       <div className="min-h-screen bg-stone-50">
-        <div className="max-w-lg mx-auto px-4 py-12">
-          <button onClick={() => router.push('/')} className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700 mb-6">
-            <ArrowLeft className="w-4 h-4" /> Kembali
-          </button>
-
-          <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5">
+        <HeroBanner title="Status Pengajuan Anda" subtitle="Berikut status pengajuan mitra bisnis Anda di Jogjagem." />
+        <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
+          <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5 shadow-lg">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center`}>
                 <StatusIcon className={`w-5 h-5 ${s.color}`} />
               </div>
               <div>
-                <h1 className="font-display text-lg font-bold text-stone-900">Status Pengajuan</h1>
+                <h2 className="font-display text-lg font-bold text-stone-900">{myListing?.name || 'Pengajuan'}</h2>
                 <p className={`text-xs font-semibold ${s.color}`}>{s.label}</p>
               </div>
             </div>
@@ -189,19 +221,16 @@ export default function PartnerPage() {
   // New application form
   return (
     <div className="min-h-screen bg-stone-50">
-      <div className="max-w-lg mx-auto px-4 py-12">
-        <button onClick={() => router.push('/')} className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700 mb-6">
-          <ArrowLeft className="w-4 h-4" /> Kembali
-        </button>
-
-        <div className="bg-white rounded-2xl border border-stone-200 p-6">
+      <HeroBanner title="Jadi Mitra Bisnis" subtitle="Daftarkan usaha Anda di Jogjagem dan jangkau ribuan wisatawan setiap hari." />
+      <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
+        <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-lg">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-gold-50 border border-gold-200 flex items-center justify-center">
               <Briefcase className="w-5 h-5 text-gold-600" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-bold text-stone-900">Jadi Mitra Bisnis</h1>
-              <p className="text-xs text-stone-500">Daftarkan usaha Anda di Jogjagem</p>
+              <h2 className="font-display text-lg font-bold text-stone-900">Daftarkan Usaha Anda</h2>
+              <p className="text-xs text-stone-500">Isi data berikut untuk mengajukan menjadi mitra</p>
             </div>
           </div>
 
