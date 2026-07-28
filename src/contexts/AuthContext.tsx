@@ -46,6 +46,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const maybeRedirectToAdmin = useCallback(async () => {
+    try {
+      const profileRes = await auth.getProfile();
+      const role = profileRes?.data?.role;
+      if (role === 'admin' || role === 'superadmin') {
+        const token = auth.getAccessToken();
+        if (token) {
+          window.open(`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/login?token=${token}`, '_blank');
+        }
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   useEffect(() => {
     const handleAuth = async () => {
       if (typeof window !== 'undefined') {
@@ -78,6 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               } else {
                 window.location.hash = '';
               }
+              await refreshProfile();
+              maybeRedirectToAdmin();
             } else {
               console.error('Social login failed:', res.message);
               setState(prev => ({ ...prev, isLoading: false }));
@@ -87,12 +102,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setState(prev => ({ ...prev, isLoading: false }));
           }
         }
-        await refreshProfile();
       }
     };
 
     handleAuth();
-  }, [refreshProfile]);
+  }, [refreshProfile, maybeRedirectToAdmin]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -101,16 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await refreshProfile();
         // Sync any locally saved itineraries to DB in background
         syncLocalItinerariesToDB().catch(() => {});
-        // Get fresh profile to check role
-        const profileRes = await auth.getProfile();
-        const role = profileRes?.data?.role;
-        if (role === 'admin' || role === 'superadmin') {
-          const token = auth.getAccessToken();
-          if (token) {
-            window.open(`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/login?token=${token}`, '_blank');
-            return { success: true };
-          }
-        }
+        maybeRedirectToAdmin();
         return { success: true };
       }
       return { success: false, error: res.message || 'Login failed' };
@@ -138,6 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await refreshProfile();
         // Sync any locally saved itineraries to DB in background
         syncLocalItinerariesToDB().catch(() => {});
+        maybeRedirectToAdmin();
         return { success: true };
       }
       return { success: false, error: res.message || 'Social login failed' };
