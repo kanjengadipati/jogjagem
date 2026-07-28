@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
-import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, ShieldCheck, Settings, HelpCircle, Bookmark, ChevronRight, Home, Languages, MapPin } from 'lucide-react';
+import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, ShieldCheck, Settings, HelpCircle, Bookmark, ChevronRight, Home, Languages, MapPin, Briefcase } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -204,6 +204,26 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                     title={t('common.admin_panel')}
                   >
                     <ShieldCheck className="h-4.5 w-4.5" />
+                  </a>
+                )}
+                {user?.role === 'user' && (
+                  <a
+                    href="/partner"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-xs font-medium"
+                  >
+                    <Briefcase className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Jadi Mitra</span>
+                  </a>
+                )}
+                {user?.role === 'partner' && (
+                  <a
+                    href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/partner/listings`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-xs font-medium"
+                  >
+                    <Briefcase className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Dashboard Partner</span>
                   </a>
                 )}
                 <button

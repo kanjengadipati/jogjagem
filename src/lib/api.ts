@@ -613,6 +613,29 @@ export const partners = {
     return request<BePartner[]>(`/partners/sponsored${suffix}`);
   },
 
+  async apply(payload: {
+    name: string;
+    category: string;
+    description?: string;
+    location?: string;
+    address?: string;
+    image?: string;
+    phone?: string;
+    website?: string;
+    latitude?: number;
+    longitude?: number;
+    price?: string;
+  }) {
+    return request<BePartner>('/partners/apply', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async getMine() {
+    return request<BePartner[]>('/partners/me');
+  },
+
   trackImpression(externalId: string) {
     void request(`/partners/${encodeURIComponent(externalId)}/track/impression`, { method: 'POST' });
   },
@@ -640,6 +663,7 @@ interface BePartner {
   longitude?: number;
   is_sponsored?: boolean;
   sponsor_tier?: number;
+  status?: string;
 }
 
 interface BeAdCampaign {
