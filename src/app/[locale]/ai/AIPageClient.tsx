@@ -3,8 +3,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useSearchParams } from 'next/navigation';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { LocationProvider } from '@/contexts/LocationContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
@@ -143,13 +141,7 @@ function AIPageContent() {
 export default function AIPageClient() {
   return (
     <Suspense>
-      <AuthProvider>
-        <LocationProvider>
-
-            <AIPageContent />
-
-        </LocationProvider>
-      </AuthProvider>
+      <AIPageContent />
     </Suspense>
   );
 }

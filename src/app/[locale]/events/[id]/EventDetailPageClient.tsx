@@ -13,8 +13,6 @@ import {
 } from 'lucide-react';
 import YouTubePlayer from '@/components/YouTubePlayer';
 import MobileOverlayNav from '@/components/MobileOverlayNav';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { LocationProvider } from '@/contexts/LocationContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
 import { events as eventsApi } from '@/lib/api';
@@ -638,11 +636,5 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
 }
 
 export default function EventDetailPageClient({ id, event: initialEvent }: { id: string; event: EventDetail | null }) {
-  return (
-    <AuthProvider>
-      <LocationProvider>
-        <EventDetailContent initialEvent={initialEvent} id={id} />
-      </LocationProvider>
-    </AuthProvider>
-  );
+  return <EventDetailContent initialEvent={initialEvent} id={id} />;
 }

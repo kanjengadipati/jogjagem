@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { Heart, Compass, Loader2 } from 'lucide-react';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { LocationProvider } from '@/contexts/LocationContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
@@ -185,13 +184,5 @@ function SavedPageContent() {
 }
 
 export default function SavedPageClient() {
-  return (
-    <AuthProvider>
-      <LocationProvider>
-
-          <SavedPageContent />
-
-      </LocationProvider>
-    </AuthProvider>
-  );
+  return <SavedPageContent />;
 }

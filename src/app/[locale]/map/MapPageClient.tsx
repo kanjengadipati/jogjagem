@@ -2,8 +2,6 @@
 
 import React from 'react';
 import { useRouter } from '@/i18n/navigation';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { LocationProvider } from '@/contexts/LocationContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
@@ -47,13 +45,5 @@ function MapPageContent() {
 }
 
 export default function MapPageClient() {
-  return (
-    <AuthProvider>
-      <LocationProvider>
-
-          <MapPageContent />
-
-      </LocationProvider>
-    </AuthProvider>
-  );
+  return <MapPageContent />;
 }

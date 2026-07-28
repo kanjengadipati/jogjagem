@@ -10,8 +10,6 @@ import {
 import { auth, reviews as reviewsApi, type ProfileResponse, type BeReview } from '@/lib/api';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import AuthModal from '@/components/AuthModal';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { LocationProvider } from '@/contexts/LocationContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import ReviewsSection from '@/components/profile/ReviewsSection';
 import MyTripsSection from '@/components/profile/MyTripsSection';
@@ -408,11 +406,5 @@ function ProfilePageContent() {
 }
 
 export default function ProfilePageClient() {
-  return (
-    <AuthProvider>
-      <LocationProvider>
-        <ProfilePageContent />
-      </LocationProvider>
-    </AuthProvider>
-  );
+  return <ProfilePageContent />;
 }
