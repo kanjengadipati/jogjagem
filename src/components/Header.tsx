@@ -137,6 +137,29 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 
           {/* Desktop Action Icons — lg and above */}
           <div className="hidden lg:flex items-center space-x-2 shrink-0">
+
+            {/* Jadi Mitra / Dashboard Partner — first in right group */}
+            {(!isAuthenticated || user?.role === 'user') && (
+              <a
+                href="/partner"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
+              >
+                <Briefcase className="h-3 w-3 shrink-0" />
+                <span>Jadi Mitra</span>
+              </a>
+            )}
+            {isAuthenticated && user?.role === 'partner' && (
+              <a
+                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/partner/listings`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
+              >
+                <Briefcase className="h-3 w-3 shrink-0" />
+                <span>Partner</span>
+              </a>
+            )}
+
             <button
               onClick={() => coords ? undefined : requestLocation()}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors text-white/70 hover:text-white text-xs font-medium"
@@ -204,28 +227,6 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                   </>
                 )}
               </div>
-            )}
-
-            {/* Jadi Mitra / Dashboard Partner — visible to guests and non-admin users */}
-            {(!isAuthenticated || user?.role === 'user') && (
-              <a
-                href="/partner"
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
-              >
-                <Briefcase className="h-3 w-3 shrink-0" />
-                <span>Jadi Mitra</span>
-              </a>
-            )}
-            {isAuthenticated && user?.role === 'partner' && (
-              <a
-                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/partner/listings`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
-              >
-                <Briefcase className="h-3 w-3 shrink-0" />
-                <span>Partner</span>
-              </a>
             )}
 
             {/* Auth Section */}
