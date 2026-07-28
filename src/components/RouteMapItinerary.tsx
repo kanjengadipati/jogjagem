@@ -1096,7 +1096,7 @@ export default function RouteMapItinerary({
                   {isMoodPickerOpen && (
                     <div
                       className={`absolute bottom-[calc(100%-18px)] z-50 w-[236px] p-1.5 rounded-lg border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_8px_22px_rgba(0,0,0,0.85)] animate-fade-in lg:w-[min(360px,calc(100vw-32px))] lg:p-2 lg:rounded-xl ${
-                        waveIndex <= 1 ? 'left-1/2 -translate-x-[15%]' : waveIndex >= 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                        waveIndex <= 1 ? 'left-[calc(50%-5px)] -translate-x-[15%]' : waveIndex >= 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
                       }`}
                       onClick={(e) => e.stopPropagation()}
                     >
