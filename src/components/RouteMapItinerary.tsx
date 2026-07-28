@@ -541,7 +541,7 @@ export default function RouteMapItinerary({
       }
       return next;
     });
-    setOpenMoodPickers(prev => new Set([...prev, slotIndex]));
+    setOpenMoodPickers(new Set([slotIndex]));
   }
 
   function resetSlotWithNightFilter(slotIndex: number) {
@@ -741,7 +741,7 @@ export default function RouteMapItinerary({
         next[slotIndex] = { status: 'open', index: slotIndex };
         return next;
       });
-      setOpenMoodPickers(prev => new Set([...prev, slotIndex]));
+      setOpenMoodPickers(new Set([slotIndex]));
     }
   }
 
@@ -1031,7 +1031,7 @@ export default function RouteMapItinerary({
                       next[slotIndex] = { status: 'open', index: slotIndex };
                       return next;
                     });
-                    setOpenMoodPickers(prev => new Set([...prev, slotIndex]));
+                    setOpenMoodPickers(new Set([slotIndex]));
                   }}
                 >
                   <div className="mb-0.5 flex items-center gap-1 h-5" />
@@ -1065,7 +1065,13 @@ export default function RouteMapItinerary({
                   key={`slot-open-${slotIndex}`}
                   className={`absolute flex flex-col items-center cursor-pointer group ${isMoodPickerOpen ? 'z-[90]' : ''} ${waveTranslateY}`}
                   style={nodeStyle}
-                  onClick={() => setOpenMoodPickers(prev => { const next = new Set(prev); if (next.has(slotIndex)) next.delete(slotIndex); else next.add(slotIndex); return next; })}
+                  onClick={() => {
+                    setOpenMoodPickers(prev => {
+                      const next = new Set<number>();
+                      if (!prev.has(slotIndex)) next.add(slotIndex);
+                      return next;
+                    });
+                  }}
                 >
                   <div className="mb-0.5 flex items-center gap-1 h-5" />
                   {/* Pulsing ? pin */}
@@ -1090,12 +1096,12 @@ export default function RouteMapItinerary({
                   {isMoodPickerOpen && (
                     <div
                       className={`absolute bottom-[calc(100%-18px)] z-50 w-[236px] p-1.5 rounded-lg border border-gold-400/60 bg-royal-950/95 backdrop-blur-xl shadow-[0_8px_22px_rgba(0,0,0,0.85)] animate-fade-in lg:w-[min(360px,calc(100vw-32px))] lg:p-2 lg:rounded-xl ${
-                        waveIndex <= 1 ? 'left-1/2 -translate-x-[35%] lg:left-0 lg:translate-x-0' : waveIndex >= 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                        waveIndex <= 1 ? 'left-0' : waveIndex >= 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
                       }`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className={`absolute -bottom-1 h-2.5 w-2.5 rotate-45 border-b border-r border-gold-400/60 bg-royal-950/95 ${
-                        waveIndex <= 1 ? 'left-[28%]' : waveIndex >= 3 ? 'left-[72%]' : 'left-1/2 -translate-x-1/2'
+                        waveIndex <= 1 ? 'left-4' : waveIndex >= 3 ? 'right-4' : 'left-1/2 -translate-x-1/2'
                       }`} />
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-[8.5px] lg:text-[9.5px] font-bold text-gold-400 tracking-wide">
