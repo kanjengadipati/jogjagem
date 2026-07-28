@@ -366,17 +366,21 @@ export default function App() {
     }
   }, [activeTab, allQuotes]);
 
-  const badgePriority = (badge?: string) =>
-    badge === 'trending' ? 0 : badge === 'hidden_gem' ? 1 : 2;
-
-  // When a category is selected, allDestinations is already populated by the
-  // API fetch in the selectedCategory useEffect — no extra client-side filter needed.
+  // Popular destinations — sorted by popularity score DESC
   const displayDestinations = selectedCategory
     ? allDestinations
     : [...allDestinations].sort((a, b) => {
-        const rankDiff = badgePriority(a.badge) - badgePriority(b.badge);
-        if (rankDiff !== 0) return rankDiff;
-        return (b.rating ?? 0) - (a.rating ?? 0);
+        const scoreA = (
+            ( (a.rating || 0) / 5 * 0.4 ) +
+            ( Math.min(Math.log10((a.reviewCount || 0) + 1), 3) / 3 * 0.4 ) +
+            (a.badge === 'trending' ? 0.5 : a.badge === 'hidden_gem' ? 0.2 : 0)
+        );
+        const scoreB = (
+            ( (b.rating || 0) / 5 * 0.4 ) +
+            ( Math.min(Math.log10((b.reviewCount || 0) + 1), 3) / 3 * 0.4 ) +
+            (b.badge === 'trending' ? 0.5 : b.badge === 'hidden_gem' ? 0.2 : 0)
+        );
+        return scoreB - scoreA;
       });
 
   if (isLoading) {

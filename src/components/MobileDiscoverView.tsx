@@ -90,12 +90,6 @@ const ALL_CATEGORIES = [
 const PRIMARY_CATS = ALL_CATEGORIES.slice(0, 4);
 const MORE_CATS = ALL_CATEGORIES.slice(4);
 
-// badge priority untuk sorting
-function badgePriority(badge?: string): number {
-  if (badge === 'trending') return 0;
-  if (badge === 'hidden_gem') return 1;
-  return 2;
-}
 
 const HERO_SLIDES = [
   { id: 'prambanan',    name: 'Candi Prambanan',   tagline: 'Candi Hindu abad ke-9 yang megah.',         image: 'https://images.unsplash.com/photo-1578469550956-0e16b69c6a3d?auto=format&fit=crop&w=1200&q=80', subRegion: 'Sleman',    latitude: -7.7520, longitude: 110.4914 },
@@ -311,14 +305,29 @@ export default function MobileDiscoverView({
   }, [coords]);
 
 
-  // Popular destinations — sorted by trending first, then rating DESC
+  function calculatePopularityScore(dest: Destination): number {
+    // 1. Base Score from Rating (normalized to 0-1)
+    const ratingScore = (dest.rating || 0) / 5;
+
+    // 2. Review Count Factor (logarithmic scaling)
+    const reviewScore = Math.min(Math.log10((dest.reviewCount || 0) + 1), 3) / 3;
+
+    // 3. Badge Bonus
+    let badgeBonus = 0;
+    if (dest.badge === 'trending') badgeBonus = 0.5;
+    else if (dest.badge === 'hidden_gem') badgeBonus = 0.2;
+
+    // Weights
+    const weightRating = 0.4;
+    const weightReviews = 0.4;
+
+    return (ratingScore * weightRating) + (reviewScore * weightReviews) + badgeBonus;
+  }
+
+// Popular destinations — sorted by popularity score DESC
   const popularDests = (() => {
     return [...allDestinations]
-      .sort((a, b) => {
-        const rankDiff = badgePriority(a.badge) - badgePriority(b.badge);
-        if (rankDiff !== 0) return rankDiff;
-        return (b.rating ?? 0) - (a.rating ?? 0);
-      })
+      .sort((a, b) => calculatePopularityScore(b) - calculatePopularityScore(a))
       .slice(0, 15);
   })();
 

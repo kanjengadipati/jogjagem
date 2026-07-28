@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  ArrowLeft, Loader2, AlertCircle, Settings, User,
+  ArrowLeft, Loader2, AlertCircle, User,
   Lock, ChevronRight, Eye, EyeOff,
 } from 'lucide-react';
 import { auth, reviews as reviewsApi, type ProfileResponse, type BeReview } from '@/lib/api';

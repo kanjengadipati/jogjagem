@@ -652,11 +652,27 @@ interface BeAdCampaign {
   weight?: number;
 }
 
+interface BeHouseAd {
+  id: string;
+  placement: string;
+  headline: string;
+  subline?: string;
+  cta_label: string;
+  image_url?: string;
+  target_url: string;
+  is_enabled?: boolean;
+}
+
 export const ads = {
   async getBanner(placement: string, category?: string) {
     const qs = new URLSearchParams({ placement });
     if (category) qs.set('category', category);
     return request<BeAdCampaign | null>(`/ads/banners?${qs.toString()}`);
+  },
+
+  async getHouseAd(placement: string) {
+    const qs = new URLSearchParams({ placement });
+    return request<BeHouseAd | null>(`/ads/house?${qs.toString()}`);
   },
 
   trackImpression(externalId: string) {
@@ -690,7 +706,7 @@ export const articles = {
   },
 };
 
-export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BePartner, BeAdCampaign };
+export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BePartner, BeAdCampaign, BeHouseAd };
 
 export interface TripDayPayload {
   dayNumber: number;
