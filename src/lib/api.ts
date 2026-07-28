@@ -168,7 +168,7 @@ async function request<T>(
     return { status: 'error', message: 'Server unreachable' } satisfies APIResponse<T>;
   }
 
-  if ((res.status === 401 || res.status === 403) && path !== '/auth/refresh') {
+  if (res.status === 401 && path !== '/auth/refresh') {
     const refreshed = await tryRefresh();
     if (refreshed) {
       return request<T>(path, options);
