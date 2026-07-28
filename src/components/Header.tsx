@@ -88,7 +88,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
   return (
     <>
       <header id="main-app-header" className={headerClass}>
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           
           {/* Brand Logo */}
             <div 
@@ -97,7 +97,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             onClick={() => { setActiveTab('discover'); router.push('/', { scroll: false }); }}
           >
             <div className="text-gold-400 transition-transform duration-300 group-hover:scale-105 mr-2">
-              <Image src="/logo-gold-new.png" alt="Jogjagem Logo" width={40} height={40} className="object-contain" />
+              <Image src="/logo-gold-new.png" alt="Jogjagem Logo" width={32} height={32} className="object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="font-manrope text-[17px] font-bold tracking-widest text-white">Jogjagem</span>
