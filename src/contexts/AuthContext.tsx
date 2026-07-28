@@ -46,10 +46,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const maybeRedirectToAdmin = useCallback(async () => {
+    // Don't redirect if user is on the partner application page
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/partner')) {
+      return;
+    }
     try {
       const profileRes = await auth.getProfile();
       const role = profileRes?.data?.role;
-      if (role === 'admin' || role === 'superadmin' || role === 'partner') {
+      if (role === 'admin' || role === 'superadmin') {
         const token = auth.getAccessToken();
         if (token) {
           window.open(`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/login?token=${token}`, '_blank');
@@ -88,6 +92,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               window.location.hash = '';
             }
             await refreshProfile();
+            // Return to the page the user was on before Google redirect
+            const returnTo = sessionStorage.getItem('auth_return_to');
+            if (returnTo) {
+              sessionStorage.removeItem('auth_return_to');
+              window.location.replace(returnTo);
+              return;
+            }
             maybeRedirectToAdmin();
           } else {
             console.error('Social login failed:', res.message);

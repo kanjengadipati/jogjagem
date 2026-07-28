@@ -65,6 +65,14 @@ export default function PartnerPage() {
     if (res.status === 'success') {
       setSubmitted(true);
       await refreshProfile();
+      // Open partner dashboard in new tab after successful apply
+      const token = (await import('@/lib/api')).auth.getAccessToken();
+      if (token) {
+        window.open(
+          `${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/login?token=${token}`,
+          '_blank'
+        );
+      }
     } else {
       setError(res.message || 'Gagal mengajukan. Silakan coba lagi.');
     }
