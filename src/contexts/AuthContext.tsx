@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const profileRes = await auth.getProfile();
       const role = profileRes?.data?.role;
-      if (role === 'admin' || role === 'superadmin') {
+      if (role === 'admin' || role === 'superadmin' || role === 'partner') {
         const token = auth.getAccessToken();
         if (token) {
           window.open(`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/login?token=${token}`, '_blank');

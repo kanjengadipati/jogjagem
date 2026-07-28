@@ -209,8 +209,8 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             {/* Auth Section */}
             {isAuthenticated ? (
               <div className="flex items-center space-x-2">
-                {/* Jadi Mitra / Dashboard Partner — compact badge only */}
-                {user?.role === 'user' && (
+                {/* Jadi Mitra / Dashboard Partner — visible to guests and non-admin users */}
+                {(!isAuthenticated || user?.role === 'user') && (
                   <a
                     href="/partner"
                     className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
@@ -219,7 +219,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                     <span>Jadi Mitra</span>
                   </a>
                 )}
-                {user?.role === 'partner' && (
+                {isAuthenticated && user?.role === 'partner' && (
                   <a
                     href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/partner/listings`}
                     target="_blank"
