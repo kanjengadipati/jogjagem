@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (role === 'admin' || role === 'superadmin') {
         const token = auth.getAccessToken();
         if (token) {
-          window.open(`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/login?token=${token}`, '_blank');
+          window.open(`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/login?token=${token}`, '_blank');
         }
       }
     } catch { /* ignore */ }

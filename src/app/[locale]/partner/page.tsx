@@ -69,7 +69,7 @@ export default function PartnerPage() {
       const token = (await import('@/lib/api')).auth.getAccessToken();
       if (token) {
         window.open(
-          `${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/login?token=${token}`,
+          `${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/login?token=${token}`,
           '_blank'
         );
       }
@@ -160,7 +160,7 @@ export default function PartnerPage() {
 
             {status === 'approved' && (
               <a
-                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/partner/listings`}
+                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner/listings`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors"

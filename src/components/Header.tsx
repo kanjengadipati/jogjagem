@@ -150,7 +150,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             )}
             {isAuthenticated && user?.role === 'partner' && (
               <a
-                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}/partner/listings`}
+                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner/listings`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
@@ -279,7 +279,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                           </button>
                           {(user?.role === 'admin' || user?.role === 'superadmin') && (
                             <a
-                              href={process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'}
+                              href={process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={() => setProfileOpen(false)}
@@ -445,7 +445,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             </div>
           )}
           {isAuthenticated && (user?.role === 'admin' || user?.role === 'superadmin') && (
-            <a href={process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3005'} target="_blank" rel="noopener noreferrer"
+            <a href={process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'} target="_blank" rel="noopener noreferrer"
               onClick={() => setDrawerOpen(false)}
               className="mt-1 w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gradient-to-r from-gold-700/20 to-gold-600/10 hover:from-gold-700/30 transition-all"
             >
