@@ -12,28 +12,20 @@ import SearchBar from './SearchBar';
 import RouteMapItinerary from './RouteMapItinerary';
 
 const BADGE_COLOR: Record<string, string> = {
-  'Spesial Hari Ini': 'bg-orange-500',
-  'Trending': 'bg-blue-500',
-  'Populer': 'bg-teal-500',
-  'Cahaya Surga': 'bg-purple-500',
-  'Warisan Budaya': 'bg-amber-600',
-  'Alam Terbaik': 'bg-green-600',
-  'Ikon Dunia': 'bg-rose-500',
-  'Akan Datang': 'bg-indigo-500',
-  'Hidden Gem': 'bg-emerald-600',
-  'Sunrise Spot': 'bg-amber-400',
-  'Sunset Spot': 'bg-orange-500',
-  'Camping Spot': 'bg-lime-700',
-  'Budget Friendly': 'bg-emerald-600',
-  'Waterfall': 'bg-cyan-600',
-  'Night Spot': 'bg-indigo-600',
-  "Photographer's Pick": 'bg-fuchsia-600',
+  trending: 'bg-rose-500',
+  hidden_gem: 'bg-violet-500',
+  event: 'bg-amber-500',
+  today_only: 'bg-emerald-500',
+  popular: 'bg-orange-500',
+  new: 'bg-cyan-500',
+  photographers_pick: 'bg-fuchsia-600',
 };
 
 type TrendingItem = {
   type: 'destination' | 'event';
   id: string;
   badge: string;
+  badgeType?: string;
   headline: string;
   reason: string;
   imageUrl: string;
@@ -221,7 +213,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
   // Reusable trending card renderer — tap to expand (mobile-first interactive)
   const renderTrendingCard = (item: TrendingItem, keyPrefix: string, rank: number) => {
     const cardKey = `${keyPrefix}-${item.type}-${item.id}`;
-    const badgeColor = BADGE_COLOR[item.badge] ?? 'bg-gold-500';
+    const badgeColor = BADGE_COLOR[item.badgeType ?? ''] ?? 'bg-gold-500';
     const dest = item.type === 'destination' ? destinations.find(d => d.id === item.id) : null;
     const isExpanded = expandedCardKey === cardKey;
     const isMobile = keyPrefix === 'mobile';
