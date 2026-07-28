@@ -150,7 +150,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             )}
             {isAuthenticated && user?.role === 'partner' && (
               <a
-                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner/listings`}
+                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
