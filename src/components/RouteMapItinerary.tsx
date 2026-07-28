@@ -343,7 +343,11 @@ export default function RouteMapItinerary({
     } finally {
       hasHydratedRouteRef.current = true;
       if (!didHydrateStoredRoute) {
-        setOpenMoodPickers(new Set([0]));
+        // Auto-open mood picker for the first slot after a short delay
+        // so it appears smoothly after initial page render/animations
+        setTimeout(() => {
+          setOpenMoodPickers(new Set([0]));
+        }, 400);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -569,7 +573,10 @@ export default function RouteMapItinerary({
     setToast(null);
     setNightOnlySlots({});
     setSlots(INITIAL_SLOTS.map((slot) => ({ ...slot })));
-    setOpenMoodPickers(new Set());
+    // Auto-open mood picker for first slot after clearing so user knows to start again
+    setTimeout(() => {
+      setOpenMoodPickers(new Set([0]));
+    }, 200);
   }
 
   function cancelConfirmationWithNightFilter(slotIndex: number) {

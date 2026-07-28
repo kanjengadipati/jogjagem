@@ -664,6 +664,10 @@ interface BePartner {
   is_sponsored?: boolean;
   sponsor_tier?: number;
   status?: string;
+  /** Status pembayaran sponsorship dari Midtrans (paid | pending | expired | failed) */
+  sponsor_payment_status?: string;
+  /** Tanggal berakhir sponsorship (ISO 8601) */
+  sponsor_end_at?: string;
 }
 
 interface BeAdCampaign {

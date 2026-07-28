@@ -201,6 +201,38 @@ export default function PartnerPage() {
               </a>
             )}
 
+            {/* ── Status pembayaran sponsorship ── */}
+            {status === 'approved' && myListing?.is_sponsored && myListing?.sponsor_payment_status !== 'paid' && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 leading-relaxed">
+                <p className="font-semibold mb-0.5">⏳ Menunggu konfirmasi pembayaran</p>
+                <p className="text-xs text-amber-700 font-normal">
+                  Listing Anda ditandai sebagai sponsor namun pembayaran belum kami terima.
+                  Tim kami akan menghubungi Anda dengan link pembayaran secara terpisah.
+                </p>
+              </div>
+            )}
+
+            {status === 'approved' && myListing?.is_sponsored && myListing?.sponsor_payment_status === 'paid' && (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 leading-relaxed">
+                <p className="font-semibold mb-0.5">✅ Sponsorship aktif</p>
+                {myListing.sponsor_end_at ? (
+                  <p className="text-xs text-emerald-700 font-normal">
+                    Berlaku hingga{' '}
+                    <span className="font-semibold">
+                      {new Date(myListing.sponsor_end_at).toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'long', year: 'numeric',
+                      })}
+                    </span>
+                    .
+                  </p>
+                ) : (
+                  <p className="text-xs text-emerald-700 font-normal">
+                    Listing Anda tampil sebagai sponsor di halaman pencarian Jogjagem.
+                  </p>
+                )}
+              </div>
+            )}
+
             {status === 'rejected' && (
               <p className="text-xs text-stone-500 text-center">
                 Pengajuan ditolak. Anda dapat mengajukan ulang dengan data yang diperbarui.
