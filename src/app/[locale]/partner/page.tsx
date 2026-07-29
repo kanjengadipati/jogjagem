@@ -324,7 +324,7 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
             {[
               { n: '01', title: 'Daftar & Isi Formulir', desc: 'Buat akun lalu isi nama usaha, kategori, dan nomor kontak Anda.' },
               { n: '02', title: 'Lengkapi Profil Usaha', desc: 'Tambahkan foto, alamat lengkap, dan deskripsi menarik untuk memikat wisatawan.' },
-              { n: '03', title: 'Tayang & Sambut Tamu', desc: 'Listing Anda langsung aktif dan siap ditemukan jutaan wisatawan Jogja!' },
+              { n: '03', title: 'Verifikasi & Tayang', desc: 'Setelah ditinjau dan disetujui tim kami, listing Anda aktif dan siap ditemukan jutaan wisatawan Jogja!' },
             ].map((st) => (
               <div key={st.n} className="bg-stone-900/60 border border-white/10 rounded-2xl p-6 space-y-2">
                 <div className="text-3xl font-serif font-bold text-gold-400">{st.n}</div>
