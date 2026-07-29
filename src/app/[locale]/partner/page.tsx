@@ -155,7 +155,7 @@ function CompleteListingForm({ listing, onSubmitted }: { listing: BePartner; onS
 }
 
 export default function PartnerPage() {
-  const { isAuthenticated, isLoading: authLoading, refreshProfile } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, refreshProfile, user } = useAuth();
   const { t } = useLocale();
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
