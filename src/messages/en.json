@@ -544,7 +544,7 @@
     "category": "Category",
     "category_placeholder": "Select business category",
     "location": "Business Location",
-    "location_placeholder": "Enter business location",
+    "location_placeholder": "Select business location",
     "phone": "WhatsApp / Phone No.",
     "email_business": "Business Email",
     "required": "*",
