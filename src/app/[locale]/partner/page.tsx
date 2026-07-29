@@ -167,7 +167,14 @@ export default function PartnerPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
 
-  const [form, setForm] = useState({ business_name: '', category: '', location: '', phone: '', email: user?.email || '' });
+  const [form, setForm] = useState({ business_name: '', category: '', location: '', phone: '', email: '' });
+
+  useEffect(() => {
+    if (user?.email && !form.email) {
+      setForm((prev) => ({ ...prev, email: user.email }));
+    }
+  }, [user?.email]);
+
   const isFormValid = form.business_name.trim() && form.category && form.location && form.phone.trim() && form.email.trim() && termsAccepted;
 
   useEffect(() => {
