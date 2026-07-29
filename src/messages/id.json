@@ -49,7 +49,8 @@
     "all": "Semua",
     "yes": "Ya",
     "no": "Tidak",
-    "login_required": "Anda perlu masuk untuk melanjutkan"
+    "login_required": "Anda perlu masuk untuk melanjutkan",
+    "profile": "Profil"
   },
   "home": {
     "hero_title": "Eksplorasi Serunya Yogyakarta",

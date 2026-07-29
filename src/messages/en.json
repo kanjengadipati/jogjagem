@@ -49,7 +49,8 @@
     "all": "All",
     "yes": "Yes",
     "no": "No",
-    "login_required": "You need to sign in to continue"
+    "login_required": "You need to log in to continue",
+    "profile": "Profile"
   },
   "home": {
     "hero_title": "Explore the Best of Yogyakarta",
