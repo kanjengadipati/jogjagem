@@ -844,7 +844,7 @@ export default function RouteMapItinerary({
   return (
     <div className={`w-full max-w-[500px] sm:max-w-[560px] lg:max-w-none ml-0 bg-transparent overflow-visible ${className}`}>
       {/* HEADER */}
-      <div className="relative z-10 flex translate-y-16 items-center mb-1 px-1 gap-1.5 lg:translate-y-0">
+      <div className="relative z-10 flex items-center mb-1 px-1 gap-1.5">
         <div className="flex max-w-[calc(100%-30px)] items-center gap-1.5 overflow-hidden">
           <Navigation className="h-3.5 w-3.5 text-gold-400 animate-pulse shrink-0" />
           <h3 className="text-[11px] font-bold text-white/90 tracking-wide uppercase flex items-center gap-1 min-w-0 truncate">
@@ -891,14 +891,14 @@ export default function RouteMapItinerary({
       </div>
 
       {/* WAVE + NODES */}
-      <div className="relative h-[168px] lg:h-[126px] bg-transparent overflow-visible">
+      <div className="relative h-[126px] bg-transparent overflow-visible">
         {/* WAVY SVG LINE */}
         <svg
           width="100%"
           height="64"
           viewBox="0 0 100 64"
           preserveAspectRatio="none"
-          className="absolute left-0 top-16 lg:top-0 block w-full pointer-events-none"
+          className="absolute left-0 top-0 block w-full pointer-events-none"
           style={{ display: 'block' }}
           aria-hidden="true"
         >
@@ -915,7 +915,7 @@ export default function RouteMapItinerary({
         </svg>
 
         {/* Distance labels — Absolute positioning di antara node */}
-        <div className="absolute inset-x-0 top-16 bottom-0 lg:inset-0 z-20 pointer-events-none">
+        <div className="absolute inset-0 z-20 pointer-events-none">
           {slots.map((slot, i) => {
             const dist = slot?.status === 'resolved' ? slot.node.distanceFromPrev : undefined;
             if (dist == null) return null;
@@ -940,7 +940,7 @@ export default function RouteMapItinerary({
 
         {/* Day dividers — vertical dashed line + label between nodes that cross day boundaries */}
         {hasMultipleDays && (
-          <div className="absolute inset-x-0 top-16 bottom-0 lg:inset-0 z-15 pointer-events-none">
+          <div className="absolute inset-0 z-15 pointer-events-none">
             {slots.map((slot, i) => {
               if (i === 0) return null;
               if (slot.status !== 'resolved') return null;
@@ -972,7 +972,7 @@ export default function RouteMapItinerary({
         )}
 
         {/* Nodes: pulled up on top of wave */}
-        <div className="absolute inset-x-0 top-16 bottom-0 lg:inset-0">
+        <div className="absolute inset-0">
           {waveNodes.map((slot, waveIndex) => {
             const getNodeTop = () => {
               if (waveIndex === 0) return '21px';
