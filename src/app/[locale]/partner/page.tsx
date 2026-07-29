@@ -261,7 +261,7 @@ export default function PartnerPage() {
             </div>
 
             <div>
-              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">Email Bisnis *</label>
+              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.email_business')} *</label>
               <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="email@domain.com" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
 
@@ -410,7 +410,7 @@ export default function PartnerPage() {
           </div>
 
           <div>
-            <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">Email Bisnis *</label>
+            <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.email_business')} *</label>
             <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="email@domain.com" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
           </div>
 

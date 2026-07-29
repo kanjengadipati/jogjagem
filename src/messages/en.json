@@ -546,6 +546,7 @@
     "location": "Business Location",
     "location_placeholder": "Enter business location",
     "phone": "WhatsApp / Phone No.",
+    "email_business": "Business Email",
     "required": "*",
     "submit": "Submit Application",
     "submitting": "Submitting...",

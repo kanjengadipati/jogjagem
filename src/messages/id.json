@@ -546,6 +546,7 @@
     "location": "Lokasi Usaha",
     "location_placeholder": "Masukkan lokasi usaha",
     "phone": "No. WhatsApp / Telepon",
+    "email_business": "Email Bisnis",
     "required": "*",
     "submit": "Kirim Pengajuan",
     "submitting": "Mengirim...",
