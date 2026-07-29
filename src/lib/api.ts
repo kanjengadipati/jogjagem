@@ -633,46 +633,6 @@ export const partners = {
     return request<BePartner[]>(`/partners/sponsored${suffix}`);
   },
 
-  async apply(payload: {
-    business_name: string;
-    category: string;
-    location?: string;
-    phone?: string;
-  }) {
-    return request<BePartnerApplication>('/partner-applications/apply', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  async getMine() {
-    return request<BePartnerApplication[]>('/partner-applications/me');
-  },
-};
-
-export const partnerApplications = {
-  apply: (data: { business_name: string; category: string; location?: string; phone?: string }) =>
-    request<BePartnerApplication>('/partner-applications/apply', { method: 'POST', body: JSON.stringify(data) }),
-  getMine: () => request<BePartnerApplication[]>('/partner-applications/me'),
-};
-
-export const partners = {
-  async getAll() {
-    return request<BePartner[]>('/partners');
-  },
-
-  async search(query: string) {
-    return request<BePartner[]>(`/partners/search?q=${encodeURIComponent(query)}`);
-  },
-
-  async getSponsored(params?: { destinationId?: string; category?: string }) {
-    const qs = new URLSearchParams();
-    if (params?.destinationId) qs.set('destination_id', params.destinationId);
-    if (params?.category) qs.set('category', params.category);
-    const suffix = qs.toString() ? `?${qs.toString()}` : '';
-    return request<BePartner[]>(`/partners/sponsored${suffix}`);
-  },
-
   async getMine() {
     return request<BePartner[]>('/partners/me');
   },
@@ -695,6 +655,12 @@ export const partners = {
   trackClick(externalId: string) {
     void request(`/partners/${encodeURIComponent(externalId)}/track/click`, { method: 'POST' });
   },
+};
+
+export const partnerApplications = {
+  apply: (data: { business_name: string; category: string; location?: string; phone?: string }) =>
+    request<BePartnerApplication>('/partner-applications/apply', { method: 'POST', body: JSON.stringify(data) }),
+  getMine: () => request<BePartnerApplication[]>('/partner-applications/me'),
 };
 
 // BE partner shape (snake_case from the API)
