@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocale } from '@/contexts/LocaleContext';
 import { partners, partnerApplications } from '@/lib/api';
 import { useRouter } from '@/i18n/navigation';
 import Image from 'next/image';
@@ -43,14 +44,15 @@ function ApplicationStatusCard({
   application: BePartnerApplication;
   onReapply: () => void;
 }) {
+  const { t } = useLocale();
   const s = application.status === 'pending'
-    ? { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200', label: 'Aplikasi Sedang Ditinjau' }
-    : { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', label: 'Aplikasi Ditolak' };
+    ? { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200', label: t('partner_page.app_pending_title') }
+    : { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', label: t('partner_page.app_rejected_title') };
   const StatusIcon = s.icon;
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <HeroBanner title="Status Aplikasi Anda" subtitle="Berikut status aplikasi kemitraan bisnis Anda." />
+      <HeroBanner title={t('partner_page.app_title')} subtitle={t('partner_page.hero_subtitle_status')} />
       <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4 shadow-lg">
           <div className="flex items-center gap-3">
@@ -63,14 +65,14 @@ function ApplicationStatusCard({
             </div>
           </div>
           {application.status === 'pending' && (
-            <p className="text-xs text-stone-400 text-center">Tim kami sedang meninjau kelayakan bisnis Anda. Proses biasanya 1-3 hari kerja.</p>
+            <p className="text-xs text-stone-400 text-center">{t('partner_page.app_pending_desc')}</p>
           )}
           {application.status === 'rejected' && (
             <>
               {application.rejection_reason && (
                 <p className="text-xs text-stone-600 bg-stone-50 rounded-lg p-3">{application.rejection_reason}</p>
               )}
-              <button onClick={onReapply} className="w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600">Ajukan Ulang</button>
+              <button onClick={onReapply} className="w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600">{t('partner_page.app_rejected_reapply')}</button>
             </>
           )}
         </div>
@@ -80,6 +82,7 @@ function ApplicationStatusCard({
 }
 
 function CompleteListingForm({ listing, onSubmitted }: { listing: BePartner; onSubmitted: () => void }) {
+  const { t } = useLocale();
   const [form, setForm] = useState({
     description: listing.description || '',
     address: listing.address || '',
@@ -110,45 +113,45 @@ function CompleteListingForm({ listing, onSubmitted }: { listing: BePartner; onS
     if (res.status === 'success') {
       onSubmitted();
     } else {
-      setError(res.message || 'Lengkapi deskripsi dan alamat sebelum submit.');
+      setError(res.message || t('partner_page.error_complete'));
     }
     setSaving(false);
   }
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <HeroBanner title="Lengkapi Listing Anda" subtitle={`Aplikasi '${listing.name}' disetujui — lengkapi detail berikut agar listing Anda bisa mulai ditinjau untuk tayang.`} />
+      <HeroBanner title={t('partner_page.complete_title')} subtitle={t('partner_page.hero_subtitle_complete', { name: listing.name })} />
       <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4 shadow-lg">
           <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">Deskripsi *</label>
+            <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.description')} *</label>
             <textarea name="description" value={form.description} onChange={handleChange} rows={4} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">Alamat Lengkap *</label>
+            <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.address')} *</label>
             <input name="address" value={form.address} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">URL Gambar</label>
+            <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.image_url')}</label>
             <input name="image" value={form.image} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">Website</label>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.website')}</label>
               <input name="website" value={form.website} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">Harga</label>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.price')}</label>
               <input name="price" value={form.price} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
             </div>
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <div className="flex gap-3 pt-2">
             <button onClick={handleSaveDraft} disabled={saving} className="flex-1 py-3 border border-stone-200 text-stone-700 font-semibold rounded-xl hover:bg-stone-50 disabled:opacity-50 flex items-center justify-center gap-2">
-              <Save className="w-4 h-4" /> Simpan Draft
+              <Save className="w-4 h-4" /> {t('partner_page.save_draft')}
             </button>
             <button onClick={handleSubmitForReview} disabled={saving} className="flex-1 py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 disabled:opacity-50">
-              Submit untuk Ditinjau
+              {t('partner_page.submit_review')}
             </button>
           </div>
         </div>
@@ -159,6 +162,7 @@ function CompleteListingForm({ listing, onSubmitted }: { listing: BePartner; onS
 
 export default function PartnerPage() {
   const { isAuthenticated, isLoading: authLoading, refreshProfile } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [myApplication, setMyApplication] = useState<BePartnerApplication | null>(null);
@@ -203,7 +207,7 @@ export default function PartnerPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.business_name || !form.category) {
-      setError('Nama usaha dan kategori wajib diisi.');
+      setError(t('partner_page.error_required'));
       return;
     }
     setSubmitting(true);
@@ -213,7 +217,7 @@ export default function PartnerPage() {
       setSubmitted(true);
       await refreshProfile();
     } else {
-      setError(res.message || 'Gagal mengajukan. Silakan coba lagi.');
+      setError(res.message || t('partner_page.error_generic'));
     }
     setSubmitting(false);
   };
@@ -231,17 +235,17 @@ export default function PartnerPage() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-stone-50">
-        <HeroBanner title="Jadi Mitra Bisnis" subtitle="Daftarkan usaha Anda dalam 1 menit — lengkapi detail listing setelah disetujui." />
+        <HeroBanner title={t('partner_page.hero_title')} subtitle={t('partner_page.hero_subtitle')} />
         <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
           <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center space-y-5 shadow-lg">
             <div className="w-14 h-14 rounded-2xl bg-gold-50 border border-gold-200 flex items-center justify-center mx-auto">
               <Briefcase className="w-7 h-7 text-gold-600" />
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-stone-900">Mulai Sekarang</h2>
-              <p className="text-xs text-stone-500 mt-1">Masuk atau daftar untuk mengajukan bisnis Anda sebagai mitra Jogjagem.</p>
+              <h2 className="font-display text-lg font-bold text-stone-900">{t('partner_page.cta_start')}</h2>
+              <p className="text-xs text-stone-500 mt-1">{t('partner_page.cta_desc')}</p>
             </div>
-            <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors">Masuk / Daftar</button>
+            <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors">{t('partner_page.cta_login')}</button>
           </div>
         </div>
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
@@ -253,17 +257,17 @@ export default function PartnerPage() {
   if (existingStatusCard) {
     const status = myListing!.status || 'pending';
     const statusConfig = {
-      pending: { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200', label: 'Sedang Direview' },
-      approved: { icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-200', label: 'Disetujui' },
-      rejected: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', label: 'Ditolak' },
-      suspended: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', label: 'Ditangguhkan' },
+      pending: { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200', label: t('partner_page.listing_pending') },
+      approved: { icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-200', label: t('partner_page.listing_approved') },
+      rejected: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', label: t('partner_page.listing_rejected') },
+      suspended: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', label: t('partner_page.listing_suspended') },
     } as const;
     const sc = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const StatusIcon = sc.icon;
 
     return (
       <div className="min-h-screen bg-stone-50">
-        <HeroBanner title="Status Listing Anda" subtitle="Berikut status listing bisnis Anda di Jogjagem." />
+        <HeroBanner title={t('partner_page.listing_title')} subtitle={t('partner_page.subtitle_listing_status')} />
         <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
           <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5 shadow-lg">
             <div className="flex items-center gap-3">
@@ -277,38 +281,38 @@ export default function PartnerPage() {
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between py-2 border-b border-stone-100">
-                <span className="text-stone-500">Kategori</span>
+                <span className="text-stone-500">{t('partner_page.category')}</span>
                 <span className="font-medium text-stone-800">{myListing!.category}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-stone-100">
-                <span className="text-stone-500">Lokasi</span>
+                <span className="text-stone-500">{t('partner_page.location')}</span>
                 <span className="font-medium text-stone-800">{myListing!.location || '-'}</span>
               </div>
             </div>
             {status === 'approved' && (
               <a href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner`} target="_blank" rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors">
-                Dashboard Partner <ExternalLink className="w-4 h-4" />
+                {t('partner_page.listing_approved_dashboard')} <ExternalLink className="w-4 h-4" />
               </a>
             )}
             {status === 'approved' && myListing!.is_sponsored && myListing!.sponsor_payment_status !== 'paid' && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 leading-relaxed">
-                <p className="font-semibold mb-0.5">Menunggu konfirmasi pembayaran</p>
-                <p className="text-xs text-amber-700 font-normal">Listing Anda ditandai sebagai sponsor namun pembayaran belum kami terima.</p>
+                <p className="font-semibold mb-0.5">{t('partner_page.sponsor_pending')}</p>
+                <p className="text-xs text-amber-700 font-normal">{t('partner_page.sponsor_pending_desc')}</p>
               </div>
             )}
             {status === 'approved' && myListing!.is_sponsored && myListing!.sponsor_payment_status === 'paid' && (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 leading-relaxed">
-                <p className="font-semibold mb-0.5">Sponsorship aktif</p>
+                <p className="font-semibold mb-0.5">{t('partner_page.sponsor_active')}</p>
                 {myListing!.sponsor_end_at ? (
-                  <p className="text-xs text-emerald-700 font-normal">Berlaku hingga {new Date(myListing!.sponsor_end_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>
+                  <p className="text-xs text-emerald-700 font-normal">{t('partner_page.sponsor_valid_until')} {new Date(myListing!.sponsor_end_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>
                 ) : (
                   <p className="text-xs text-emerald-700 font-normal">Listing Anda tampil sebagai sponsor di halaman pencarian Jogjagem.</p>
                 )}
               </div>
             )}
-            {status === 'pending' && <p className="text-xs text-stone-400 text-center">Listing Anda sedang ditinjau oleh tim kami. Proses biasanya memakan waktu 1-3 hari kerja.</p>}
-            {status === 'rejected' && <p className="text-xs text-stone-500 text-center">Pengajuan ditolak. Silakan hubungi tim kami untuk informasi lebih lanjut.</p>}
+            {status === 'pending' && <p className="text-xs text-stone-400 text-center">{t('partner_page.listing_pending_desc')}</p>}
+            {status === 'rejected' && <p className="text-xs text-stone-500 text-center">{t('partner_page.listing_rejected')}</p>}
           </div>
         </div>
       </div>
@@ -328,7 +332,7 @@ export default function PartnerPage() {
   // State 1: Belum apply sama sekali — form ringan
   return (
     <div className="min-h-screen bg-stone-50">
-      <HeroBanner title="Jadi Mitra Bisnis" subtitle="Daftarkan usaha Anda dalam 1 menit — lengkapi detail listing setelah disetujui." />
+      <HeroBanner title={t('partner_page.hero_title')} subtitle={t('partner_page.hero_subtitle')} />
       <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-lg">
           <div className="flex items-center gap-3 mb-6">
@@ -336,32 +340,32 @@ export default function PartnerPage() {
               <Briefcase className="w-5 h-5 text-gold-600" />
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-stone-900">Daftarkan Usaha Anda</h2>
-              <p className="text-xs text-stone-500">Isi data berikut untuk mengajukan menjadi mitra</p>
+              <h2 className="font-display text-lg font-bold text-stone-900">{t('partner_page.form_title')}</h2>
+              <p className="text-xs text-stone-500">{t('partner_page.form_subtitle')}</p>
             </div>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">Nama Usaha *</label>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.business_name')} *</label>
               <input name="business_name" value={form.business_name} onChange={handleChange} required
                 className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">Kategori *</label>
+              <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.category')} *</label>
               <select name="category" value={form.category} onChange={handleChange} required
                 className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50">
-                <option value="">Pilih kategori</option>
-                {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
+                <option value="">{t('partner_page.category_placeholder')}</option>
+                {CATEGORIES.map((c) => (<option key={c} value={c}>{t(`partner_page.category_${c.toLowerCase().replace(/\s+/g, '_')}`, { default: c })}</option>))}
               </select>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Lokasi</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.location')}</label>
                 <input name="location" value={form.location} onChange={handleChange}
                   className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">No. WhatsApp/Telepon</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.phone')}</label>
                 <input name="phone" value={form.phone} onChange={handleChange}
                   className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
               </div>
@@ -369,7 +373,7 @@ export default function PartnerPage() {
             {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-xl px-3 py-2">{error}</p>}
             <button type="submit" disabled={submitting}
               className="w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {submitting ? 'Mengirim...' : 'Kirim Pengajuan'}
+              {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
             </button>
           </form>
         </div>
