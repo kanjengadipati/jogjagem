@@ -146,6 +146,14 @@ async function request<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<APIResponse<T>> {
+  // If we have no token in memory yet, try to hydrate from the session cookie
+  // before sending the request (covers direct-URL navigations & hard refreshes).
+  // Skip for auth paths that don't need a token to avoid infinite loops.
+  const isAuthPath = path.startsWith('/auth/');
+  if (!accessToken && !isAuthPath) {
+    await hydrateSession();
+  }
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'Accept-Language': currentLocale,
