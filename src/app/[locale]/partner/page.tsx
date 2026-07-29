@@ -227,7 +227,7 @@ export default function PartnerPage() {
         <VisualPanel>
           <Logo />
           <div className="mt-auto mb-auto">
-            <h1 className="font-serif text-[clamp(18px,2.8vw,26px)] leading-[.9] tracking-[-.3px]">
+            <h1 className="font-serif text-[clamp(24px,3.8vw,38px)] leading-[.9] tracking-[-.3px]">
               {t('partner_page.hero_title')}<br /><span className="text-gold-500">{t('partner_page.hero_title_highlight')}</span>
             </h1>
             <div className="w-[50px] h-[2px] bg-gold-500 my-[10px]" />
@@ -373,7 +373,7 @@ export default function PartnerPage() {
       <VisualPanel>
         <Logo />
         <div className="mt-auto mb-auto">
-          <h1 className="font-serif text-[clamp(18px,2.8vw,26px)] leading-[.9] tracking-[-.3px]">
+          <h1 className="font-serif text-[clamp(24px,3.8vw,38px)] leading-[.9] tracking-[-.3px]">
             {t('partner_page.hero_title')}<br /><span className="text-gold-500">{t('partner_page.hero_title_highlight')}</span>
           </h1>
           <div className="w-[50px] h-[2px] bg-gold-500 my-[10px]" />
