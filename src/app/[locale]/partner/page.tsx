@@ -31,7 +31,7 @@ function VisualPanel({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative md:w-[48%] min-h-[300px] md:min-h-[400px] overflow-hidden text-white">
       <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/5 to-black/70 scale-[1.02]" style={{ backgroundImage: `linear-gradient(180deg, rgba(15,15,12,.15) 0%, rgba(15,15,12,.05) 35%, rgba(15,15,12,.7) 100%), url(/prambanan-bg.png)`, backgroundSize: 'cover', backgroundPosition: '30% center' }} />
-      <div className="relative z-[2] h-full flex flex-col p-[24px_20px_20px] md:p-[28px_32px_22px]">{children}</div>
+      <div className="relative z-[2] h-full flex flex-col p-[20px_18px_16px] md:p-[22px_28px_18px]">{children}</div>
     </div>
   );
 }
@@ -44,12 +44,12 @@ function Benefits() {
     { icon: '☆', title: t('partner_page.benefit_exposure'), desc: t('partner_page.benefit_exposure_desc') },
   ];
   return (
-    <div className="mt-auto grid grid-cols-3 p-[14px] md:p-[14px] bg-white/90 backdrop-blur rounded-[14px] text-stone-800">
+    <div className="mt-auto grid grid-cols-3 p-[10px] md:p-[10px] bg-white/90 backdrop-blur rounded-[10px] text-stone-800">
       {items.map((item, i) => (
-        <div key={i} className={`flex flex-col gap-[5px] ${i > 0 ? 'pl-[15px] border-l border-[#ddd5c8]' : ''} ${i < items.length - 1 ? 'pr-[15px]' : ''}`}>
-          <span className="text-gold-500 text-[23px] mb-[3px]">{item.icon}</span>
-          <strong className="text-xs">{item.title}</strong>
-          <span className="text-[#777] text-[10px] leading-[1.4]">{item.desc}</span>
+        <div key={i} className={`flex flex-col gap-[3px] ${i > 0 ? 'pl-[10px] border-l border-[#ddd5c8]' : ''} ${i < items.length - 1 ? 'pr-[10px]' : ''}`}>
+          <span className="text-gold-500 text-[18px] mb-[2px]">{item.icon}</span>
+          <strong className="text-[11px]">{item.title}</strong>
+          <span className="text-[#777] text-[9px] leading-[1.3]">{item.desc}</span>
         </div>
       ))}
     </div>
@@ -85,7 +85,7 @@ function ApplicationStatusCard({ application, onReapply }: { application: BePart
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[18px_18px_24px] md:p-[24px_28px_20px] flex flex-col justify-center">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center`}>
@@ -134,7 +134,7 @@ function CompleteListingForm({ listing, onSubmitted }: { listing: BePartner; onS
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[18px_18px_24px] md:p-[24px_28px_20px] flex flex-col justify-center">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
           <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.description')} *</label><textarea name="description" value={form.description} onChange={handleChange} rows={4} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
           <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.address')} *</label><input name="address" value={form.address} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
@@ -227,24 +227,24 @@ export default function PartnerPage() {
         <VisualPanel>
           <Logo />
           <div className="mt-auto mb-auto">
-            <h1 className="font-serif text-[clamp(24px,3.5vw,36px)] leading-[.9] tracking-[-1px]">
+            <h1 className="font-serif text-[clamp(18px,2.8vw,26px)] leading-[.9] tracking-[-.3px]">
               {t('partner_page.hero_title')}<br /><span className="text-gold-500">{t('partner_page.hero_title_highlight')}</span>
             </h1>
-            <div className="w-[60px] h-[3px] bg-gold-500 my-[12px]" />
-            <h2 className="md:text-[14px] font-semibold mb-[5px]">{t('partner_page.hero_subhead')}</h2>
-            <p className="max-w-[360px] text-white/82 text-[13px] md:text-[13px] leading-[1.5]">{t('partner_page.hero_subtitle')}</p>
+            <div className="w-[50px] h-[2px] bg-gold-500 my-[10px]" />
+            <h2 className="md:text-[13px] font-semibold mb-[4px]">{t('partner_page.hero_subhead')}</h2>
+            <p className="max-w-[340px] text-white/82 text-[12px] md:text-[12px] leading-[1.4]">{t('partner_page.hero_subtitle')}</p>
           </div>
           <Benefits />
         </VisualPanel>
-        <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
-          <a href="/" className="inline-flex items-center gap-1 text-[#77736d] hover:text-stone-800 text-[12px] font-semibold mb-[12px] transition-colors w-fit">
-            <span className="text-[18px] leading-none">←</span> {t('partner_page.back')}
+        <div className="md:w-[52%] p-[18px_18px_24px] md:p-[24px_28px_20px] flex flex-col justify-center">
+          <a href="/" className="inline-flex items-center gap-1 text-[#77736d] hover:text-stone-800 text-[11px] font-semibold mb-[8px] transition-colors w-fit">
+            <span className="text-[15px] leading-none">←</span> {t('partner_page.back')}
           </a>
-          <div className="w-[40px] md:w-[40px] h-[40px] md:h-[40px] mb-[10px] md:mb-[10px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[18px] md:text-[18px]">♧</div>
-          <h2 className="font-serif text-[24px] md:text-[24px] tracking-[-.5px] mb-[4px]">{t('partner_page.form_title')}</h2>
-          <p className="text-[#77736d] text-[13px] md:text-[13px] mb-[20px] md:mb-[20px]">{t('partner_page.form_subtitle')}</p>
+          <div className="w-[34px] h-[34px] mb-[6px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[15px]">♧</div>
+          <h2 className="font-serif text-[20px] tracking-[-.3px] mb-[2px]">{t('partner_page.form_title')}</h2>
+          <p className="text-[#77736d] text-[12px] mb-[14px]">{t('partner_page.form_subtitle')}</p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-[16px] md:gap-[19px]">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-[11px]">
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.business_name')} *</label>
               <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder={t('partner_page.business_name_placeholder')} className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
@@ -269,17 +269,17 @@ export default function PartnerPage() {
                       {loc}
                     </label>
                   ))}
-                </div>
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
               <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
-            </div>
-
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.email_business')} *</label>
               <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="email@domain.com" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+            </div>
             </div>
 
             <div className="flex items-start gap-[11px] md:gap-[13px] p-[12px_14px] md:p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
@@ -328,7 +328,7 @@ export default function PartnerPage() {
           </div>
           <Benefits />
         </VisualPanel>
-        <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
+        <div className="md:w-[52%] p-[18px_18px_24px] md:p-[24px_28px_20px] flex flex-col justify-center">
           <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl ${sc.bg} border ${sc.border} flex items-center justify-center`}>
@@ -385,7 +385,7 @@ export default function PartnerPage() {
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[18px_18px_24px] md:p-[24px_28px_20px] flex flex-col justify-center">
         <div className="w-[58px] h-[58px] mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[25px]">♧</div>
         <h2 className="font-serif text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
         <p className="text-[#77736d] text-[14px] mb-[30px]">{t('partner_page.form_subtitle')}</p>
@@ -421,11 +421,10 @@ export default function PartnerPage() {
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
               <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.email_business')} *</label>
-            <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="email@domain.com" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+            <div>
+              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.email_business')} *</label>
+              <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="email@domain.com" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+            </div>
           </div>
 
           <div className="flex items-start gap-[11px] md:gap-[13px] p-[12px_14px] md:p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
