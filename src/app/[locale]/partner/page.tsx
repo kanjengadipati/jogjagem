@@ -207,13 +207,7 @@ export default function PartnerPage() {
     const res = await partnerApplications.apply(form);
     if (res.status === 'success') {
       await refreshProfile();
-      const token = (await import('@/lib/api')).auth.getAccessToken();
-      const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
-      if (token) {
-        window.location.href = `${adminUrl}/login?token=${encodeURIComponent(token)}`;
-      } else {
-        window.location.href = adminUrl;
-      }
+      setSubmitted(true);
     } else {
       setError(res.message || t('partner_page.error_generic'));
     }
