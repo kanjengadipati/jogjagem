@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
-import { partners, partnerApplications } from '@/lib/api';
+import { partners, partnerApplications, auth } from '@/lib/api';
 import { useRouter } from '@/i18n/navigation';
 import Image from 'next/image';
 import { Briefcase, CheckCircle2, Clock, XCircle, ExternalLink, Save, Shield } from 'lucide-react';
@@ -206,8 +206,10 @@ export default function PartnerPage() {
     setSubmitting(true); setError('');
     const res = await partnerApplications.apply(form);
     if (res.status === 'success') {
-      // Force a full reload so the session re-hydrates with the new
-      // partner-role JWT (role was promoted by the backend on apply).
+      // Refresh the token so the new JWT carries role='partner'
+      // (PromoteToPartnerRole updated the role in DB; a refresh re-issues
+      // the token with the current DB role without invalidating the session).
+      await auth.refreshToken();
       window.location.reload();
       return;
     } else {
