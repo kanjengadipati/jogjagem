@@ -233,26 +233,31 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
         </div>
 
         {/* Header */}
-        <header className="relative z-10 flex items-center justify-between px-5 md:px-10 py-4 border-b border-white/8">
-          <a href="/" className="flex items-center gap-2.5 group">
-            <Image src="/logo-gold-new.png" alt="Jogjagem" width={36} height={36} className="rounded-lg group-hover:scale-105 transition-transform" />
-            <div>
+        <header className="relative z-10 flex items-center justify-between px-4 md:px-10 py-3 border-b border-white/8">
+          <a href="/" className="flex items-center gap-2 group shrink-0">
+            <Image src="/logo-gold-new.png" alt="Jogjagem" width={30} height={30} className="rounded-lg group-hover:scale-105 transition-transform" />
+            <div className="hidden sm:block">
               <span className="font-serif tracking-[.18em] text-sm text-white font-bold block leading-none">JOGJAGEM</span>
               <span className="text-[9px] text-gold-400 font-semibold tracking-widest uppercase">Partner Portal</span>
             </div>
+            <div className="sm:hidden">
+              <span className="font-serif tracking-[.12em] text-xs text-white font-bold block leading-none">JOGJAGEM</span>
+            </div>
           </a>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <a
               href={`${adminUrl}/login`}
-              className="px-4 py-2 text-xs font-semibold text-stone-300 hover:text-white border border-white/15 hover:border-white/30 rounded-xl transition-all"
+              className="px-3 py-1.5 text-[11px] font-semibold text-stone-300 hover:text-white border border-white/15 hover:border-white/30 rounded-xl transition-all whitespace-nowrap"
             >
-              {t('partner_page.landing_login')}
+              <span className="hidden sm:inline">{t('partner_page.landing_login')}</span>
+              <span className="sm:hidden">Masuk</span>
             </a>
             <button
               onClick={() => onOpenAuth('register')}
-              className="px-4 py-2 text-xs font-bold bg-gold-500 hover:bg-gold-400 text-stone-950 rounded-xl shadow-lg shadow-gold-500/20 transition-all"
+              className="px-3 py-1.5 text-[11px] font-bold bg-gold-500 hover:bg-gold-400 text-stone-950 rounded-xl shadow-lg shadow-gold-500/20 transition-all whitespace-nowrap"
             >
-              {t('partner_page.landing_register_free')}
+              <span className="hidden sm:inline">{t('partner_page.landing_register_free')}</span>
+              <span className="sm:hidden">Daftar</span>
             </button>
           </div>
         </header>
@@ -459,6 +464,8 @@ export default function PartnerPage() {
     );
   }
 
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
+
   // Unauthenticated visitors see the interactive landing page
   if (!isAuthenticated) {
     return (
@@ -468,8 +475,17 @@ export default function PartnerPage() {
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
           defaultMode={authModalMode}
-          onSuccess={() => {
+          onSuccess={async () => {
             setShowAuthModal(false);
+            // If opened in login mode, redirect partner/admin to admin portal
+            if (authModalMode === 'login') {
+              const profileRes = await auth.getProfile();
+              const role = profileRes?.data?.role;
+              if (role === 'partner' || role === 'admin' || role === 'superadmin') {
+                window.location.href = `${adminUrl}/partner`;
+                return;
+              }
+            }
             refreshProfile();
           }}
         />
