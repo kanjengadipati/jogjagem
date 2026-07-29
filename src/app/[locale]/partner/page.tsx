@@ -28,9 +28,9 @@ function PartnerLayout({ children }: { children: React.ReactNode }) {
 
 function VisualPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative md:w-[48%] min-h-[300px] md:min-h-[480px] overflow-hidden text-white">
+    <div className="relative md:w-[48%] min-h-[300px] md:min-h-[400px] overflow-hidden text-white">
       <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/5 to-black/70 scale-[1.02]" style={{ backgroundImage: `linear-gradient(180deg, rgba(15,15,12,.15) 0%, rgba(15,15,12,.05) 35%, rgba(15,15,12,.7) 100%), url(/prambanan-bg.png)`, backgroundSize: 'cover', backgroundPosition: '30% center' }} />
-      <div className="relative z-[2] h-full flex flex-col p-[30px_24px_24px] md:p-[36px_40px_28px]">{children}</div>
+      <div className="relative z-[2] h-full flex flex-col p-[24px_20px_20px] md:p-[28px_32px_22px]">{children}</div>
     </div>
   );
 }
@@ -79,12 +79,12 @@ function ApplicationStatusCard({ application, onReapply }: { application: BePart
       <VisualPanel>
         <Logo />
         <div className="mt-auto mb-auto">
-          <h1 className="font-serif text-[clamp(36px,4.5vw,54px)] leading-[.9] tracking-[-2px]">{t('partner_page.app_title')}</h1>
-          <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
+          <h1 className="font-serif text-[clamp(24px,3.5vw,36px)] leading-[.9] tracking-[-1px]">{t('partner_page.app_title')}</h1>
+          <div className="w-[60px] h-[3px] bg-gold-500 my-[12px]" />
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center`}>
@@ -128,12 +128,12 @@ function CompleteListingForm({ listing, onSubmitted }: { listing: BePartner; onS
       <VisualPanel>
         <Logo />
         <div className="mt-auto mb-auto">
-          <h1 className="font-serif text-[clamp(36px,4.5vw,54px)] leading-[.9] tracking-[-2px]">{t('partner_page.complete_title')}</h1>
-          <div className="w-[90px] h-[4px] bg-gold-500 my-5" />
+          <h1 className="font-serif text-[clamp(24px,3.5vw,36px)] leading-[.9] tracking-[-1px]">{t('partner_page.complete_title')}</h1>
+          <div className="w-[60px] h-[3px] bg-gold-500 my-[12px]" />
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
           <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.description')} *</label><textarea name="description" value={form.description} onChange={handleChange} rows={4} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
           <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.address')} *</label><input name="address" value={form.address} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
@@ -209,19 +209,22 @@ export default function PartnerPage() {
         <VisualPanel>
           <Logo />
           <div className="mt-auto mb-auto">
-            <h1 className="font-serif text-[clamp(36px,4.5vw,54px)] leading-[.9] tracking-[-2px]">
+            <h1 className="font-serif text-[clamp(24px,3.5vw,36px)] leading-[.9] tracking-[-1px]">
               {t('partner_page.hero_title')}<br /><span className="text-gold-500">{t('partner_page.hero_title_highlight')}</span>
             </h1>
-            <div className="w-[90px] h-[4px] bg-gold-500 my-5" />
-            <h2 className="md:text-[17px] font-semibold mb-[8px]">{t('partner_page.hero_subhead')}</h2>
-            <p className="max-w-[390px] text-white/82 text-[14px] md:text-[14px] leading-[1.6]">{t('partner_page.hero_subtitle')}</p>
+            <div className="w-[60px] h-[3px] bg-gold-500 my-[12px]" />
+            <h2 className="md:text-[14px] font-semibold mb-[5px]">{t('partner_page.hero_subhead')}</h2>
+            <p className="max-w-[360px] text-white/82 text-[13px] md:text-[13px] leading-[1.5]">{t('partner_page.hero_subtitle')}</p>
           </div>
           <Benefits />
         </VisualPanel>
-        <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
-          <div className="w-[48px] md:w-[48px] h-[48px] md:h-[48px] mb-[14px] md:mb-[14px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[21px] md:text-[21px]">♧</div>
-          <h2 className="font-serif text-[26px] md:text-[28px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
-          <p className="text-[#77736d] text-[13px] md:text-[14px] mb-[24px] md:mb-[24px]">{t('partner_page.form_subtitle')}</p>
+        <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
+          <a href="/" className="inline-flex items-center gap-1.5 text-[#77736d] hover:text-[#555] text-[12px] font-medium mb-[12px] transition-colors w-fit">
+            <span className="text-[16px] leading-none">←</span> Back
+          </a>
+          <div className="w-[40px] md:w-[40px] h-[40px] md:h-[40px] mb-[10px] md:mb-[10px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[18px] md:text-[18px]">♧</div>
+          <h2 className="font-serif text-[24px] md:text-[24px] tracking-[-.5px] mb-[4px]">{t('partner_page.form_title')}</h2>
+          <p className="text-[#77736d] text-[13px] md:text-[13px] mb-[20px] md:mb-[20px]">{t('partner_page.form_subtitle')}</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-[16px] md:gap-[19px]">
             <div>
@@ -230,10 +233,13 @@ export default function PartnerPage() {
             </div>
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.category')} *</label>
-              <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white">
+              <div className="relative">
+              <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] pr-[36px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white appearance-none cursor-pointer">
                 <option value="">{t('partner_page.category_placeholder')}</option>
                 {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
               </select>
+              <span className="absolute right-[14px] top-1/2 -translate-y-1/2 text-[#aaa49b] text-[10px] pointer-events-none">▼</span>
+            </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
@@ -287,12 +293,12 @@ export default function PartnerPage() {
         <VisualPanel>
           <Logo />
           <div className="mt-auto mb-auto">
-<h1 className="font-serif text-[clamp(36px,4.5vw,54px)] leading-[.9] tracking-[-2px]">{t('partner_page.listing_title')}</h1>
-          <div className="w-[90px] h-[4px] bg-gold-500 my-5" />
+<h1 className="font-serif text-[clamp(24px,3.5vw,36px)] leading-[.9] tracking-[-1px]">{t('partner_page.listing_title')}</h1>
+          <div className="w-[60px] h-[3px] bg-gold-500 my-[12px]" />
           </div>
           <Benefits />
         </VisualPanel>
-        <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
+        <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
           <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl ${sc.bg} border ${sc.border} flex items-center justify-center`}>
@@ -349,7 +355,7 @@ export default function PartnerPage() {
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
         <div className="w-[58px] h-[58px] mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[25px]">♧</div>
         <h2 className="font-serif text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
         <p className="text-[#77736d] text-[14px] mb-[30px]">{t('partner_page.form_subtitle')}</p>
@@ -361,10 +367,13 @@ export default function PartnerPage() {
           </div>
           <div>
             <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.category')} *</label>
-            <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white">
-              <option value="">{t('partner_page.category_placeholder')}</option>
-              {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
-            </select>
+            <div className="relative">
+              <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] pr-[36px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white appearance-none cursor-pointer">
+                <option value="">{t('partner_page.category_placeholder')}</option>
+                {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
+              </select>
+              <span className="absolute right-[14px] top-1/2 -translate-y-1/2 text-[#aaa49b] text-[10px] pointer-events-none">▼</span>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
