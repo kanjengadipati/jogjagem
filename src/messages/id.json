@@ -591,12 +591,7 @@
     "terms_and": "dan",
     "terms_privacy": "Kebijakan Privasi",
     "terms_suffix": "Jogjagem.",
-    "back": "Kembali",
-    "location_kota": "Kota Yogyakarta",
-    "location_sleman": "Kab. Sleman",
-    "location_bantul": "Kab. Bantul",
-    "location_gunung_kidul": "Kab. Gunung Kidul",
-    "location_kulon_progo": "Kab. Kulon Progo"
+    "back": "Kembali"
   },
   "auth": {
     "welcome_back": "Selamat Datang Kembali",
