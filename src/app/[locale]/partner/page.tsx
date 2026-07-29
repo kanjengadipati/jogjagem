@@ -167,6 +167,7 @@ export default function PartnerPage() {
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({ business_name: '', category: '', location: '', phone: '' });
+  const isFormValid = form.business_name.trim() && form.category && form.location && form.phone.trim() && termsAccepted;
 
   useEffect(() => {
     if (authLoading) return;
@@ -277,7 +278,7 @@ export default function PartnerPage() {
 
             {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[14px] md:px-[17px] py-[12px] md:py-[15px]">{error}</p>}
 
-            <button type="submit" disabled={submitting}
+            <button type="submit" disabled={!isFormValid || submitting}
               className="w-full h-[50px] md:h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[15px] md:text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
               ✈ &nbsp; {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
             </button>
@@ -421,7 +422,7 @@ export default function PartnerPage() {
 
           {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[14px] md:px-[17px] py-[12px] md:py-[15px]">{error}</p>}
 
-          <button type="submit" disabled={submitting}
+          <button type="submit" disabled={!isFormValid || submitting}
             className="w-full h-[50px] md:h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[15px] md:text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
             ✈ &nbsp; {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
           </button>
