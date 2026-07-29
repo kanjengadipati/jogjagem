@@ -14,12 +14,12 @@ const CATEGORIES = ['Kuliner', 'Hotel & Penginapan', 'Wisata & Destinasi', 'Oleh
 
 function PartnerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#0f0f0d] flex items-center justify-center p-4 md:p-10">
+    <div className="min-h-screen bg-[#0f0f0d] flex items-center justify-center p-0 md:p-10">
       <div className="fixed inset-0 z-0">
         <Image src="/prambanan-bg.png" alt="Candi Prambanan" fill priority className="object-cover object-[30%_center]" />
         <div className="absolute inset-0 bg-black/55 backdrop-blur-[7px]" />
       </div>
-      <div className="relative z-10 w-full max-w-[1180px] bg-white rounded-[20px] overflow-hidden shadow-[0_35px_100px_rgba(0,0,0,.35)] border border-white/80 flex flex-col md:flex-row min-h-[680px]">
+      <div className="relative z-10 w-full max-w-[1180px] bg-white rounded-none md:rounded-[20px] overflow-hidden shadow-[0_35px_100px_rgba(0,0,0,.35)] border-0 md:border border-white/80 flex flex-col md:flex-row min-h-[100dvh] md:min-h-[680px]">
         {children}
       </div>
     </div>
@@ -28,9 +28,9 @@ function PartnerLayout({ children }: { children: React.ReactNode }) {
 
 function VisualPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative md:w-[48%] min-h-[420px] md:min-h-[680px] overflow-hidden text-white">
+    <div className="relative md:w-[48%] min-h-[300px] md:min-h-[680px] overflow-hidden text-white">
       <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/5 to-black/70 scale-[1.02]" style={{ backgroundImage: `linear-gradient(180deg, rgba(15,15,12,.15) 0%, rgba(15,15,12,.05) 35%, rgba(15,15,12,.7) 100%), url(/prambanan-bg.png)`, backgroundSize: 'cover', backgroundPosition: '30% center' }} />
-      <div className="relative z-[2] h-full flex flex-col p-[46px_48px_38px]">{children}</div>
+      <div className="relative z-[2] h-full flex flex-col p-[30px_24px_24px] md:p-[46px_48px_38px]">{children}</div>
     </div>
   );
 }
@@ -84,7 +84,7 @@ function ApplicationStatusCard({ application, onReapply }: { application: BePart
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center`}>
@@ -133,7 +133,7 @@ function CompleteListingForm({ listing, onSubmitted }: { listing: BePartner; onS
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
           <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.description')} *</label><textarea name="description" value={form.description} onChange={handleChange} rows={4} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
           <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.address')} *</label><input name="address" value={form.address} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
@@ -218,51 +218,51 @@ export default function PartnerPage() {
           </div>
           <Benefits />
         </VisualPanel>
-        <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
-          <div className="w-[58px] h-[58px] mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[25px]">♧</div>
-          <h2 className="font-serif text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
-          <p className="text-[#77736d] text-[14px] mb-[30px]">{t('partner_page.form_subtitle')}</p>
+        <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
+          <div className="w-[48px] md:w-[58px] h-[48px] md:h-[58px] mb-[14px] md:mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[21px] md:text-[25px]">♧</div>
+          <h2 className="font-serif text-[26px] md:text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
+          <p className="text-[#77736d] text-[13px] md:text-[14px] mb-[24px] md:mb-[30px]">{t('partner_page.form_subtitle')}</p>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-[19px]">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-[16px] md:gap-[19px]">
             <div>
-              <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.business_name')} *</label>
-              <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder={t('partner_page.business_name_placeholder')} className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.business_name')} *</label>
+              <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder={t('partner_page.business_name_placeholder')} className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
             <div>
-              <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.category')} *</label>
-              <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white">
+              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.category')} *</label>
+              <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white">
                 <option value="">{t('partner_page.category_placeholder')}</option>
                 {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
-                <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.location')} *</label>
-                <input name="location" value={form.location} onChange={handleChange} required placeholder={t('partner_page.location_placeholder')} className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+                <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.location')} *</label>
+                <input name="location" value={form.location} onChange={handleChange} required placeholder={t('partner_page.location_placeholder')} className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
               </div>
               <div>
-                <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.phone')} *</label>
-                <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
-              </div>
-            </div>
-
-            <div className="flex items-start gap-[13px] p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
-              <Shield className="w-[21px] h-[21px] text-gold-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <strong className="block text-xs mb-[3px]">{t('partner_page.security_title')}</strong>
-                <span className="block text-[#77736d] text-[11px] leading-[1.5]">{t('partner_page.security_desc')}</span>
+                <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
+                <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
               </div>
             </div>
 
-            <label className="flex items-start gap-[11px] cursor-pointer text-xs leading-[1.55] text-[#55514b]">
-              <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} required className="appearance-none w-5 h-5 flex-shrink-0 mt-0.5 border-[1.5px] border-[#bdb7ad] rounded-[5px] checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition" />
+            <div className="flex items-start gap-[11px] md:gap-[13px] p-[12px_14px] md:p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
+              <Shield className="w-[18px] md:w-[21px] h-[18px] md:h-[21px] text-gold-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <strong className="block text-[11px] md:text-xs mb-[3px]">{t('partner_page.security_title')}</strong>
+                <span className="block text-[#77736d] text-[10px] md:text-[11px] leading-[1.5]">{t('partner_page.security_desc')}</span>
+              </div>
+            </div>
+
+            <label className="flex items-start gap-[10px] md:gap-[11px] cursor-pointer text-[11px] md:text-xs leading-[1.55] text-[#55514b]">
+              <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} required className="appearance-none w-[18px] md:w-5 h-[18px] md:h-5 flex-shrink-0 mt-0.5 border-[1.5px] border-[#bdb7ad] rounded-[5px] checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition" />
               <span>{t('partner_page.terms_prefix')} <a href="/syarat-ketentuan" target="_blank" className="text-[#ad6f12] font-semibold no-underline hover:underline">{t('partner_page.terms_tc')}</a> {t('partner_page.terms_and')} <a href="/kebijakan-privasi" target="_blank" className="text-[#ad6f12] font-semibold no-underline hover:underline">{t('partner_page.terms_privacy')}</a> {t('partner_page.terms_suffix')}</span>
             </label>
 
-            {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[17px] py-[15px]">{error}</p>}
+            {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[14px] md:px-[17px] py-[12px] md:py-[15px]">{error}</p>}
 
             <button type="submit" disabled={submitting || !termsAccepted}
-              className="w-full h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+              className="w-full h-[50px] md:h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[15px] md:text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
               ✈ &nbsp; {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
             </button>
           </form>
@@ -292,7 +292,7 @@ export default function PartnerPage() {
           </div>
           <Benefits />
         </VisualPanel>
-        <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
+        <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
           <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl ${sc.bg} border ${sc.border} flex items-center justify-center`}>
@@ -349,51 +349,51 @@ export default function PartnerPage() {
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
         <div className="w-[58px] h-[58px] mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[25px]">♧</div>
         <h2 className="font-serif text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
         <p className="text-[#77736d] text-[14px] mb-[30px]">{t('partner_page.form_subtitle')}</p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-[19px]">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-[16px] md:gap-[19px]">
           <div>
             <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.business_name')} *</label>
-            <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder={t('partner_page.business_name_placeholder')} className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+            <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder={t('partner_page.business_name_placeholder')} className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
           </div>
           <div>
-            <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.category')} *</label>
-            <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white">
+            <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.category')} *</label>
+            <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white">
               <option value="">{t('partner_page.category_placeholder')}</option>
               {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.location')} *</label>
-              <input name="location" value={form.location} onChange={handleChange} required placeholder={t('partner_page.location_placeholder')} className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.location')} *</label>
+              <input name="location" value={form.location} onChange={handleChange} required placeholder={t('partner_page.location_placeholder')} className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
             <div>
-              <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.phone')} *</label>
-              <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
-            </div>
-          </div>
-
-          <div className="flex items-start gap-[13px] p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
-            <Shield className="w-[21px] h-[21px] text-gold-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <strong className="block text-xs mb-[3px]">{t('partner_page.security_title')}</strong>
-              <span className="block text-[#77736d] text-[11px] leading-[1.5]">{t('partner_page.security_desc')}</span>
+              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
+              <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
           </div>
 
-          <label className="flex items-start gap-[11px] cursor-pointer text-xs leading-[1.55] text-[#55514b]">
-            <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} required className="appearance-none w-5 h-5 flex-shrink-0 mt-0.5 border-[1.5px] border-[#bdb7ad] rounded-[5px] checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition" />
+          <div className="flex items-start gap-[11px] md:gap-[13px] p-[12px_14px] md:p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
+            <Shield className="w-[18px] md:w-[21px] h-[18px] md:h-[21px] text-gold-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <strong className="block text-[11px] md:text-xs mb-[3px]">{t('partner_page.security_title')}</strong>
+              <span className="block text-[#77736d] text-[10px] md:text-[11px] leading-[1.5]">{t('partner_page.security_desc')}</span>
+            </div>
+          </div>
+
+          <label className="flex items-start gap-[10px] md:gap-[11px] cursor-pointer text-[11px] md:text-xs leading-[1.55] text-[#55514b]">
+            <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} required className="appearance-none w-[18px] md:w-5 h-[18px] md:h-5 flex-shrink-0 mt-0.5 border-[1.5px] border-[#bdb7ad] rounded-[5px] checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition" />
             <span>{t('partner_page.terms_prefix')} <a href="/syarat-ketentuan" target="_blank" className="text-[#ad6f12] font-semibold no-underline hover:underline">{t('partner_page.terms_tc')}</a> {t('partner_page.terms_and')} <a href="/kebijakan-privasi" target="_blank" className="text-[#ad6f12] font-semibold no-underline hover:underline">{t('partner_page.terms_privacy')}</a> {t('partner_page.terms_suffix')}</span>
           </label>
 
-          {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[17px] py-[15px]">{error}</p>}
+          {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[14px] md:px-[17px] py-[12px] md:py-[15px]">{error}</p>}
 
           <button type="submit" disabled={submitting || !termsAccepted}
-            className="w-full h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+            className="w-full h-[50px] md:h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[15px] md:text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
             ✈ &nbsp; {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
           </button>
         </form>
