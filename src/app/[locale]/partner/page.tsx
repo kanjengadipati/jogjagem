@@ -272,7 +272,7 @@ export default function PartnerPage() {
             </div>
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
-              <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+              <input name="phone" value={form.phone} onChange={handleChange} required placeholder="0812-3456-7890" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.email_business')} *</label>
@@ -416,7 +416,7 @@ export default function PartnerPage() {
             </div>
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
-              <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+              <input name="phone" value={form.phone} onChange={handleChange} required placeholder="0812-3456-7890" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.email_business')} *</label>
