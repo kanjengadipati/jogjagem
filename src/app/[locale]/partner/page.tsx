@@ -11,6 +11,7 @@ import AuthModal from '@/components/AuthModal';
 import type { BePartner, BePartnerApplication } from '@/lib/api';
 
 const CATEGORIES = ['Kuliner', 'Hotel & Penginapan', 'Wisata & Destinasi', 'Oleh-oleh', 'Jasa', 'Lainnya'];
+const LOCATIONS = ['Yogyakarta', 'Sleman', 'Bantul', 'Gunung Kidul', 'Kulon Progo'];
 
 function PartnerLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -248,11 +249,7 @@ export default function PartnerPage() {
                 <div className="relative">
                   <select name="location" value={form.location} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] pr-[36px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white appearance-none cursor-pointer">
                     <option value="">{t('partner_page.location_placeholder')}</option>
-                    <option value="Yogyakarta">Yogyakarta</option>
-                    <option value="Sleman">Sleman</option>
-                    <option value="Bantul">Bantul</option>
-                    <option value="Gunung Kidul">Gunung Kidul</option>
-                    <option value="Kulon Progo">Kulon Progo</option>
+                    {LOCATIONS.map((loc) => (<option key={loc} value={loc}>{loc}</option>))}
                   </select>
                   <span className="absolute right-[14px] top-1/2 -translate-y-1/2 text-[#aaa49b] text-[10px] pointer-events-none">▼</span>
                 </div>
