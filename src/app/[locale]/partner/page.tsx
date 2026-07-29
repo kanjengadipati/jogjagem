@@ -192,21 +192,23 @@ function ApplicationStatusCard({ application, onReapply }: { application: BePart
 
 /** Simple Partner Landing Page for Unauthenticated Visitors */
 function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login' | 'register') => void }) {
+  const { t } = useLocale();
+
   const benefits = [
     {
       icon: '🧭',
-      title: 'Direkomendasikan AI, Bukan Sekadar Terdaftar',
-      desc: 'Muncul di itinerary personal yang disusun AI untuk tiap wisatawan.',
+      title: t('partner_page.landing_b1_title'),
+      desc: t('partner_page.landing_b1_desc'),
     },
     {
       icon: '🗺️',
-      title: 'Peta Pintar Berbasis Rute',
-      desc: 'Tampil sebagai pilihan logis di jalur perjalanan wisatawan, bukan pin acak di antara ratusan lainnya.',
+      title: t('partner_page.landing_b2_title'),
+      desc: t('partner_page.landing_b2_desc'),
     },
     {
       icon: '💰',
-      title: 'Gratis & Tanpa Komisi',
-      desc: '100% pendapatan tetap milik Anda.',
+      title: t('partner_page.landing_b3_title'),
+      desc: t('partner_page.landing_b3_desc'),
     },
   ];
 
@@ -242,13 +244,13 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
               onClick={() => onOpenAuth('login')}
               className="px-4 py-2 text-xs font-semibold text-stone-300 hover:text-white border border-white/15 hover:border-white/30 rounded-xl transition-all"
             >
-              Masuk
+              {t('partner_page.landing_login')}
             </button>
             <button
               onClick={() => onOpenAuth('register')}
               className="px-4 py-2 text-xs font-bold bg-gold-500 hover:bg-gold-400 text-stone-950 rounded-xl shadow-lg shadow-gold-500/20 transition-all"
             >
-              Daftar Gratis
+              {t('partner_page.landing_register_free')}
             </button>
           </div>
         </header>
@@ -256,18 +258,18 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
         {/* Hero Content */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-5 py-16 md:py-24 max-w-4xl mx-auto w-full">
           <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight text-white mb-6">
-            Tumbuhkan Bisnis Anda<br />
+            {t('partner_page.landing_hero_title')}<br />
             <span className="bg-gradient-to-r from-gold-300 via-amber-400 to-gold-500 bg-clip-text text-transparent">
-              Bersama Jutaan Wisatawan Jogja
+              {t('partner_page.landing_hero_title_highlight')}
             </span>
           </h1>
 
           <p className="text-stone-200 text-base sm:text-lg md:text-xl max-w-3xl leading-relaxed mb-4 font-medium">
-            Satu-satunya platform wisata Jogja dengan itinerary cerdas, peta pintar, dan konsultan AI — bisnis Anda direkomendasikan tepat saat wisatawan sedang merencanakan kunjungan, bukan tenggelam di antara ribuan listing.
+            {t('partner_page.landing_hero_subheadline')}
           </p>
 
           <p className="text-stone-400 text-xs sm:text-sm md:text-base max-w-2xl leading-relaxed mb-8">
-            Daftarkan usaha kuliner, penginapan, wisata, atau oleh-oleh Anda — gratis, tanpa komisi. Ditemukan lewat AI, bukan cuma pencarian kata kunci.
+            {t('partner_page.landing_hero_body')}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
@@ -275,13 +277,13 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
               onClick={() => onOpenAuth('register')}
               className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-gold-500 via-amber-500 to-gold-400 hover:from-gold-400 hover:to-amber-400 text-stone-950 font-bold text-sm rounded-2xl shadow-xl shadow-gold-500/25 hover:shadow-gold-500/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
-              Daftar Mitra Sekarang <ArrowRight className="w-4 h-4" />
+              {t('partner_page.landing_cta_register')} <ArrowRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => onOpenAuth('login')}
               className="w-full sm:w-auto px-8 py-3.5 bg-white/5 hover:bg-white/10 border border-white/15 text-stone-200 font-semibold text-sm rounded-2xl transition-colors"
             >
-              Sudah punya akun? Masuk
+              {t('partner_page.landing_cta_has_account')} {t('partner_page.landing_cta_login')}
             </button>
           </div>
         </div>
@@ -291,8 +293,8 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
       <div className="relative z-10 bg-[#0d0d0b] border-t border-white/8 px-5 md:px-10 py-14 md:py-20">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white mb-2">Mengapa Bergabung dengan Jogjagem?</h2>
-            <p className="text-stone-400 text-sm">Solusi digital lengkap untuk usaha pariwisata Anda di Yogyakarta.</p>
+            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white mb-2">{t('partner_page.landing_benefits_heading')}</h2>
+            <p className="text-stone-400 text-sm">{t('partner_page.landing_benefits_subheading')}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -316,15 +318,15 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
       <div className="relative z-10 bg-white/[0.03] border-t border-white/8 px-5 md:px-10 py-14 md:py-20">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white mb-2">Cara Bergabung — 3 Langkah</h2>
-            <p className="text-stone-400 text-sm">Proses pendaftaran selesai dalam kurang dari 2 menit.</p>
+            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white mb-2">{t('partner_page.landing_steps_heading')}</h2>
+            <p className="text-stone-400 text-sm">{t('partner_page.landing_steps_subheading')}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-5">
             {[
-              { n: '01', title: 'Daftar & Isi Formulir', desc: 'Buat akun lalu isi nama usaha, kategori, dan nomor kontak Anda.' },
-              { n: '02', title: 'Lengkapi Profil Usaha', desc: 'Tambahkan foto, alamat lengkap, dan deskripsi menarik untuk memikat wisatawan.' },
-              { n: '03', title: 'Verifikasi & Tayang', desc: 'Setelah ditinjau dan disetujui tim kami, listing Anda aktif dan siap ditemukan jutaan wisatawan Jogja!' },
+              { n: '01', title: t('partner_page.landing_step1_title'), desc: t('partner_page.landing_step1_desc') },
+              { n: '02', title: t('partner_page.landing_step2_title'), desc: t('partner_page.landing_step2_desc') },
+              { n: '03', title: t('partner_page.landing_step3_title'), desc: t('partner_page.landing_step3_desc') },
             ].map((st) => (
               <div key={st.n} className="bg-stone-900/60 border border-white/10 rounded-2xl p-6 space-y-2">
                 <div className="text-3xl font-serif font-bold text-gold-400">{st.n}</div>
@@ -340,31 +342,31 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
       <div className="relative z-10 border-t border-white/8 px-5 md:px-10 py-14 md:py-20 text-center bg-gradient-to-t from-stone-900/60">
         <div className="max-w-xl mx-auto space-y-5">
           <Image src="/logo-gold-new.png" alt="Jogjagem" width={52} height={52} className="mx-auto rounded-xl" />
-          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white">Siap Menjangkau Lebih Banyak Wisatawan?</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white">{t('partner_page.landing_cta_heading')}</h2>
           <p className="text-stone-400 text-sm leading-relaxed">
-            Gratis mendaftar — tanpa biaya pendaftaran, tanpa komisi. Ratusan usaha di Yogyakarta sudah bergabung.
+            {t('partner_page.landing_cta_desc')}
           </p>
           <button
             onClick={() => onOpenAuth('register')}
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-gold-500 via-amber-500 to-gold-400 hover:from-gold-400 hover:to-amber-400 text-stone-950 font-bold text-base rounded-2xl shadow-xl shadow-gold-500/25 hover:shadow-gold-500/40 transition-all transform hover:-translate-y-0.5"
           >
-            Daftarkan Usaha Sekarang <ArrowRight className="w-5 h-5" />
+            {t('partner_page.landing_cta_btn')} <ArrowRight className="w-5 h-5" />
           </button>
-          <p className="text-xs text-stone-500">Sudah punya akun? <button onClick={() => onOpenAuth('login')} className="text-gold-400 hover:text-gold-300 font-semibold transition-colors">Masuk di sini</button></p>
+          <p className="text-xs text-stone-500">{t('partner_page.landing_cta_has_account')} <button onClick={() => onOpenAuth('login')} className="text-gold-400 hover:text-gold-300 font-semibold transition-colors">{t('partner_page.landing_cta_login')}</button></p>
         </div>
       </div>
 
       {/* ── Footer ── */}
       <footer className="relative z-10 border-t border-white/10 bg-[#0a0a08] px-5 md:px-10 py-6 text-xs text-stone-500 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          &copy; {new Date().getFullYear()} Jogjagem. All rights reserved.
+          &copy; {new Date().getFullYear()} Jogjagem. {t('partner_page.landing_footer_rights')}
         </div>
         <div className="flex items-center gap-6">
           <a href="/syarat-ketentuan" target="_blank" className="hover:text-stone-300 transition-colors">
-            Syarat & Ketentuan
+            {t('partner_page.landing_footer_tc')}
           </a>
           <a href="/kebijakan-privasi" target="_blank" className="hover:text-stone-300 transition-colors">
-            Kebijakan Privasi
+            {t('partner_page.landing_footer_privacy')}
           </a>
         </div>
       </footer>
