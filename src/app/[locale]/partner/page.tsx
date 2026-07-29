@@ -205,8 +205,12 @@ export default function PartnerPage() {
     if (!form.business_name || !form.category) { setError(t('partner_page.error_required')); return; }
     setSubmitting(true); setError('');
     const res = await partnerApplications.apply(form);
-    if (res.status === 'success') { setSubmitted(true); await refreshProfile(); }
-    else { setError(res.message || t('partner_page.error_generic')); }
+    if (res.status === 'success') {
+      await refreshProfile();
+      window.location.href = `${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner`;
+    } else {
+      setError(res.message || t('partner_page.error_generic'));
+    }
     setSubmitting(false);
   };
 
