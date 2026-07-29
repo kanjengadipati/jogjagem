@@ -590,7 +590,13 @@
     "terms_tc": "Terms & Conditions",
     "terms_and": "and",
     "terms_privacy": "Privacy Policy",
-    "terms_suffix": "of Jogjagem."
+    "terms_suffix": "of Jogjagem.",
+    "back": "Back",
+    "location_kota": "Yogyakarta City",
+    "location_sleman": "Sleman Regency",
+    "location_bantul": "Bantul Regency",
+    "location_gunung_kidul": "Gunung Kidul Regency",
+    "location_kulon_progo": "Kulon Progo Regency"
   },
   "auth": {
     "welcome_back": "Welcome Back",

@@ -219,8 +219,8 @@ export default function PartnerPage() {
           <Benefits />
         </VisualPanel>
         <div className="md:w-[52%] p-[24px_20px_32px] md:p-[32px_36px_28px] flex flex-col justify-center">
-          <a href="/" className="inline-flex items-center gap-1.5 text-[#77736d] hover:text-[#555] text-[12px] font-medium mb-[12px] transition-colors w-fit">
-            <span className="text-[16px] leading-none">←</span> Back
+          <a href="/" className="inline-flex items-center gap-1 text-[#77736d] hover:text-stone-800 text-[12px] font-semibold mb-[12px] transition-colors w-fit">
+            <span className="text-[18px] leading-none">←</span> {t('partner_page.back')}
           </a>
           <div className="w-[40px] md:w-[40px] h-[40px] md:h-[40px] mb-[10px] md:mb-[10px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[18px] md:text-[18px]">♧</div>
           <h2 className="font-serif text-[24px] md:text-[24px] tracking-[-.5px] mb-[4px]">{t('partner_page.form_title')}</h2>
@@ -247,11 +247,11 @@ export default function PartnerPage() {
                 <div className="relative">
                   <select name="location" value={form.location} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] pr-[36px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white appearance-none cursor-pointer">
                     <option value="">{t('partner_page.location_placeholder')}</option>
-                    <option value="Kota Yogyakarta">Kota Yogyakarta</option>
-                    <option value="Sleman">Kab. Sleman</option>
-                    <option value="Bantul">Kab. Bantul</option>
-                    <option value="Gunung Kidul">Kab. Gunung Kidul</option>
-                    <option value="Kulon Progo">Kab. Kulon Progo</option>
+                    <option value="Kota Yogyakarta">{t('partner_page.location_kota')}</option>
+                    <option value="Sleman">{t('partner_page.location_sleman')}</option>
+                    <option value="Bantul">{t('partner_page.location_bantul')}</option>
+                    <option value="Gunung Kidul">{t('partner_page.location_gunung_kidul')}</option>
+                    <option value="Kulon Progo">{t('partner_page.location_kulon_progo')}</option>
                   </select>
                   <span className="absolute right-[14px] top-1/2 -translate-y-1/2 text-[#aaa49b] text-[10px] pointer-events-none">▼</span>
                 </div>
@@ -277,7 +277,7 @@ export default function PartnerPage() {
 
             {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[14px] md:px-[17px] py-[12px] md:py-[15px]">{error}</p>}
 
-            <button type="submit" disabled={submitting || !termsAccepted}
+            <button type="submit" disabled={submitting}
               className="w-full h-[50px] md:h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[15px] md:text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
               ✈ &nbsp; {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
             </button>
@@ -421,7 +421,7 @@ export default function PartnerPage() {
 
           {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[14px] md:px-[17px] py-[12px] md:py-[15px]">{error}</p>}
 
-          <button type="submit" disabled={submitting || !termsAccepted}
+          <button type="submit" disabled={submitting}
             className="w-full h-[50px] md:h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[15px] md:text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
             ✈ &nbsp; {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
           </button>
