@@ -143,10 +143,25 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
     if (mode === 'register') {
       const result = await register(name, email, password);
       if (result.success) {
-        setSuccess(t('auth.account_created'));
-        setMode('login');
-        setPassword('');
-        setConfirmPassword('');
+        const loginResult = await login(email, password);
+        if (loginResult.success) {
+          onClose();
+          resetForm();
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            const returnTo = sessionStorage.getItem('auth_return_to');
+            if (returnTo) {
+              sessionStorage.removeItem('auth_return_to');
+              router.push(returnTo);
+            }
+          }
+        } else {
+          setSuccess(t('auth.account_created'));
+          setMode('login');
+          setPassword('');
+          setConfirmPassword('');
+        }
       } else {
         setError(result.error || t('auth.register_failed'));
       }

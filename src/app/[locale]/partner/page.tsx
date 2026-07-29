@@ -585,7 +585,15 @@ export default function PartnerPage() {
     return (
       <>
         <InteractivePartnerLanding onOpenAuth={openAuthModal} />
-        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultMode={authModalMode} />
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          defaultMode={authModalMode}
+          onSuccess={() => {
+            setShowAuthModal(false);
+            refreshProfile();
+          }}
+        />
       </>
     );
   }
