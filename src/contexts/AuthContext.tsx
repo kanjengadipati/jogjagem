@@ -12,6 +12,8 @@ interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   socialLogin: (provider: 'google' | 'facebook', token: string) => Promise<{ success: boolean; error?: string }>;
+  forgotPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -167,13 +169,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const forgotPassword = async (email: string) => {
+    try {
+      const res = await auth.forgotPassword(email);
+      if (res.status === 'success') return { success: true };
+      return { success: false, error: res.message || 'Failed to send reset email' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error' };
+    }
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    try {
+      const res = await auth.resetPassword(token, newPassword);
+      if (res.status === 'success') return { success: true };
+      return { success: false, error: res.message || 'Failed to reset password' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error' };
+    }
+  };
+
   const logout = async () => {
     await auth.logout();
     setState({ isAuthenticated: false, isLoading: false, user: null });
   };
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, socialLogin, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ ...state, login, register, socialLogin, forgotPassword, resetPassword, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

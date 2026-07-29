@@ -321,6 +321,26 @@ export const auth = {
     });
   },
 
+  async forgotPassword(email: string) {
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const fallback = { status: 'error' as const, message: 'Network error' };
+    return res.json().catch(() => fallback);
+  },
+
+  async resetPassword(token: string, newPassword: string) {
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, new_password: newPassword }),
+    });
+    const fallback = { status: 'error' as const, message: 'Network error' };
+    return res.json().catch(() => fallback);
+  },
+
   async logout() {
     // Calls our Route Handler which clears the cookie and notifies the backend
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
@@ -614,26 +634,58 @@ export const partners = {
   },
 
   async apply(payload: {
-    name: string;
+    business_name: string;
     category: string;
-    description?: string;
     location?: string;
-    address?: string;
-    image?: string;
     phone?: string;
-    website?: string;
-    latitude?: number;
-    longitude?: number;
-    price?: string;
   }) {
-    return request<BePartner>('/partners/apply', {
+    return request<BePartnerApplication>('/partner-applications/apply', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   },
 
   async getMine() {
+    return request<BePartnerApplication[]>('/partner-applications/me');
+  },
+};
+
+export const partnerApplications = {
+  apply: (data: { business_name: string; category: string; location?: string; phone?: string }) =>
+    request<BePartnerApplication>('/partner-applications/apply', { method: 'POST', body: JSON.stringify(data) }),
+  getMine: () => request<BePartnerApplication[]>('/partner-applications/me'),
+};
+
+export const partners = {
+  async getAll() {
+    return request<BePartner[]>('/partners');
+  },
+
+  async search(query: string) {
+    return request<BePartner[]>(`/partners/search?q=${encodeURIComponent(query)}`);
+  },
+
+  async getSponsored(params?: { destinationId?: string; category?: string }) {
+    const qs = new URLSearchParams();
+    if (params?.destinationId) qs.set('destination_id', params.destinationId);
+    if (params?.category) qs.set('category', params.category);
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request<BePartner[]>(`/partners/sponsored${suffix}`);
+  },
+
+  async getMine() {
     return request<BePartner[]>('/partners/me');
+  },
+
+  async submitForReview(id: string) {
+    return request<BePartner>(`/partners/me/${id}/submit-for-review`, { method: 'POST' });
+  },
+
+  async update(id: string, payload: Partial<BePartner>) {
+    return request<BePartner>(`/partners/me/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
   },
 
   trackImpression(externalId: string) {
@@ -663,11 +715,23 @@ interface BePartner {
   longitude?: number;
   is_sponsored?: boolean;
   sponsor_tier?: number;
-  status?: string;
+  status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended';
   /** Status pembayaran sponsorship dari Midtrans (paid | pending | expired | failed) */
   sponsor_payment_status?: string;
   /** Tanggal berakhir sponsorship (ISO 8601) */
   sponsor_end_at?: string;
+}
+
+interface BePartnerApplication {
+  id: string;
+  business_name: string;
+  category: string;
+  location?: string;
+  phone?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejection_reason?: string;
+  converted_partner_external_id?: string;
+  created_at: string;
 }
 
 interface BeAdCampaign {
@@ -734,7 +798,7 @@ export const articles = {
   },
 };
 
-export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BePartner, BeAdCampaign, BeHouseAd };
+export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BePartner, BePartnerApplication, BeAdCampaign, BeHouseAd };
 
 export interface TripDayPayload {
   dayNumber: number;
