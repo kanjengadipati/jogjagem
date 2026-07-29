@@ -206,8 +206,10 @@ export default function PartnerPage() {
     setSubmitting(true); setError('');
     const res = await partnerApplications.apply(form);
     if (res.status === 'success') {
-      await refreshProfile();
-      setSubmitted(true);
+      // Force a full reload so the session re-hydrates with the new
+      // partner-role JWT (role was promoted by the backend on apply).
+      window.location.reload();
+      return;
     } else {
       setError(res.message || t('partner_page.error_generic'));
     }
