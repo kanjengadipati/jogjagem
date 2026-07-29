@@ -28,7 +28,21 @@ export default function SyaratKetentuanPage() {
         </div>
 
         <div>
-          <h2 className="font-bold text-base mb-2">3. Konten Listing</h2>
+          <h2 className="font-bold text-base mb-2">3. Konten yang Dilarang</h2>
+          <p>Mitra dilarang menampilkan atau mengiklankan konten berikut di platform Jogjagem:</p>
+          <ul className="list-disc pl-5 mt-2 space-y-1">
+            <li>Produk atau jasa yang melanggar hukum Indonesia</li>
+            <li>Minuman beralkohol dan zat terlarang</li>
+            <li>Prostitusi dan konten dewasa</li>
+            <li>Pinjaman online (pinjol) ilegal</li>
+            <li>Perjudian dalam bentuk apa pun, termasuk judi online</li>
+            <li>Produk atau jasa yang melanggar hak kekayaan intelektual</li>
+          </ul>
+          <p className="mt-2">Jogjagem berhak untuk menolak, menonaktifkan, atau menghapus listing yang melanggar ketentuan ini tanpa pemberitahuan sebelumnya.</p>
+        </div>
+
+        <div>
+          <h2 className="font-bold text-base mb-2">4. Konten Listing</h2>
           <p>Mitra bertanggung jawab penuh atas konten yang ditampilkan di listing mereka, termasuk namun tidak terbatas pada foto, deskripsi, harga, dan informasi lainnya. Jogjagem berhak untuk meninjau, menyetujui, atau menolak konten yang melanggar pedoman kami.</p>
         </div>
 
