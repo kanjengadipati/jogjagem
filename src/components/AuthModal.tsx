@@ -101,6 +101,15 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
   const { t } = useLocale();
   const router = useRouter();
 
+  // Sync mode with defaultMode whenever the modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setMode(defaultMode);
+      setError('');
+      setSuccess('');
+    }
+  }, [isOpen, defaultMode]);
+
   if (!isOpen) return null;
 
   const handleGoogleClick = () => {
