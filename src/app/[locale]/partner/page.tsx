@@ -19,7 +19,7 @@ function PartnerLayout({ children }: { children: React.ReactNode }) {
         <Image src="/prambanan-bg.png" alt="Candi Prambanan" fill priority className="object-cover object-[30%_center]" />
         <div className="absolute inset-0 bg-black/55 backdrop-blur-[7px]" />
       </div>
-      <div className="relative z-10 w-full max-w-[1180px] bg-white rounded-none md:rounded-[20px] overflow-hidden shadow-[0_35px_100px_rgba(0,0,0,.35)] border-0 md:border border-white/80 flex flex-col md:flex-row min-h-[100dvh] md:min-h-[680px]">
+      <div className="relative z-10 w-full max-w-[950px] bg-white rounded-none md:rounded-[20px] overflow-hidden shadow-[0_35px_100px_rgba(0,0,0,.35)] border-0 md:border border-white/80 flex flex-col md:flex-row">
         {children}
       </div>
     </div>
@@ -28,9 +28,9 @@ function PartnerLayout({ children }: { children: React.ReactNode }) {
 
 function VisualPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative md:w-[48%] min-h-[300px] md:min-h-[680px] overflow-hidden text-white">
+    <div className="relative md:w-[48%] min-h-[300px] md:min-h-[480px] overflow-hidden text-white">
       <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/5 to-black/70 scale-[1.02]" style={{ backgroundImage: `linear-gradient(180deg, rgba(15,15,12,.15) 0%, rgba(15,15,12,.05) 35%, rgba(15,15,12,.7) 100%), url(/prambanan-bg.png)`, backgroundSize: 'cover', backgroundPosition: '30% center' }} />
-      <div className="relative z-[2] h-full flex flex-col p-[30px_24px_24px] md:p-[46px_48px_38px]">{children}</div>
+      <div className="relative z-[2] h-full flex flex-col p-[30px_24px_24px] md:p-[36px_40px_28px]">{children}</div>
     </div>
   );
 }
@@ -43,7 +43,7 @@ function Benefits() {
     { icon: '☆', title: t('partner_page.benefit_exposure'), desc: t('partner_page.benefit_exposure_desc') },
   ];
   return (
-    <div className="mt-auto grid grid-cols-3 p-[18px] bg-white/90 backdrop-blur rounded-[14px] text-stone-800">
+    <div className="mt-auto grid grid-cols-3 p-[14px] md:p-[14px] bg-white/90 backdrop-blur rounded-[14px] text-stone-800">
       {items.map((item, i) => (
         <div key={i} className={`flex flex-col gap-[5px] ${i > 0 ? 'pl-[15px] border-l border-[#ddd5c8]' : ''} ${i < items.length - 1 ? 'pr-[15px]' : ''}`}>
           <span className="text-gold-500 text-[23px] mb-[3px]">{item.icon}</span>
@@ -79,12 +79,12 @@ function ApplicationStatusCard({ application, onReapply }: { application: BePart
       <VisualPanel>
         <Logo />
         <div className="mt-auto mb-auto">
-          <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">{t('partner_page.app_title')}</h1>
+          <h1 className="font-serif text-[clamp(36px,4.5vw,54px)] leading-[.9] tracking-[-2px]">{t('partner_page.app_title')}</h1>
           <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center`}>
@@ -128,12 +128,12 @@ function CompleteListingForm({ listing, onSubmitted }: { listing: BePartner; onS
       <VisualPanel>
         <Logo />
         <div className="mt-auto mb-auto">
-          <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">{t('partner_page.complete_title')}</h1>
-          <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
+          <h1 className="font-serif text-[clamp(36px,4.5vw,54px)] leading-[.9] tracking-[-2px]">{t('partner_page.complete_title')}</h1>
+          <div className="w-[90px] h-[4px] bg-gold-500 my-5" />
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
         <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
           <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.description')} *</label><textarea name="description" value={form.description} onChange={handleChange} rows={4} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
           <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.address')} *</label><input name="address" value={form.address} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
@@ -209,19 +209,19 @@ export default function PartnerPage() {
         <VisualPanel>
           <Logo />
           <div className="mt-auto mb-auto">
-            <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">
+            <h1 className="font-serif text-[clamp(36px,4.5vw,54px)] leading-[.9] tracking-[-2px]">
               {t('partner_page.hero_title')}<br /><span className="text-gold-500">{t('partner_page.hero_title_highlight')}</span>
             </h1>
-            <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
-            <h2 className="text-[19px] font-semibold mb-[10px]">{t('partner_page.hero_subhead')}</h2>
-            <p className="max-w-[390px] text-white/82 text-[15px] leading-[1.7]">{t('partner_page.hero_subtitle')}</p>
+            <div className="w-[90px] h-[4px] bg-gold-500 my-5" />
+            <h2 className="md:text-[17px] font-semibold mb-[8px]">{t('partner_page.hero_subhead')}</h2>
+            <p className="max-w-[390px] text-white/82 text-[14px] md:text-[14px] leading-[1.6]">{t('partner_page.hero_subtitle')}</p>
           </div>
           <Benefits />
         </VisualPanel>
-        <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
-          <div className="w-[48px] md:w-[58px] h-[48px] md:h-[58px] mb-[14px] md:mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[21px] md:text-[25px]">♧</div>
-          <h2 className="font-serif text-[26px] md:text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
-          <p className="text-[#77736d] text-[13px] md:text-[14px] mb-[24px] md:mb-[30px]">{t('partner_page.form_subtitle')}</p>
+        <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
+          <div className="w-[48px] md:w-[48px] h-[48px] md:h-[48px] mb-[14px] md:mb-[14px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[21px] md:text-[21px]">♧</div>
+          <h2 className="font-serif text-[26px] md:text-[28px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
+          <p className="text-[#77736d] text-[13px] md:text-[14px] mb-[24px] md:mb-[24px]">{t('partner_page.form_subtitle')}</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-[16px] md:gap-[19px]">
             <div>
@@ -287,12 +287,12 @@ export default function PartnerPage() {
         <VisualPanel>
           <Logo />
           <div className="mt-auto mb-auto">
-            <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">{t('partner_page.listing_title')}</h1>
-            <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
+<h1 className="font-serif text-[clamp(36px,4.5vw,54px)] leading-[.9] tracking-[-2px]">{t('partner_page.listing_title')}</h1>
+          <div className="w-[90px] h-[4px] bg-gold-500 my-5" />
           </div>
           <Benefits />
         </VisualPanel>
-        <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
+        <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
           <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl ${sc.bg} border ${sc.border} flex items-center justify-center`}>
@@ -349,7 +349,7 @@ export default function PartnerPage() {
         </div>
         <Benefits />
       </VisualPanel>
-      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[60px_58px_48px] flex flex-col justify-center">
+      <div className="md:w-[52%] p-[32px_24px_40px] md:p-[40px_44px_36px] flex flex-col justify-center">
         <div className="w-[58px] h-[58px] mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[25px]">♧</div>
         <h2 className="font-serif text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
         <p className="text-[#77736d] text-[14px] mb-[30px]">{t('partner_page.form_subtitle')}</p>
