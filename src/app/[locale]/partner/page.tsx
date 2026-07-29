@@ -190,309 +190,169 @@ function ApplicationStatusCard({ application, onReapply }: { application: BePart
   );
 }
 
-/** Interactive Landing Page for Unauthenticated Visitors */
+/** Simple Partner Landing Page for Unauthenticated Visitors */
 function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login' | 'register') => void }) {
-  const [calcCategory, setCalcCategory] = useState('Kuliner');
-  const [calcLocation, setCalcLocation] = useState('Yogyakarta');
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  const baseMap: Record<string, number> = {
-    'Kuliner': 18500,
-    'Hotel & Penginapan': 24000,
-    'Wisata & Destinasi': 32000,
-    'Oleh-oleh': 14000,
-    'Jasa': 9500,
-    'Lainnya': 8000,
-  };
-  const locMult: Record<string, number> = {
-    'Yogyakarta': 1.4,
-    'Sleman': 1.25,
-    'Bantul': 1.0,
-    'Gunung Kidul': 0.95,
-    'Kulon Progo': 0.85,
-  };
-
-  const base = baseMap[calcCategory] || 15000;
-  const mult = locMult[calcLocation] || 1.0;
-  const estimatedImpressions = Math.round(base * mult);
-  const estimatedLeads = Math.round(estimatedImpressions * 0.14);
-
-  const faqs = [
+  const benefits = [
     {
-      q: 'Berapa biaya pendaftaran untuk menjadi mitra di Jogjagem?',
-      a: 'Pendaftaran mitra 100% GRATIS tanpa biaya pendaftaran maupun komisi pemotongan dari transaksi pengunjung Anda.'
+      icon: '🧭',
+      title: 'Direkomendasikan AI, Bukan Sekadar Terdaftar',
+      desc: 'Muncul di itinerary personal yang disusun AI untuk tiap wisatawan.',
     },
     {
-      q: 'Berapa lama proses verifikasi akun mitra?',
-      a: 'Tim verifikasi kami akan meninjau pengajuan usaha Anda maksimal 1x24 jam kerja setelah formulir diisi lengkap.'
+      icon: '🗺️',
+      title: 'Peta Pintar Berbasis Rute',
+      desc: 'Tampil sebagai pilihan logis di jalur perjalanan wisatawan, bukan pin acak di antara ratusan lainnya.',
     },
     {
-      q: 'Apakah saya bisa mempromosikan promo khusus atau iklan bersponsor?',
-      a: 'Tentu! Melalui Dashboard Mitra, Anda dapat mengaktifkan fitur Sponsored Ads dan promo musiman untuk meningkatkan visibilitas bisnis Anda di halaman utama dan pencarian rute.'
+      icon: '💰',
+      title: 'Gratis & Tanpa Komisi',
+      desc: '100% pendapatan tetap milik Anda.',
     },
-    {
-      q: 'Apa saja syarat utama untuk mendaftar sebagai mitra?',
-      a: 'Memiliki usaha fisik atau layanan aktif yang beroperasi di wilayah D.I. Yogyakarta (Kota Jogja, Sleman, Bantul, Gunung Kidul, atau Kulon Progo).'
-    }
   ];
 
   return (
-    <div className="w-full bg-[#0d0d0b] text-stone-100 min-h-screen font-sans selection:bg-gold-500 selection:text-black">
-      {/* Background Glow */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-gold-500/10 via-amber-600/5 to-transparent blur-[120px] rounded-full" />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gold-600/5 blur-[150px] rounded-full" />
-      </div>
+    <div className="min-h-screen bg-[#0d0d0b] text-stone-100 flex flex-col">
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#0d0d0b]/80 backdrop-blur-md border-b border-white/10 px-4 md:px-8 py-3.5 flex items-center justify-between">
-        <a href="/" className="flex items-center gap-3 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center text-stone-900 font-bold shadow-lg shadow-gold-500/20 group-hover:scale-105 transition-transform">
-            ♧
-          </div>
-          <div>
-            <span className="font-serif tracking-[.15em] text-sm text-stone-100 font-bold block leading-none">JOGJAGEM</span>
-            <span className="text-[10px] text-gold-400 font-semibold tracking-widest uppercase">Partner Portal</span>
-          </div>
-        </a>
+      {/* ── Hero ── */}
+      <div className="relative flex-1 flex flex-col">
 
-        <div className="flex items-center gap-2.5 md:gap-4">
-          <button onClick={() => onOpenAuth('login')} className="px-3.5 py-2 text-xs md:text-sm font-semibold text-stone-300 hover:text-white transition-colors">
-            Masuk
-          </button>
-          <button onClick={() => onOpenAuth('register')} className="px-4 py-2 text-xs md:text-sm font-semibold bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-stone-950 rounded-xl shadow-lg shadow-gold-500/20 hover:shadow-gold-500/30 transition-all transform hover:-translate-y-0.5">
-            Daftar Mitra Gratis
-          </button>
+        {/* Background: Prambanan */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/prambanan-bg.png"
+            alt="Candi Prambanan"
+            fill
+            priority
+            className="object-cover object-center opacity-25"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0d0d0b]/60 via-[#0d0d0b]/40 to-[#0d0d0b]" />
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-16 space-y-16 md:space-y-24">
-        
-        {/* HERO SECTION */}
-        <section className="text-center space-y-6 md:space-y-8 max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-400 text-xs font-semibold tracking-wide">
-            <Sparkles className="w-3.5 h-3.5 text-gold-400 animate-pulse" />
-            <span>Platform Pariwisata & Mitra Resmi Yogyakarta</span>
+        {/* Header */}
+        <header className="relative z-10 flex items-center justify-between px-5 md:px-10 py-4 border-b border-white/8">
+          <a href="/" className="flex items-center gap-2.5 group">
+            <Image src="/logo-gold-new.png" alt="Jogjagem" width={36} height={36} className="rounded-lg group-hover:scale-105 transition-transform" />
+            <div>
+              <span className="font-serif tracking-[.18em] text-sm text-white font-bold block leading-none">JOGJAGEM</span>
+              <span className="text-[9px] text-gold-400 font-semibold tracking-widest uppercase">Partner Portal</span>
+            </div>
+          </a>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onOpenAuth('login')}
+              className="px-4 py-2 text-xs font-semibold text-stone-300 hover:text-white border border-white/15 hover:border-white/30 rounded-xl transition-all"
+            >
+              Masuk
+            </button>
+            <button
+              onClick={() => onOpenAuth('register')}
+              className="px-4 py-2 text-xs font-bold bg-gold-500 hover:bg-gold-400 text-stone-950 rounded-xl shadow-lg shadow-gold-500/20 transition-all"
+            >
+              Daftar Gratis
+            </button>
           </div>
+        </header>
 
-          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight text-white">
-            Tumbuhkan Bisnis Anda Bersama <br />
+        {/* Hero Content */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-5 py-16 md:py-24 max-w-4xl mx-auto w-full">
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight text-white mb-6">
+            Tumbuhkan Bisnis Anda<br />
             <span className="bg-gradient-to-r from-gold-300 via-amber-400 to-gold-500 bg-clip-text text-transparent">
-              Wisatawan Jogja secara Real-Time
+              Bersama Jutaan Wisatawan Jogja
             </span>
           </h1>
 
-          <p className="text-stone-300 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-            Jangkau puluhan ribu wisatawan aktif yang sedang merencanakan dan menjelajahi destinasi, penginapan, serta kuliner favorit di D.I. Yogyakarta.
+          <p className="text-stone-200 text-base sm:text-lg md:text-xl max-w-3xl leading-relaxed mb-4 font-medium">
+            Satu-satunya platform wisata Jogja dengan itinerary cerdas, peta pintar, dan konsultan AI — bisnis Anda direkomendasikan tepat saat wisatawan sedang merencanakan kunjungan, bukan tenggelam di antara ribuan listing.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
-            <button onClick={() => onOpenAuth('register')} className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-gold-500 via-amber-500 to-gold-400 hover:from-gold-400 hover:to-amber-400 text-stone-950 font-bold text-sm md:text-base rounded-2xl shadow-xl shadow-gold-500/25 hover:shadow-gold-500/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-              <span>🚀 Registrasi Mitra Gratis</span>
-              <ArrowRight className="w-4 h-4" />
+          <p className="text-stone-400 text-xs sm:text-sm md:text-base max-w-2xl leading-relaxed mb-8">
+            Daftarkan usaha kuliner, penginapan, wisata, atau oleh-oleh Anda — gratis, tanpa komisi. Ditemukan lewat AI, bukan cuma pencarian kata kunci.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <button
+              onClick={() => onOpenAuth('register')}
+              className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-gold-500 via-amber-500 to-gold-400 hover:from-gold-400 hover:to-amber-400 text-stone-950 font-bold text-sm rounded-2xl shadow-xl shadow-gold-500/25 hover:shadow-gold-500/40 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+            >
+              Daftar Mitra Sekarang <ArrowRight className="w-4 h-4" />
             </button>
-            <a href="#simulator" className="w-full sm:w-auto px-6 py-3.5 bg-white/5 hover:bg-white/10 border border-white/15 text-stone-200 font-semibold text-sm md:text-base rounded-2xl transition-colors flex items-center justify-center gap-2">
-              <TrendingUp className="w-4 h-4 text-gold-400" />
-              <span>Hitung Potensi Bisnis</span>
-            </a>
+            <button
+              onClick={() => onOpenAuth('login')}
+              className="w-full sm:w-auto px-8 py-3.5 bg-white/5 hover:bg-white/10 border border-white/15 text-stone-200 font-semibold text-sm rounded-2xl transition-colors"
+            >
+              Sudah punya akun? Masuk
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Benefits ── */}
+      <div className="relative z-10 bg-[#0d0d0b] border-t border-white/8 px-5 md:px-10 py-14 md:py-20">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white mb-2">Mengapa Bergabung dengan Jogjagem?</h2>
+            <p className="text-stone-400 text-sm">Solusi digital lengkap untuk usaha pariwisata Anda di Yogyakarta.</p>
           </div>
 
-          {/* Stats Ticker */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 pt-8">
-            {[
-              { label: 'Wisatawan Aktif/Bulan', val: '50.000+', icon: Users },
-              { label: 'Mitra Terverifikasi', val: '120+', icon: Building2 },
-              { label: 'Potongan Komisi', val: '0%', icon: Percent },
-              { label: 'Kepuasan Mitra', val: '4.9 / 5.0 ★', icon: Star },
-            ].map((st, i) => (
-              <div key={i} className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-4 text-left hover:border-gold-500/40 transition-colors">
-                <st.icon className="w-5 h-5 text-gold-400 mb-2" />
-                <div className="text-xl md:text-2xl font-bold text-white font-serif">{st.val}</div>
-                <div className="text-xs text-stone-400 font-medium">{st.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* REACH SIMULATOR SECTION */}
-        <section id="simulator" className="scroll-mt-24 bg-gradient-to-b from-stone-900/90 to-stone-950 border border-gold-500/20 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-gold-500/10 blur-[100px] rounded-full pointer-events-none" />
-          
-          <div className="text-center max-w-xl mx-auto space-y-2 mb-8">
-            <div className="text-xs font-semibold tracking-wider text-gold-400 uppercase">Kalkulator Potensi Usaha</div>
-            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white">Simulasikan Potensi Jangkauan Usaha Anda</h2>
-            <p className="text-xs md:text-sm text-stone-400">Pilih kategori usaha dan wilayah untuk melihat estimasi kunjungan wisatawan per bulan.</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            {/* Controls */}
-            <div className="space-y-6">
-              <div>
-                <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-2.5">1. Pilih Kategori Usaha</label>
-                <div className="flex flex-wrap gap-2">
-                  {Object.keys(baseMap).map((cat) => (
-                    <button key={cat} onClick={() => setCalcCategory(cat)} className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all ${calcCategory === cat ? 'bg-gold-500 text-stone-950 font-bold shadow-md shadow-gold-500/20' : 'bg-white/5 border border-white/10 text-stone-300 hover:bg-white/10'}`}>
-                      {cat}
-                    </button>
-                  ))}
+          <div className="grid md:grid-cols-3 gap-6">
+            {benefits.map((b, i) => (
+              <div
+                key={i}
+                className="bg-white/5 border border-white/10 hover:border-gold-500/40 rounded-2xl p-6 space-y-3 transition-all hover:-translate-y-1"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-xl">
+                  {b.icon}
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-stone-300 uppercase tracking-wider mb-2.5">2. Pilih Lokasi Usaha</label>
-                <div className="flex flex-wrap gap-2">
-                  {Object.keys(locMult).map((loc) => (
-                    <button key={loc} onClick={() => setCalcLocation(loc)} className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all ${calcLocation === loc ? 'bg-gold-500 text-stone-950 font-bold shadow-md shadow-gold-500/20' : 'bg-white/5 border border-white/10 text-stone-300 hover:bg-white/10'}`}>
-                      {loc}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Simulated Result Card */}
-            <div className="bg-stone-900/90 border border-gold-500/30 rounded-2xl p-6 text-center space-y-5 shadow-xl relative">
-              <div className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold">
-                ✓ Proyeksi Realistis Berdasarkan Data Wisatawan
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 divide-x divide-white/10">
-                <div className="p-2">
-                  <div className="text-3xl md:text-4xl font-bold font-serif text-white">{estimatedImpressions.toLocaleString('id-ID')}</div>
-                  <div className="text-xs text-stone-400 mt-1 font-medium">Estimasi Tayang / Bulan</div>
-                </div>
-                <div className="p-2">
-                  <div className="text-3xl md:text-4xl font-bold font-serif text-gold-400">+{estimatedLeads.toLocaleString('id-ID')}</div>
-                  <div className="text-xs text-stone-400 mt-1 font-medium">Calon Pengunjung Langsung</div>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button onClick={() => onOpenAuth('register')} className="w-full py-3 bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-stone-950 font-bold text-sm rounded-xl shadow-lg transition-all">
-                  Klaim Slot Listing {calcCategory} di {calcLocation}
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* BENEFIT SHOWCASE TABS */}
-        <section className="space-y-8">
-          <div className="text-center max-w-xl mx-auto space-y-2">
-            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white">Keuntungan Utama Bermitra di Jogjagem</h2>
-            <p className="text-xs md:text-sm text-stone-400">Solusi digital menyeluruh untuk memajukan usaha pariwisata Anda.</p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                id: 'reach',
-                icon: TrendingUp,
-                title: 'Visibilitas Utama',
-                desc: 'Usaha Anda ditampilkan langsung di halaman pencarian destinasi, peta lokasi interaktif, dan rekomendasi perjalanan AI.'
-              },
-              {
-                id: 'analytics',
-                icon: BarChart3,
-                title: 'Dashboard Analitik',
-                desc: 'Pantau jumlah penayangan (impressions), klik pengunjung, serta rating dan ulasan pelanggan secara real-time.'
-              },
-              {
-                id: 'promos',
-                icon: Zap,
-                title: 'Iklan & Promo Musiman',
-                desc: 'Aktifkan banner promosi khusus atau Sponsored Ads untuk menarik wisatawan saat musim liburan dan akhir pekan.'
-              },
-              {
-                id: 'zero_commission',
-                icon: Percent,
-                title: '100% Bebas Komisi',
-                desc: 'Seluruh transaksi dan pembayaran dari wisatawan langsung milik Anda tanpa ada komisi pemotongan platform.'
-              }
-            ].map((b) => (
-              <div key={b.id} className="bg-white/5 border border-white/10 hover:border-gold-500/40 rounded-2xl p-6 space-y-3 transition-all transform hover:-translate-y-1">
-                <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-400">
-                  <b.icon className="w-5 h-5" />
-                </div>
-                <h3 className="font-serif font-bold text-lg text-white">{b.title}</h3>
+                <h3 className="font-bold text-white text-base leading-snug">{b.title}</h3>
                 <p className="text-xs text-stone-400 leading-relaxed">{b.desc}</p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* 3-STEP EASY ONBOARDING TIMELINE */}
-        <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-10 space-y-8">
-          <div className="text-center max-w-xl mx-auto space-y-2">
-            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white">3 Langkah Mudah Bergabung</h2>
-            <p className="text-xs md:text-sm text-stone-400">Proses pendaftaran cepat hanya butuh waktu kurang dari 2 menit.</p>
+      {/* ── Steps ── */}
+      <div className="relative z-10 bg-white/[0.03] border-t border-white/8 px-5 md:px-10 py-14 md:py-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white mb-2">Cara Bergabung — 3 Langkah</h2>
+            <p className="text-stone-400 text-sm">Proses pendaftaran selesai dalam kurang dari 2 menit.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 relative">
+          <div className="grid md:grid-cols-3 gap-5">
             {[
-              {
-                step: '01',
-                title: 'Daftar & Ajukan Usaha',
-                desc: 'Buat akun dan isi informasi dasar usaha Anda (Nama Usaha, Kategori & Kontak).'
-              },
-              {
-                step: '02',
-                title: 'Lengkapi Listing Usaha',
-                desc: 'Tambahkan foto menarik, jam operasional, alamat lengkap, dan daftar promo unggulan Anda.'
-              },
-              {
-                step: '03',
-                title: 'Tayang & Sambut Pengunjung',
-                desc: 'Listing Anda aktif dan siap ditemukan oleh puluhan ribu wisatawan di Jogja!'
-              }
-            ].map((st, idx) => (
-              <div key={idx} className="bg-stone-900/80 border border-white/10 rounded-2xl p-6 space-y-3 relative">
-                <div className="text-3xl font-serif font-bold text-gold-400">{st.step}</div>
-                <h3 className="font-bold text-stone-100 text-base">{st.title}</h3>
+              { n: '01', title: 'Daftar & Isi Formulir', desc: 'Buat akun lalu isi nama usaha, kategori, dan nomor kontak Anda.' },
+              { n: '02', title: 'Lengkapi Profil Usaha', desc: 'Tambahkan foto, alamat lengkap, dan deskripsi menarik untuk memikat wisatawan.' },
+              { n: '03', title: 'Tayang & Sambut Tamu', desc: 'Listing Anda langsung aktif dan siap ditemukan jutaan wisatawan Jogja!' },
+            ].map((st) => (
+              <div key={st.n} className="bg-stone-900/60 border border-white/10 rounded-2xl p-6 space-y-2">
+                <div className="text-3xl font-serif font-bold text-gold-400">{st.n}</div>
+                <h3 className="font-bold text-stone-100 text-sm">{st.title}</h3>
                 <p className="text-xs text-stone-400 leading-relaxed">{st.desc}</p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* FAQ ACCORDION */}
-        <section className="max-w-3xl mx-auto space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="font-serif text-2xl md:text-3xl font-bold text-white">Pertanyaan Umum (FAQ)</h2>
-            <p className="text-xs md:text-sm text-stone-400">Hal yang sering ditanyakan seputar pendaftaran mitra Jogjagem.</p>
-          </div>
-
-          <div className="space-y-3">
-            {faqs.map((f, i) => (
-              <div key={i} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden transition-colors">
-                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full p-4 md:p-5 text-left flex items-center justify-between gap-4 font-semibold text-sm md:text-base text-stone-200 hover:text-white">
-                  <span>{f.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-gold-400 flex-shrink-0 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
-                </button>
-                {openFaq === i && (
-                  <div className="px-4 md:px-5 pb-5 pt-1 text-xs md:text-sm text-stone-400 leading-relaxed border-t border-white/5">
-                    {f.a}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* BOTTOM FINAL CTA */}
-        <section className="bg-gradient-to-r from-gold-500 via-amber-500 to-gold-400 rounded-3xl p-8 md:p-12 text-stone-950 text-center space-y-4 shadow-2xl relative overflow-hidden">
-          <h2 className="font-serif text-2xl sm:text-4xl font-bold">Siap Menjangkau Lebih Banyak Pengunjung?</h2>
-          <p className="text-stone-900 text-xs sm:text-sm md:text-base max-w-xl mx-auto font-medium">
-            Bergabunglah dengan ratusan pemilik usaha terpercaya di Yogyakarta. Proses pendaftaran gratis & mudah.
+      {/* ── Final CTA ── */}
+      <div className="relative z-10 border-t border-white/8 px-5 md:px-10 py-14 md:py-20 text-center bg-gradient-to-t from-stone-900/60">
+        <div className="max-w-xl mx-auto space-y-5">
+          <Image src="/logo-gold-new.png" alt="Jogjagem" width={52} height={52} className="mx-auto rounded-xl" />
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white">Siap Menjangkau Lebih Banyak Wisatawan?</h2>
+          <p className="text-stone-400 text-sm leading-relaxed">
+            Gratis mendaftar — tanpa biaya pendaftaran, tanpa komisi. Ratusan usaha di Yogyakarta sudah bergabung.
           </p>
-          <div className="pt-2">
-            <button onClick={() => onOpenAuth('register')} className="px-8 py-4 bg-stone-950 hover:bg-stone-900 text-gold-400 font-bold text-sm md:text-base rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5">
-              🚀 Daftarkan Usaha Anda Sekarang
-            </button>
-          </div>
-        </section>
-      </main>
+          <button
+            onClick={() => onOpenAuth('register')}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-gold-500 via-amber-500 to-gold-400 hover:from-gold-400 hover:to-amber-400 text-stone-950 font-bold text-base rounded-2xl shadow-xl shadow-gold-500/25 hover:shadow-gold-500/40 transition-all transform hover:-translate-y-0.5"
+          >
+            Daftarkan Usaha Sekarang <ArrowRight className="w-5 h-5" />
+          </button>
+          <p className="text-xs text-stone-500">Sudah punya akun? <button onClick={() => onOpenAuth('login')} className="text-gold-400 hover:text-gold-300 font-semibold transition-colors">Masuk di sini</button></p>
+        </div>
+      </div>
     </div>
   );
 }
