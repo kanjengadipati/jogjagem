@@ -6,44 +6,68 @@ import { useLocale } from '@/contexts/LocaleContext';
 import { partners, partnerApplications } from '@/lib/api';
 import { useRouter } from '@/i18n/navigation';
 import Image from 'next/image';
-import { Briefcase, CheckCircle2, Clock, XCircle, ExternalLink, Save } from 'lucide-react';
+import { Briefcase, CheckCircle2, Clock, XCircle, ExternalLink, Save, Shield, MapPin, Star, TrendingUp } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
 import type { BePartner, BePartnerApplication } from '@/lib/api';
 
-const CATEGORIES = [
-  'Hotel', 'Restaurant', 'Cafe', 'Tour Guide', 'Transport',
-  'Souvenir', 'Activity', 'Spa', 'Nightlife', 'Other',
-];
+const CATEGORIES = ['Kuliner', 'Hotel & Penginapan', 'Wisata & Destinasi', 'Oleh-oleh', 'Jasa', 'Lainnya'];
 
-function HeroBanner({ title, subtitle }: { title: string; subtitle: string }) {
+function PartnerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <section className="relative bg-[#0f100c] text-white overflow-hidden">
-      <div className="absolute inset-0">
-        <Image
-          src="https://images.unsplash.com/photo-1707378174003-418d6262d355?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dHVndSUyMGpvZ2phfGVufDB8fDB8fHww"
-          alt="Tugu Jogja"
-          fill
-          priority
-          className="object-cover opacity-90 scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0f100c]/90 via-[#0f100c]/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f100c]/60 via-transparent to-[#0f100c]/30" />
+    <div className="min-h-screen bg-[#0f0f0d] flex items-center justify-center p-4 md:p-10">
+      <div className="fixed inset-0 z-0">
+        <Image src="/prambanan-bg.png" alt="Candi Prambanan" fill priority className="object-cover" />
+        <div className="absolute inset-0 bg-black/55 backdrop-blur-[7px]" />
       </div>
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
-        <p className="text-xs font-mono text-gold-400 uppercase tracking-widest mb-1.5">Jogjagem Partner</p>
-        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight">{title}</h1>
-        <p className="text-sm text-white/75 leading-relaxed max-w-lg font-light mt-3">{subtitle}</p>
+      <div className="relative z-10 w-full max-w-[1180px] bg-white rounded-[20px] overflow-hidden shadow-[0_35px_100px_rgba(0,0,0,.35)] border border-white/80 flex flex-col md:flex-row min-h-[680px]">
+        {children}
       </div>
-    </section>
+    </div>
   );
 }
 
-function ApplicationStatusCard({
-  application, onReapply,
-}: {
-  application: BePartnerApplication;
-  onReapply: () => void;
-}) {
+function VisualPanel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative md:w-[48%] min-h-[420px] md:min-h-[680px] overflow-hidden text-white">
+      <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/5 to-black/70 scale-[1.02]" style={{ backgroundImage: `linear-gradient(180deg, rgba(15,15,12,.15) 0%, rgba(15,15,12,.05) 35%, rgba(15,15,12,.7) 100%), url(/prambanan-bg.png)`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      <div className="relative z-[2] h-full flex flex-col p-[46px_48px_38px]">{children}</div>
+    </div>
+  );
+}
+
+function Benefits() {
+  const { t } = useLocale();
+  const items = [
+    { icon: '♢', title: t('partner_page.benefit_verified'), desc: t('partner_page.benefit_verified_desc') },
+    { icon: '↗', title: t('partner_page.benefit_reach'), desc: t('partner_page.benefit_reach_desc') },
+    { icon: '☆', title: t('partner_page.benefit_exposure'), desc: t('partner_page.benefit_exposure_desc') },
+  ];
+  return (
+    <div className="mt-auto grid grid-cols-3 p-[18px] bg-white/90 backdrop-blur rounded-[14px] text-stone-800">
+      {items.map((item, i) => (
+        <div key={i} className={`flex flex-col gap-[5px] ${i > 0 ? 'pl-[15px] border-l border-[#ddd5c8]' : ''} ${i < items.length - 1 ? 'pr-[15px]' : ''}`}>
+          <span className="text-gold-500 text-[23px] mb-[3px]">{item.icon}</span>
+          <strong className="text-xs">{item.title}</strong>
+          <span className="text-[#777] text-[10px] leading-[1.4]">{item.desc}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Logo() {
+  return (
+    <div className="flex items-center gap-3">
+      <Image src="/logo-gold-new.png" alt="Jogjagem" width={50} height={50} className="rounded-full" />
+      <div>
+        <div className="font-serif text-xl font-bold tracking-[4px]">JOGJAGEM</div>
+        <div className="mt-[2px] text-[#f0c36d] text-[10px] font-bold tracking-[4px]">PARTNER</div>
+      </div>
+    </div>
+  );
+}
+
+function ApplicationStatusCard({ application, onReapply }: { application: BePartnerApplication; onReapply: () => void }) {
   const { t } = useLocale();
   const s = application.status === 'pending'
     ? { icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200', label: t('partner_page.app_pending_title') }
@@ -51,10 +75,17 @@ function ApplicationStatusCard({
   const StatusIcon = s.icon;
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <HeroBanner title={t('partner_page.app_title')} subtitle={t('partner_page.hero_subtitle_status')} />
-      <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
-        <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4 shadow-lg">
+    <PartnerLayout>
+      <VisualPanel>
+        <Logo />
+        <div className="mt-auto mb-auto">
+          <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">{t('partner_page.app_title')}</h1>
+          <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
+        </div>
+        <Benefits />
+      </VisualPanel>
+      <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
+        <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl ${s.bg} border ${s.border} flex items-center justify-center`}>
               <StatusIcon className={`w-5 h-5 ${s.color}`} />
@@ -64,99 +95,61 @@ function ApplicationStatusCard({
               <p className={`text-xs font-semibold ${s.color}`}>{s.label}</p>
             </div>
           </div>
-          {application.status === 'pending' && (
-            <p className="text-xs text-stone-400 text-center">{t('partner_page.app_pending_desc')}</p>
-          )}
+          {application.status === 'pending' && <p className="text-xs text-stone-400 text-center">{t('partner_page.app_pending_desc')}</p>}
           {application.status === 'rejected' && (
             <>
-              {application.rejection_reason && (
-                <p className="text-xs text-stone-600 bg-stone-50 rounded-lg p-3">{application.rejection_reason}</p>
-              )}
+              {application.rejection_reason && <p className="text-xs text-stone-600 bg-stone-50 rounded-lg p-3">{application.rejection_reason}</p>}
               <button onClick={onReapply} className="w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600">{t('partner_page.app_rejected_reapply')}</button>
             </>
           )}
         </div>
       </div>
-    </div>
+    </PartnerLayout>
   );
 }
 
 function CompleteListingForm({ listing, onSubmitted }: { listing: BePartner; onSubmitted: () => void }) {
   const { t } = useLocale();
-  const [form, setForm] = useState({
-    description: listing.description || '',
-    address: listing.address || '',
-    image: listing.image || '',
-    website: listing.website || '',
-    price: listing.price || '',
-    latitude: listing.latitude || 0,
-    longitude: listing.longitude || 0,
-  });
+  const [form, setForm] = useState({ description: listing.description || '', address: listing.address || '', image: listing.image || '', website: listing.website || '', price: listing.price || '', latitude: listing.latitude || 0, longitude: listing.longitude || 0 });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  async function handleSaveDraft() {
-    setSaving(true);
-    await partners.update(listing.id, form);
-    setSaving(false);
-  }
-
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  async function handleSaveDraft() { setSaving(true); await partners.update(listing.id, form); setSaving(false); }
   async function handleSubmitForReview() {
-    setSaving(true);
-    setError('');
-    await handleSaveDraft();
+    setSaving(true); setError(''); await handleSaveDraft();
     const res = await partners.submitForReview(listing.id);
-    if (res.status === 'success') {
-      onSubmitted();
-    } else {
-      setError(res.message || t('partner_page.error_complete'));
-    }
+    res.status === 'success' ? onSubmitted() : setError(res.message || t('partner_page.error_complete'));
     setSaving(false);
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <HeroBanner title={t('partner_page.complete_title')} subtitle={t('partner_page.hero_subtitle_complete', { name: listing.name })} />
-      <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
-        <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4 shadow-lg">
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.description')} *</label>
-            <textarea name="description" value={form.description} onChange={handleChange} rows={4} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.address')} *</label>
-            <input name="address" value={form.address} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.image_url')}</label>
-            <input name="image" value={form.image} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
-          </div>
+    <PartnerLayout>
+      <VisualPanel>
+        <Logo />
+        <div className="mt-auto mb-auto">
+          <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">{t('partner_page.complete_title')}</h1>
+          <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
+        </div>
+        <Benefits />
+      </VisualPanel>
+      <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
+        <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4">
+          <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.description')} *</label><textarea name="description" value={form.description} onChange={handleChange} rows={4} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
+          <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.address')} *</label><input name="address" value={form.address} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
+          <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.image_url')}</label><input name="image" value={form.image} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.website')}</label>
-              <input name="website" value={form.website} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.price')}</label>
-              <input name="price" value={form.price} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
-            </div>
+            <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.website')}</label><input name="website" value={form.website} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
+            <div><label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.price')}</label><input name="price" value={form.price} onChange={handleChange} className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400" /></div>
           </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <div className="flex gap-3 pt-2">
-            <button onClick={handleSaveDraft} disabled={saving} className="flex-1 py-3 border border-stone-200 text-stone-700 font-semibold rounded-xl hover:bg-stone-50 disabled:opacity-50 flex items-center justify-center gap-2">
-              <Save className="w-4 h-4" /> {t('partner_page.save_draft')}
-            </button>
-            <button onClick={handleSubmitForReview} disabled={saving} className="flex-1 py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 disabled:opacity-50">
-              {t('partner_page.submit_review')}
-            </button>
+            <button onClick={handleSaveDraft} disabled={saving} className="flex-1 py-3 border border-stone-200 text-stone-700 font-semibold rounded-xl hover:bg-stone-50 disabled:opacity-50 flex items-center justify-center gap-2"><Save className="w-4 h-4" /> {t('partner_page.save_draft')}</button>
+            <button onClick={handleSubmitForReview} disabled={saving} className="flex-1 py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 disabled:opacity-50">{t('partner_page.submit_review')}</button>
           </div>
         </div>
       </div>
-    </div>
+    </PartnerLayout>
   );
 }
 
@@ -170,55 +163,32 @@ export default function PartnerPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
 
-  const [form, setForm] = useState({
-    business_name: '',
-    category: '',
-    location: '',
-    phone: '',
-  });
+  const [form, setForm] = useState({ business_name: '', category: '', location: '', phone: '' });
 
   useEffect(() => {
     if (authLoading) return;
     if (!isAuthenticated) { setLoading(false); return; }
-
     Promise.all([partners.getMine(), partnerApplications.getMine()]).then(([listingRes, appRes]) => {
-      if (listingRes.status === 'success' && Array.isArray(listingRes.data) && listingRes.data.length > 0) {
-        setMyListing(listingRes.data[0]);
-      }
-      if (appRes.status === 'success' && Array.isArray(appRes.data) && appRes.data.length > 0) {
-        setMyApplication(appRes.data[0]);
-      }
+      if (listingRes.status === 'success' && Array.isArray(listingRes.data) && listingRes.data.length > 0) setMyListing(listingRes.data[0]);
+      if (appRes.status === 'success' && Array.isArray(appRes.data) && appRes.data.length > 0) setMyApplication(appRes.data[0]);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [isAuthenticated, authLoading, submitted]);
 
-  const resetToForm = () => {
-    setMyApplication(null);
-    setMyListing(null);
-    setSubmitted(false);
-  };
+  const resetToForm = () => { setMyApplication(null); setMyListing(null); setSubmitted(false); };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.business_name || !form.category) {
-      setError(t('partner_page.error_required'));
-      return;
-    }
-    setSubmitting(true);
-    setError('');
+    if (!form.business_name || !form.category) { setError(t('partner_page.error_required')); return; }
+    setSubmitting(true); setError('');
     const res = await partnerApplications.apply(form);
-    if (res.status === 'success') {
-      setSubmitted(true);
-      await refreshProfile();
-    } else {
-      setError(res.message || t('partner_page.error_generic'));
-    }
+    if (res.status === 'success') { setSubmitted(true); await refreshProfile(); }
+    else { setError(res.message || t('partner_page.error_generic')); }
     setSubmitting(false);
   };
 
@@ -226,34 +196,81 @@ export default function PartnerPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="w-6 h-6 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#0f0f0d] flex items-center justify-center">
+        <div className="fixed inset-0 z-0"><Image src="/prambanan-bg.png" alt="Candi Prambanan" fill priority className="object-cover" /><div className="absolute inset-0 bg-black/55 backdrop-blur-[7px]" /></div>
+        <div className="relative z-10 w-6 h-6 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-stone-50">
-        <HeroBanner title={t('partner_page.hero_title')} subtitle={t('partner_page.hero_subtitle')} />
-        <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
-          <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center space-y-5 shadow-lg">
-            <div className="w-14 h-14 rounded-2xl bg-gold-50 border border-gold-200 flex items-center justify-center mx-auto">
-              <Briefcase className="w-7 h-7 text-gold-600" />
+      <PartnerLayout>
+        <VisualPanel>
+          <Logo />
+          <div className="mt-auto mb-auto">
+            <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">
+              {t('partner_page.hero_title')}<br /><span className="text-gold-500">{t('partner_page.hero_title_highlight')}</span>
+            </h1>
+            <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
+            <h2 className="text-[19px] font-semibold mb-[10px]">{t('partner_page.hero_subhead')}</h2>
+            <p className="max-w-[390px] text-white/82 text-[15px] leading-[1.7]">{t('partner_page.hero_subtitle')}</p>
+          </div>
+          <Benefits />
+        </VisualPanel>
+        <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
+          <div className="w-[58px] h-[58px] mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[25px]">♧</div>
+          <h2 className="font-serif text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
+          <p className="text-[#77736d] text-[14px] mb-[30px]">{t('partner_page.form_subtitle')}</p>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-[19px]">
+            <div>
+              <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.business_name')} *</label>
+              <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder={t('partner_page.business_name_placeholder')} className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-stone-900">{t('partner_page.cta_start')}</h2>
-              <p className="text-xs text-stone-500 mt-1">{t('partner_page.cta_desc')}</p>
+              <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.category')} *</label>
+              <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white">
+                <option value="">{t('partner_page.category_placeholder')}</option>
+                {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
+              </select>
             </div>
-            <button onClick={() => setShowAuthModal(true)} className="px-6 py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors">{t('partner_page.cta_login')}</button>
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.location')} *</label>
+                <input name="location" value={form.location} onChange={handleChange} required placeholder={t('partner_page.location_placeholder')} className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+              </div>
+              <div>
+                <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.phone')} *</label>
+                <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+              </div>
+            </div>
+
+            <div className="flex items-start gap-[13px] p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
+              <Shield className="w-[21px] h-[21px] text-gold-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <strong className="block text-xs mb-[3px]">{t('partner_page.security_title')}</strong>
+                <span className="block text-[#77736d] text-[11px] leading-[1.5]">{t('partner_page.security_desc')}</span>
+              </div>
+            </div>
+
+            <label className="flex items-start gap-[11px] cursor-pointer text-xs leading-[1.55] text-[#55514b]">
+              <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} required className="appearance-none w-5 h-5 flex-shrink-0 mt-0.5 border-[1.5px] border-[#bdb7ad] rounded-[5px] checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition" />
+              <span>{t('partner_page.terms_prefix')} <a href="/syarat-ketentuan" target="_blank" className="text-[#ad6f12] font-semibold no-underline hover:underline">{t('partner_page.terms_tc')}</a> {t('partner_page.terms_and')} <a href="/kebijakan-privasi" target="_blank" className="text-[#ad6f12] font-semibold no-underline hover:underline">{t('partner_page.terms_privacy')}</a> {t('partner_page.terms_suffix')}</span>
+            </label>
+
+            {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[17px] py-[15px]">{error}</p>}
+
+            <button type="submit" disabled={submitting || !termsAccepted}
+              className="w-full h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+              ✈ &nbsp; {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
+            </button>
+          </form>
         </div>
-        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
-      </div>
+      </PartnerLayout>
     );
   }
 
-  // State 4: Listing sudah disubmit (pending/approved/rejected/suspended) — existing card
   if (existingStatusCard) {
     const status = myListing!.status || 'pending';
     const statusConfig = {
@@ -266,10 +283,17 @@ export default function PartnerPage() {
     const StatusIcon = sc.icon;
 
     return (
-      <div className="min-h-screen bg-stone-50">
-        <HeroBanner title={t('partner_page.listing_title')} subtitle={t('partner_page.subtitle_listing_status')} />
-        <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
-          <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5 shadow-lg">
+      <PartnerLayout>
+        <VisualPanel>
+          <Logo />
+          <div className="mt-auto mb-auto">
+            <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">{t('partner_page.listing_title')}</h1>
+            <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
+          </div>
+          <Benefits />
+        </VisualPanel>
+        <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
+          <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-5">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl ${sc.bg} border ${sc.border} flex items-center justify-center`}>
                 <StatusIcon className={`w-5 h-5 ${sc.color}`} />
@@ -280,18 +304,11 @@ export default function PartnerPage() {
               </div>
             </div>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between py-2 border-b border-stone-100">
-                <span className="text-stone-500">{t('partner_page.category')}</span>
-                <span className="font-medium text-stone-800">{myListing!.category}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-stone-100">
-                <span className="text-stone-500">{t('partner_page.location')}</span>
-                <span className="font-medium text-stone-800">{myListing!.location || '-'}</span>
-              </div>
+              <div className="flex justify-between py-2 border-b border-stone-100"><span className="text-stone-500">{t('partner_page.category')}</span><span className="font-medium text-stone-800">{myListing!.category}</span></div>
+              <div className="flex justify-between py-2 border-b border-stone-100"><span className="text-stone-500">{t('partner_page.location')}</span><span className="font-medium text-stone-800">{myListing!.location || '-'}</span></div>
             </div>
             {status === 'approved' && (
-              <a href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner`} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors">
+              <a href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors">
                 {t('partner_page.listing_approved_dashboard')} <ExternalLink className="w-4 h-4" />
               </a>
             )}
@@ -304,80 +321,83 @@ export default function PartnerPage() {
             {status === 'approved' && myListing!.is_sponsored && myListing!.sponsor_payment_status === 'paid' && (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 leading-relaxed">
                 <p className="font-semibold mb-0.5">{t('partner_page.sponsor_active')}</p>
-                {myListing!.sponsor_end_at ? (
-                  <p className="text-xs text-emerald-700 font-normal">{t('partner_page.sponsor_valid_until')} {new Date(myListing!.sponsor_end_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>
-                ) : (
-                  <p className="text-xs text-emerald-700 font-normal">Listing Anda tampil sebagai sponsor di halaman pencarian Jogjagem.</p>
-                )}
+                {myListing!.sponsor_end_at ? <p className="text-xs text-emerald-700 font-normal">{t('partner_page.sponsor_valid_until')} {new Date(myListing!.sponsor_end_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.</p> : <p className="text-xs text-emerald-700 font-normal">{t('partner_page.sponsor_active_desc')}</p>}
               </div>
             )}
             {status === 'pending' && <p className="text-xs text-stone-400 text-center">{t('partner_page.listing_pending_desc')}</p>}
-            {status === 'rejected' && <p className="text-xs text-stone-500 text-center">{t('partner_page.listing_rejected')}</p>}
           </div>
         </div>
-      </div>
+      </PartnerLayout>
     );
   }
 
-  // State 3: Aplikasi disetujui + listing draft — form lengkap
-  if (myListing?.status === 'draft') {
-    return <CompleteListingForm listing={myListing} onSubmitted={() => setSubmitted(true)} />;
-  }
+  if (myListing?.status === 'draft') return <CompleteListingForm listing={myListing} onSubmitted={() => setSubmitted(true)} />;
 
-  // State 2: Sudah apply, aplikasi belum approved/ditolak — ApplicationStatusCard
-  if (myApplication && myApplication.status !== 'approved') {
-    return <ApplicationStatusCard application={myApplication} onReapply={resetToForm} />;
-  }
+  if (myApplication && myApplication.status !== 'approved') return <ApplicationStatusCard application={myApplication} onReapply={resetToForm} />;
 
-  // State 1: Belum apply sama sekali — form ringan
   return (
-    <div className="min-h-screen bg-stone-50">
-      <HeroBanner title={t('partner_page.hero_title')} subtitle={t('partner_page.hero_subtitle')} />
-      <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-16">
-        <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-lg">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gold-50 border border-gold-200 flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-gold-600" />
+    <PartnerLayout>
+      <VisualPanel>
+        <Logo />
+        <div className="mt-auto mb-auto">
+          <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">
+            {t('partner_page.hero_title')}<br /><span className="text-gold-500">{t('partner_page.hero_title_highlight')}</span>
+          </h1>
+          <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
+          <h2 className="text-[19px] font-semibold mb-[10px]">{t('partner_page.hero_subhead')}</h2>
+          <p className="max-w-[390px] text-white/82 text-[15px] leading-[1.7]">{t('partner_page.hero_subtitle')}</p>
+        </div>
+        <Benefits />
+      </VisualPanel>
+      <div className="md:w-[52%] p-[60px_58px_48px] flex flex-col justify-center">
+        <div className="w-[58px] h-[58px] mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[25px]">♧</div>
+        <h2 className="font-serif text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
+        <p className="text-[#77736d] text-[14px] mb-[30px]">{t('partner_page.form_subtitle')}</p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-[19px]">
+          <div>
+            <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.business_name')} *</label>
+            <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder={t('partner_page.business_name_placeholder')} className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+          </div>
+          <div>
+            <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.category')} *</label>
+            <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white">
+              <option value="">{t('partner_page.category_placeholder')}</option>
+              {CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.location')} *</label>
+              <input name="location" value={form.location} onChange={handleChange} required placeholder={t('partner_page.location_placeholder')} className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
             <div>
-              <h2 className="font-display text-lg font-bold text-stone-900">{t('partner_page.form_title')}</h2>
-              <p className="text-xs text-stone-500">{t('partner_page.form_subtitle')}</p>
+              <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.phone')} *</label>
+              <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[56px] px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          <div className="flex items-start gap-[13px] p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
+            <Shield className="w-[21px] h-[21px] text-gold-500 mt-0.5 flex-shrink-0" />
             <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.business_name')} *</label>
-              <input name="business_name" value={form.business_name} onChange={handleChange} required
-                className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
+              <strong className="block text-xs mb-[3px]">{t('partner_page.security_title')}</strong>
+              <span className="block text-[#77736d] text-[11px] leading-[1.5]">{t('partner_page.security_desc')}</span>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.category')} *</label>
-              <select name="category" value={form.category} onChange={handleChange} required
-                className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50">
-                <option value="">{t('partner_page.category_placeholder')}</option>
-                {CATEGORIES.map((c) => (<option key={c} value={c}>{t(`partner_page.category_${c.toLowerCase().replace(/\s+/g, '_')}`, { default: c })}</option>))}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.location')}</label>
-                <input name="location" value={form.location} onChange={handleChange}
-                  className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">{t('partner_page.phone')}</label>
-                <input name="phone" value={form.phone} onChange={handleChange}
-                  className="w-full px-3 py-2.5 text-sm border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-400 bg-stone-50" />
-              </div>
-            </div>
-            {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-xl px-3 py-2">{error}</p>}
-            <button type="submit" disabled={submitting}
-              className="w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-              {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
-            </button>
-          </form>
-        </div>
+          </div>
+
+          <label className="flex items-start gap-[11px] cursor-pointer text-xs leading-[1.55] text-[#55514b]">
+            <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} required className="appearance-none w-5 h-5 flex-shrink-0 mt-0.5 border-[1.5px] border-[#bdb7ad] rounded-[5px] checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition" />
+            <span>{t('partner_page.terms_prefix')} <a href="/syarat-ketentuan" target="_blank" className="text-[#ad6f12] font-semibold no-underline hover:underline">{t('partner_page.terms_tc')}</a> {t('partner_page.terms_and')} <a href="/kebijakan-privasi" target="_blank" className="text-[#ad6f12] font-semibold no-underline hover:underline">{t('partner_page.terms_privacy')}</a> {t('partner_page.terms_suffix')}</span>
+          </label>
+
+          {error && <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-[10px] px-[17px] py-[15px]">{error}</p>}
+
+          <button type="submit" disabled={submitting || !termsAccepted}
+            className="w-full h-[58px] border-none rounded-[10px] bg-[#c98920] text-white text-[16px] font-bold cursor-pointer hover:bg-[#ad6f12] hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(201,137,32,.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+            ✈ &nbsp; {submitting ? t('partner_page.submitting') : t('partner_page.submit')}
+          </button>
+        </form>
       </div>
-    </div>
+    </PartnerLayout>
   );
 }
