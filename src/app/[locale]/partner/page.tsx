@@ -167,8 +167,8 @@ export default function PartnerPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
 
-  const [form, setForm] = useState({ business_name: '', category: '', location: '', phone: '' });
-  const isFormValid = form.business_name.trim() && form.category && form.location && form.phone.trim() && termsAccepted;
+  const [form, setForm] = useState({ business_name: '', category: '', location: '', phone: '', email: user?.email || '' });
+  const isFormValid = form.business_name.trim() && form.category && form.location && form.phone.trim() && form.email.trim() && termsAccepted;
 
   useEffect(() => {
     if (authLoading) return;
@@ -258,6 +258,11 @@ export default function PartnerPage() {
                 <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
                 <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">Email *</label>
+              <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="email@domain.com" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
 
             <div className="flex items-start gap-[11px] md:gap-[13px] p-[12px_14px] md:p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
@@ -402,6 +407,11 @@ export default function PartnerPage() {
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
               <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">Email *</label>
+            <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="email@domain.com" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
           </div>
 
           <div className="flex items-start gap-[11px] md:gap-[13px] p-[12px_14px] md:p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
