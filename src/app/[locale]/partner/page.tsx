@@ -383,6 +383,9 @@ export default function PartnerPage() {
         <Benefits />
       </VisualPanel>
       <div className="md:w-[52%] p-[18px_18px_24px] md:p-[24px_28px_20px] flex flex-col justify-center">
+        <a href="/" className="inline-flex items-center gap-1 text-[#77736d] hover:text-stone-800 text-[11px] font-semibold mb-[8px] transition-colors w-fit">
+          <span className="text-[15px] leading-none">←</span> {t('partner_page.back')}
+        </a>
         <div className="w-[34px] h-[34px] mb-[6px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[15px]">♧</div>
         <h2 className="font-serif text-[20px] tracking-[-.3px] mb-[2px]">{t('partner_page.form_title')}</h2>
         <p className="text-[#77736d] text-[12px] mb-[14px]">{t('partner_page.form_subtitle')}</p>
