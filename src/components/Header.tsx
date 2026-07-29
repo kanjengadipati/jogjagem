@@ -157,7 +157,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                 className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
               >
                 <Briefcase className="h-3 w-3 shrink-0" />
-                <span>Partner</span>
+                <span>{t('partner_page.partner_dashboard')}</span>
               </a>
             )}
 
