@@ -202,6 +202,10 @@ export default function PartnerPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
     if (!form.business_name || !form.category) { setError(t('partner_page.error_required')); return; }
     setSubmitting(true); setError('');
     const res = await partnerApplications.apply(form);
@@ -308,6 +312,7 @@ export default function PartnerPage() {
             </button>
           </form>
         </div>
+        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       </PartnerLayout>
     );
   }
