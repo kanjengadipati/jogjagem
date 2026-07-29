@@ -353,6 +353,21 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
           <p className="text-xs text-stone-500">Sudah punya akun? <button onClick={() => onOpenAuth('login')} className="text-gold-400 hover:text-gold-300 font-semibold transition-colors">Masuk di sini</button></p>
         </div>
       </div>
+
+      {/* ── Footer ── */}
+      <footer className="relative z-10 border-t border-white/10 bg-[#0a0a08] px-5 md:px-10 py-6 text-xs text-stone-500 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          &copy; {new Date().getFullYear()} Jogjagem. All rights reserved.
+        </div>
+        <div className="flex items-center gap-6">
+          <a href="/syarat-ketentuan" target="_blank" className="hover:text-stone-300 transition-colors">
+            Syarat & Ketentuan
+          </a>
+          <a href="/kebijakan-privasi" target="_blank" className="hover:text-stone-300 transition-colors">
+            Kebijakan Privasi
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
