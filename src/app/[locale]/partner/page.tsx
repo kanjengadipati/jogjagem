@@ -259,19 +259,17 @@ export default function PartnerPage() {
               <span className="absolute right-[14px] top-1/2 -translate-y-1/2 text-[#aaa49b] text-[10px] pointer-events-none">▼</span>
             </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <div>
-                <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.location')} *</label>
-                <div className="flex flex-wrap gap-2">
-                  {LOCATIONS.map((loc) => (
-                    <label key={loc} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium cursor-pointer transition-colors ${form.locations.includes(loc) ? 'bg-gold-50 border-gold-400 text-gold-700' : 'bg-white border-[#ddd9d1] text-stone-600 hover:border-stone-300'}`}>
-                      <input type="checkbox" checked={form.locations.includes(loc)} onChange={() => toggleLocation(loc)} className="sr-only" />
-                      {loc}
-                    </label>
-                  ))}
+            <div>
+              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.location')} *</label>
+              <div className="flex flex-wrap gap-2">
+                {LOCATIONS.map((loc) => (
+                  <label key={loc} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium cursor-pointer transition-colors ${form.locations.includes(loc) ? 'bg-gold-50 border-gold-400 text-gold-700' : 'bg-white border-[#ddd9d1] text-stone-600 hover:border-stone-300'}`}>
+                    <input type="checkbox" checked={form.locations.includes(loc)} onChange={() => toggleLocation(loc)} className="sr-only" />
+                    {loc}
+                  </label>
+                ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
               <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
@@ -279,7 +277,6 @@ export default function PartnerPage() {
             <div>
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.email_business')} *</label>
               <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="email@domain.com" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
-            </div>
             </div>
 
             <div className="flex items-start gap-[11px] md:gap-[13px] p-[12px_14px] md:p-[15px_17px] bg-[#faf6ed] border border-[#eee2cd] rounded-[10px]">
@@ -376,27 +373,27 @@ export default function PartnerPage() {
       <VisualPanel>
         <Logo />
         <div className="mt-auto mb-auto">
-          <h1 className="font-serif text-[clamp(50px,5vw,76px)] leading-[.9] tracking-[-3px]">
+          <h1 className="font-serif text-[clamp(18px,2.8vw,26px)] leading-[.9] tracking-[-.3px]">
             {t('partner_page.hero_title')}<br /><span className="text-gold-500">{t('partner_page.hero_title_highlight')}</span>
           </h1>
-          <div className="w-[90px] h-[4px] bg-gold-500 my-7" />
-          <h2 className="text-[19px] font-semibold mb-[10px]">{t('partner_page.hero_subhead')}</h2>
-          <p className="max-w-[390px] text-white/82 text-[15px] leading-[1.7]">{t('partner_page.hero_subtitle')}</p>
+          <div className="w-[50px] h-[2px] bg-gold-500 my-[10px]" />
+          <h2 className="md:text-[13px] font-semibold mb-[4px]">{t('partner_page.hero_subhead')}</h2>
+          <p className="max-w-[340px] text-white/82 text-[12px] md:text-[12px] leading-[1.4]">{t('partner_page.hero_subtitle')}</p>
         </div>
         <Benefits />
       </VisualPanel>
       <div className="md:w-[52%] p-[18px_18px_24px] md:p-[24px_28px_20px] flex flex-col justify-center">
-        <div className="w-[58px] h-[58px] mb-[17px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[25px]">♧</div>
-        <h2 className="font-serif text-[34px] tracking-[-.7px] mb-[7px]">{t('partner_page.form_title')}</h2>
-        <p className="text-[#77736d] text-[14px] mb-[30px]">{t('partner_page.form_subtitle')}</p>
+        <div className="w-[34px] h-[34px] mb-[6px] flex items-center justify-center bg-[#f8f2e6] rounded-full text-gold-500 text-[15px]">♧</div>
+        <h2 className="font-serif text-[20px] tracking-[-.3px] mb-[2px]">{t('partner_page.form_title')}</h2>
+        <p className="text-[#77736d] text-[12px] mb-[14px]">{t('partner_page.form_subtitle')}</p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-[16px] md:gap-[19px]">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-[11px]">
           <div>
-            <label className="block text-[13px] font-bold mb-[8px]">{t('partner_page.business_name')} *</label>
-            <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder={t('partner_page.business_name_placeholder')} className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+            <label className="block text-[12px] font-bold mb-[4px]">{t('partner_page.business_name')} *</label>
+            <input name="business_name" value={form.business_name} onChange={handleChange} required placeholder={t('partner_page.business_name_placeholder')} className="w-full h-[42px] md:h-[48px] px-[12px] md:px-[14px] border border-[#ddd9d1] rounded-[8px] text-[13px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
           </div>
           <div>
-            <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.category')} *</label>
+            <label className="block text-[12px] font-bold mb-[4px]">{t('partner_page.category')} *</label>
             <div className="relative">
               <select name="category" value={form.category} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] pr-[36px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white appearance-none cursor-pointer">
                 <option value="">{t('partner_page.category_placeholder')}</option>
