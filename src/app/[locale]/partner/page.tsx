@@ -16,7 +16,7 @@ function PartnerLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#0f0f0d] flex items-center justify-center p-4 md:p-10">
       <div className="fixed inset-0 z-0">
-        <Image src="/prambanan-bg.png" alt="Candi Prambanan" fill priority className="object-cover" />
+        <Image src="/prambanan-bg.png" alt="Candi Prambanan" fill priority className="object-cover object-[30%_center]" />
         <div className="absolute inset-0 bg-black/55 backdrop-blur-[7px]" />
       </div>
       <div className="relative z-10 w-full max-w-[1180px] bg-white rounded-[20px] overflow-hidden shadow-[0_35px_100px_rgba(0,0,0,.35)] border border-white/80 flex flex-col md:flex-row min-h-[680px]">
@@ -29,7 +29,7 @@ function PartnerLayout({ children }: { children: React.ReactNode }) {
 function VisualPanel({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative md:w-[48%] min-h-[420px] md:min-h-[680px] overflow-hidden text-white">
-      <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/5 to-black/70 scale-[1.02]" style={{ backgroundImage: `linear-gradient(180deg, rgba(15,15,12,.15) 0%, rgba(15,15,12,.05) 35%, rgba(15,15,12,.7) 100%), url(/prambanan-bg.png)`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/5 to-black/70 scale-[1.02]" style={{ backgroundImage: `linear-gradient(180deg, rgba(15,15,12,.15) 0%, rgba(15,15,12,.05) 35%, rgba(15,15,12,.7) 100%), url(/prambanan-bg.png)`, backgroundSize: 'cover', backgroundPosition: '30% center' }} />
       <div className="relative z-[2] h-full flex flex-col p-[46px_48px_38px]">{children}</div>
     </div>
   );
@@ -197,7 +197,7 @@ export default function PartnerPage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-[#0f0f0d] flex items-center justify-center">
-        <div className="fixed inset-0 z-0"><Image src="/prambanan-bg.png" alt="Candi Prambanan" fill priority className="object-cover" /><div className="absolute inset-0 bg-black/55 backdrop-blur-[7px]" /></div>
+        <div className="fixed inset-0 z-0"><Image src="/prambanan-bg.png" alt="Candi Prambanan" fill priority className="object-cover object-[30%_center]" /><div className="absolute inset-0 bg-black/55 backdrop-blur-[7px]" /></div>
         <div className="relative z-10 w-6 h-6 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
