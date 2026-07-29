@@ -167,7 +167,7 @@ export default function PartnerPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
 
-  const [form, setForm] = useState({ business_name: '', category: '', location: '', phone: '', email: '' });
+  const [form, setForm] = useState({ business_name: '', category: '', location: '', locations: [] as string[], phone: '', email: '' });
 
   useEffect(() => {
     if (user?.email && !form.email) {
@@ -175,7 +175,16 @@ export default function PartnerPage() {
     }
   }, [user?.email]);
 
-  const isFormValid = form.business_name.trim() && form.category && form.location && form.phone.trim() && form.email.trim() && termsAccepted;
+  const isFormValid = form.business_name.trim() && form.category && form.locations.length > 0 && form.phone.trim() && form.email.trim() && termsAccepted;
+
+  const toggleLocation = (loc: string) => {
+    setForm((prev) => ({
+      ...prev,
+      locations: prev.locations.includes(loc)
+        ? prev.locations.filter((l) => l !== loc)
+        : [...prev.locations, loc],
+    }));
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -253,18 +262,19 @@ export default function PartnerPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
                 <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.location')} *</label>
-                <div className="relative">
-                  <select name="location" value={form.location} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] pr-[36px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white appearance-none cursor-pointer">
-                    <option value="">{t('partner_page.location_placeholder')}</option>
-                    {LOCATIONS.map((loc) => (<option key={loc} value={loc}>{loc}</option>))}
-                  </select>
-                  <span className="absolute right-[14px] top-1/2 -translate-y-1/2 text-[#aaa49b] text-[10px] pointer-events-none">▼</span>
+                <div className="flex flex-wrap gap-2">
+                  {LOCATIONS.map((loc) => (
+                    <label key={loc} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium cursor-pointer transition-colors ${form.locations.includes(loc) ? 'bg-gold-50 border-gold-400 text-gold-700' : 'bg-white border-[#ddd9d1] text-stone-600 hover:border-stone-300'}`}>
+                      <input type="checkbox" checked={form.locations.includes(loc)} onChange={() => toggleLocation(loc)} className="sr-only" />
+                      {loc}
+                    </label>
+                  ))}
                 </div>
               </div>
-              <div>
-                <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
-                <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
-              </div>
+            <div>
+              <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.phone')} *</label>
+              <input name="phone" value={form.phone} onChange={handleChange} required placeholder="08xxxxxxxxxx" className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition" />
+            </div>
             </div>
 
             <div>
@@ -396,18 +406,15 @@ export default function PartnerPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-[13px] font-bold mb-[6px] md:mb-[8px]">{t('partner_page.location')} *</label>
-              <div className="relative">
-                <select name="location" value={form.location} onChange={handleChange} required className="w-full h-[48px] md:h-[56px] px-[14px] md:px-[18px] pr-[36px] border border-[#ddd9d1] rounded-[10px] text-[14px] outline-none focus:border-[#c98920] focus:shadow-[0_0_0_3px_rgba(201,137,32,.1)] transition bg-white appearance-none cursor-pointer">
-                  <option value="">{t('partner_page.location_placeholder')}</option>
-                  <option value="Yogyakarta">Yogyakarta</option>
-                  <option value="Sleman">Sleman</option>
-                  <option value="Bantul">Bantul</option>
-                  <option value="Gunung Kidul">Gunung Kidul</option>
-                  <option value="Kulon Progo">Kulon Progo</option>
-                </select>
-                <span className="absolute right-[14px] top-1/2 -translate-y-1/2 text-[#aaa49b] text-[10px] pointer-events-none">▼</span>
+              <div className="flex flex-wrap gap-2">
+                {LOCATIONS.map((loc) => (
+                  <label key={loc} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium cursor-pointer transition-colors ${form.locations.includes(loc) ? 'bg-gold-50 border-gold-400 text-gold-700' : 'bg-white border-[#ddd9d1] text-stone-600 hover:border-stone-300'}`}>
+                    <input type="checkbox" checked={form.locations.includes(loc)} onChange={() => toggleLocation(loc)} className="sr-only" />
+                    {loc}
+                  </label>
+                ))}
               </div>
             </div>
             <div>

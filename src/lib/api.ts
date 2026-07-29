@@ -658,7 +658,7 @@ export const partners = {
 };
 
 export const partnerApplications = {
-  apply: (data: { business_name: string; category: string; location?: string; phone?: string; email?: string }) =>
+  apply: (data: { business_name: string; category: string; location?: string; locations?: string[]; phone?: string; email?: string }) =>
     request<BePartnerApplication>('/partner-applications/apply', { method: 'POST', body: JSON.stringify(data) }),
   getMine: () => request<BePartnerApplication[]>('/partner-applications/me'),
 };
@@ -693,6 +693,7 @@ interface BePartnerApplication {
   business_name: string;
   category: string;
   location?: string;
+  locations?: string[];
   phone?: string;
   email?: string;
   status: 'pending' | 'approved' | 'rejected';
