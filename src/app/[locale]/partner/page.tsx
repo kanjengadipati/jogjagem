@@ -212,6 +212,8 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
     },
   ];
 
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
+
   return (
     <div className="min-h-screen bg-[#0d0d0b] text-stone-100 flex flex-col">
 
@@ -240,12 +242,12 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
             </div>
           </a>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => onOpenAuth('login')}
+            <a
+              href={`${adminUrl}/login`}
               className="px-4 py-2 text-xs font-semibold text-stone-300 hover:text-white border border-white/15 hover:border-white/30 rounded-xl transition-all"
             >
               {t('partner_page.landing_login')}
-            </button>
+            </a>
             <button
               onClick={() => onOpenAuth('register')}
               className="px-4 py-2 text-xs font-bold bg-gold-500 hover:bg-gold-400 text-stone-950 rounded-xl shadow-lg shadow-gold-500/20 transition-all"
@@ -279,12 +281,12 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
             >
               {t('partner_page.landing_cta_register')} <ArrowRight className="w-4 h-4" />
             </button>
-            <button
-              onClick={() => onOpenAuth('login')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-white/5 hover:bg-white/10 border border-white/15 text-stone-200 font-semibold text-sm rounded-2xl transition-colors"
+            <a
+              href={`${adminUrl}/login`}
+              className="w-full sm:w-auto px-8 py-3.5 bg-white/5 hover:bg-white/10 border border-white/15 text-stone-200 font-semibold text-sm rounded-2xl transition-colors inline-block text-center"
             >
-              {t('partner_page.landing_cta_has_account')} {t('partner_page.landing_cta_login')}
-            </button>
+              {t('partner_page.landing_cta_login')}
+            </a>
           </div>
         </div>
       </div>
@@ -352,7 +354,7 @@ function InteractivePartnerLanding({ onOpenAuth }: { onOpenAuth: (mode?: 'login'
           >
             {t('partner_page.landing_cta_btn')} <ArrowRight className="w-5 h-5" />
           </button>
-          <p className="text-xs text-stone-500">{t('partner_page.landing_cta_has_account')} <button onClick={() => onOpenAuth('login')} className="text-gold-400 hover:text-gold-300 font-semibold transition-colors">{t('partner_page.landing_cta_login')}</button></p>
+          <p className="text-xs text-stone-500">{t('partner_page.landing_cta_has_account')} <a href={`${adminUrl}/login`} className="text-gold-400 hover:text-gold-300 font-semibold transition-colors">{t('partner_page.landing_cta_login')}</a></p>
         </div>
       </div>
 

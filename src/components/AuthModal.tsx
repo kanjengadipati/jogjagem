@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { X, Mail, Lock, User, Loader2, Eye, EyeOff, ClipboardList, Heart, Map, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
