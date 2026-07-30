@@ -29,7 +29,7 @@ import AuthModal from '@/components/AuthModal';
 import type { BePartner, BePartnerApplication } from '@/lib/api';
 
 const CATEGORIES = ['Kuliner', 'Hotel & Penginapan', 'Wisata & Destinasi', 'Oleh-oleh', 'Jasa', 'Lainnya'];
-const LOCATIONS = ['Yogyakarta', 'Sleman', 'Bantul', 'Gunung Kidul', 'Kulon Progo'];
+const LOCATIONS = ['Yogyakarta', 'Sleman', 'Bantul', 'Gunung Kidul', 'Kulon Progo', 'Near Yogyakarta'];
 
 function PartnerLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -445,7 +445,8 @@ export default function PartnerPage() {
     const res = await partnerApplications.apply(form);
     if (res.status === 'success') {
       await auth.refreshToken();
-      window.location.reload();
+      const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
+      window.location.href = `${adminUrl}/partner`;
       return;
     } else {
       setError(res.message || t('partner_page.error_generic'));
@@ -466,6 +467,12 @@ export default function PartnerPage() {
 
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
 
+  // Admin/superadmin users should be redirected to admin dashboard
+  if (isAuthenticated && user && (user.role === 'admin' || user.role === 'superadmin')) {
+    window.location.href = `${adminUrl}/dashboard`;
+    return null;
+  }
+
   // Unauthenticated visitors see the interactive landing page
   if (!isAuthenticated) {
     return (
@@ -482,7 +489,8 @@ export default function PartnerPage() {
               const profileRes = await auth.getProfile();
               const role = profileRes?.data?.role;
               if (role === 'partner' || role === 'admin' || role === 'superadmin') {
-                window.location.href = `${adminUrl}/partner`;
+                const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
+                window.location.href = role === 'partner' ? `${adminUrl}/partner` : `${adminUrl}/dashboard`;
                 return;
               }
             }
