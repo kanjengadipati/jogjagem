@@ -16,6 +16,7 @@ import MobileOverlayNav from '@/components/MobileOverlayNav';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
 import { events as eventsApi } from '@/lib/api';
+import { handleSmartBack } from '@/lib/navigation';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useLeafletMap } from '@/hooks/useLeafletMap';
 
@@ -243,13 +244,13 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
         }} savedCount={0} />
       </div>
       <div className="hidden xl:block">
-        <SubNav onBack={() => router.back()} title={t('event_detail.back_to_festival')} zClass="z-40"
+        <SubNav onBack={() => handleSmartBack(router, '/events')} title={t('event_detail.back_to_festival')} zClass="z-40"
           onToggleSave={() => setSaved(v => !v)} isSaved={saved}
           onShare={handleShare} copiedToast={copied} />
       </div>
 
       <div className="relative h-[480px] sm:h-[560px] lg:h-[640px] w-full overflow-hidden bg-stone-900">
-        <MobileOverlayNav onBack={() => router.back()} title={event.title}
+        <MobileOverlayNav onBack={() => handleSmartBack(router, '/events')} title={event.title}
           isSaved={saved} onToggleSave={() => setSaved(v => !v)}
           onShare={handleShare} copiedToast={copied} />
 

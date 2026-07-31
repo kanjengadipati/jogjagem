@@ -11,6 +11,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { toSlug } from '@/lib/slug';
+import { handleSmartBack } from '@/lib/navigation';
 
 function mapApiToDestination(raw: any): Destination {
   return {
@@ -242,7 +243,7 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
         <DestinationDetail
           destination={destination}
           allDestinations={allDestinations}
-          onBack={() => router.back()}
+          onBack={() => handleSmartBack(router, '/')}
           onToggleSave={handleToggleSave}
           isSaved={isSaved(destination.id)}
         />
