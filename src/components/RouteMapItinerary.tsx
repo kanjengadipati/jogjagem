@@ -39,20 +39,19 @@ function getCategoryIcon(type: string, category: string) {
 }
 
 const MOOD_OPTIONS = [
-  { id: 'beach',    label: 'Pantai',            icon: '🏖️', category: 'beach' },
-  { id: 'mountain', label: 'Gunung',            icon: '⛰️', category: 'nature' },
-  { id: 'culinary', label: 'Kulineran',         icon: '🍲', category: 'culinary' },
-  { id: 'show',     label: 'Nonton pertunjukan', icon: '🎭', category: 'cultural' },
-  { id: 'valley',   label: 'Sungai/lembah',     icon: '🏞️', category: 'nature' },
-  { id: 'hill',     label: 'Bukit',             icon: '🌄', category: 'nature' },
-  { id: 'temple',   label: 'Candi',             icon: '🏛️', category: 'cultural' },
-  { id: 'keraton',  label: 'Keraton',           icon: '👑', category: 'cultural' },
-  { id: 'malioboro', label: 'Malioboro',        icon: '🛍️', category: 'cultural' },
-  { id: 'batik',    label: 'Batik',             icon: '🧵', category: 'cultural' },
-  { id: 'kopi',     label: 'Kopi sore',         icon: '☕', category: 'culinary' },
-  { id: 'angkringan', label: 'Angkringan',      icon: '🍢', category: 'culinary' },
-  { id: 'sunset',   label: 'Sunset',            icon: '🌅', category: 'beach' },
-  { id: 'jeep',     label: 'Jeep Merapi',       icon: '🚙', category: 'nature' },
+  { id: 'beach',     label: 'Pantai',             icon: '🏖️', category: 'beach' },
+  { id: 'merapi',    label: 'Merapi',             icon: '🌋', category: 'nature', matchKeywords: ['merapi', 'lava'] },
+  { id: 'camping',   label: 'Camping',            icon: '⛺', category: 'nature', matchBadge: 'camping_spot' },
+  { id: 'valley',    label: 'Sungai/lembah',      icon: '🏞️', category: 'nature', matchBadge: 'waterfall', matchKeywords: ['sungai', 'lembah', 'air terjun', 'curug', 'gua', 'kali'] },
+  { id: 'hill',      label: 'Bukit',              icon: '🌄', category: 'nature', matchKeywords: ['bukit', 'puncak', 'tebing', 'purba'] },
+  { id: 'sunset',    label: 'Sunset',             icon: '🌅', category: 'beach', matchBadge: 'sunset_spot' },
+  { id: 'temple',    label: 'Candi',              icon: '🏛️', category: 'cultural', matchKeywords: ['candi'] },
+  { id: 'keraton',   label: 'Keraton',            icon: '👑', category: 'cultural', matchDestinationId: 'keraton' },
+  { id: 'malioboro', label: 'Malioboro',          icon: '🛍️', category: 'cultural', matchDestinationId: 'malioboro' },
+  { id: 'show',      label: 'Nonton pertunjukan', icon: '🎭', category: 'cultural' },
+  { id: 'culinary',  label: 'Kulineran',          icon: '🍲', category: 'culinary' },
+  { id: 'kopi',      label: 'Ngopi',              icon: '☕', category: 'culinary', matchKeywords: ['kopi', 'coffee', 'cafe'] },
+  { id: 'angkringan', label: 'Angkringan',        icon: '🍢', category: 'culinary' },
 ];
 
 function getMoodIcon(mood: string) {
@@ -95,6 +94,7 @@ interface ResolvedNode {
   lat?: number;
   lng?: number;
   mood: string;
+  type?: 'event' | 'destination';
   rawItem?: Destination;
   timeWarning?: string;
   isTomorrow?: boolean;
@@ -626,6 +626,174 @@ export default function RouteMapItinerary({
     }
   }
 
+  function isTodayInEventRange(evt: Festival): boolean {
+    if (!evt.startDate) return false;
+    const start = new Date(`${evt.startDate}T00:00:00`);
+    const end = evt.endDate ? new Date(`${evt.endDate}T00:00:00`) : start;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return start.getTime() <= now.getTime() && now.getTime() <= end.getTime();
+  }
+
+  function isShowEventCategory(category: string): boolean {
+    if (!category) return false;
+    if (/food|coffee|culinary|resto|10k|race|marathon|run/.test(category.toLowerCase())) return false;
+    return /music|performance|cultural|culture|dance|street|art|show|festival|wayang|theater|comedy|carnival|ceremony/.test(category.toLowerCase());
+  }
+
+  // Reference point for "nearest" matching: previous resolved slot, else user location
+  function getReferencePoint(slotIndex: number): { lat: number; lng: number } {
+    for (let i = slotIndex - 1; i >= 0; i--) {
+      const prevSlot = slots[i];
+      if (prevSlot?.status === 'resolved' && prevSlot.node.lat != null && prevSlot.node.lng != null) {
+        return { lat: prevSlot.node.lat, lng: prevSlot.node.lng };
+      }
+    }
+    return { lat: userLat, lng: userLng };
+  }
+
+  function findTodayShowEvent(slotIndex: number) {
+    const excludeIds = getResolvedIds();
+    const ref = getReferencePoint(slotIndex);
+    const findDest = (evt: Festival) =>
+      evt.destinationId
+        ? destinations.find((d) => d.id === evt.destinationId || d.id.toLowerCase() === evt.destinationId!.toLowerCase())
+        : undefined;
+    const candidates = events
+      .filter((evt) => isShowEventCategory(evt.category) && isTodayInEventRange(evt))
+      .map((evt) => ({ evt, dest: findDest(evt) }))
+      .sort((a, b) => {
+        const aTaken = a.dest ? excludeIds.includes(a.dest.id) : false;
+        const bTaken = b.dest ? excludeIds.includes(b.dest.id) : false;
+        if (aTaken !== bTaken) return aTaken ? 1 : -1;
+        if (!!a.dest !== !!b.dest) return a.dest ? -1 : 1;
+        const aLat = a.evt.latitude ?? a.dest?.latitude;
+        const aLng = a.evt.longitude ?? a.dest?.longitude;
+        const bLat = b.evt.latitude ?? b.dest?.latitude;
+        const bLng = b.evt.longitude ?? b.dest?.longitude;
+        const aHasCoords = aLat != null && aLng != null;
+        const bHasCoords = bLat != null && bLng != null;
+        if (aHasCoords !== bHasCoords) return aHasCoords ? -1 : 1;
+        if (aHasCoords && bHasCoords) {
+          return haversineKm(ref.lat, ref.lng, aLat!, aLng!) - haversineKm(ref.lat, ref.lng, bLat!, bLng!);
+        }
+        return 0;
+      });
+    if (candidates.length === 0) return null;
+    const best = candidates[0];
+    return { event: best.evt, destination: best.dest };
+  }
+
+  function findBestMatchingDestination(slotIndex: number, moodOption: { matchBadge?: string; matchDestinationId?: string; matchKeywords?: string[] }) {
+    const excludeIds = getResolvedIds();
+    const ref = getReferencePoint(slotIndex);
+    const matches: Destination[] = [];
+
+    const pushMatch = (d: Destination) => {
+      if (!excludeIds.includes(d.id) && !matches.some((m) => m.id === d.id)) matches.push(d);
+    };
+
+    if (moodOption.matchBadge) {
+      destinations.forEach((d) => {
+        if (d.badge === moodOption.matchBadge || (Array.isArray(d.badges) && d.badges.includes(moodOption.matchBadge!))) pushMatch(d);
+      });
+    }
+    if (matches.length === 0 && moodOption.matchDestinationId) {
+      const id = moodOption.matchDestinationId.toLowerCase();
+      destinations.forEach((d) => {
+        if (d.id.toLowerCase() === id || d.name.toLowerCase().includes(id)) pushMatch(d);
+      });
+    }
+    if (matches.length === 0 && moodOption.matchKeywords && moodOption.matchKeywords.length > 0) {
+      const keywords = moodOption.matchKeywords;
+      destinations.forEach((d) => {
+        const name = d.name.toLowerCase();
+        if (keywords.some((k) => name.includes(k))) pushMatch(d);
+      });
+    }
+
+    if (matches.length === 0) return undefined;
+    matches.sort((a, b) => {
+      const aHasCoords = a.latitude != null && a.longitude != null;
+      const bHasCoords = b.latitude != null && b.longitude != null;
+      if (aHasCoords !== bHasCoords) return aHasCoords ? -1 : 1;
+      if (aHasCoords && bHasCoords) {
+        return haversineKm(ref.lat, ref.lng, a.latitude, a.longitude) - haversineKm(ref.lat, ref.lng, b.latitude, b.longitude);
+      }
+      return 0;
+    });
+    return matches[0];
+  }
+
+  function commitResolvedNode(slotIndex: number, resolvedData: ResolvedNode, sourceIsTomorrow?: boolean) {
+    const isTargetSlotTomorrow = isPlanningMode || (currentPeriod + slotIndex + 1) >= 4;
+
+    if (sourceIsTomorrow && !isTargetSlotTomorrow) {
+      // Ask user confirmation ONLY if picking an unreachable mood on a TODAY slot
+      setSlots((prev) => {
+        const next = [...prev];
+        next[slotIndex] = {
+          status: 'confirming',
+          index: slotIndex,
+          node: resolvedData,
+        };
+        return next;
+      });
+      return;
+    }
+
+    // Directly resolve & unlock next node. On tomorrow slots, popup is 100% normal
+    setSlots((prev) => {
+      const next = [...prev];
+
+      // Calculate distance from previous resolved destination
+      let distanceFromPrev: number | undefined;
+      const newLat = resolvedData.lat;
+      const newLng = resolvedData.lng;
+      if (newLat != null && newLng != null) {
+        // Find the closest previously resolved slot with valid coordinates
+        for (let i = slotIndex - 1; i >= 0; i--) {
+          const prevSlot = next[i];
+          if (prevSlot?.status === 'resolved') {
+            const prevLat = prevSlot.node.lat;
+            const prevLng = prevSlot.node.lng;
+            if (prevLat != null && prevLng != null) {
+              distanceFromPrev = haversineKm(prevLat, prevLng, newLat, newLng);
+              break;
+            }
+          }
+        }
+        // If no previous resolved slot, use user location
+        if (distanceFromPrev === undefined) {
+          distanceFromPrev = haversineKm(userLat, userLng, newLat, newLng);
+        }
+      }
+      // Fallback: use API distanceKm if coordinates unavailable
+      if (distanceFromPrev === undefined && resolvedData.distanceKm > 0) {
+        distanceFromPrev = resolvedData.distanceKm;
+      }
+
+      next[slotIndex] = {
+        status: 'resolved',
+        index: slotIndex,
+        resolvedAt: Date.now(),
+        scheduledPeriod: (firstSlotPeriod + slotIndex) % 4,
+        node: {
+          ...resolvedData,
+          distanceFromPrev,
+          isTomorrow: isTargetSlotTomorrow,
+          requiresTomorrowSlot: sourceIsTomorrow,
+        },
+      };
+      if (slotIndex + 1 < next.length) {
+        if (next[slotIndex + 1].status === 'locked') {
+          next[slotIndex + 1] = { status: 'open', index: slotIndex + 1 };
+        }
+      }
+      return next;
+    });
+  }
+
   async function resolveSlot(slotIndex: number, mood: string) {
     setOpenMoodPickers(new Set());
     setSlots((prev) => {
@@ -635,8 +803,58 @@ export default function RouteMapItinerary({
     });
 
     try {
-      const excludeIds = getResolvedIds();
+      // Show chip: resolve from today's performance events when available
+      if (mood === 'show') {
+        const todayShow = findTodayShowEvent(slotIndex);
+        if (todayShow) {
+          const { event, destination } = todayShow;
+          const evtLat = event.latitude ?? destination?.latitude;
+          const evtLng = event.longitude ?? destination?.longitude;
+          const resolvedData: ResolvedNode = {
+            id: event.id || `event-${event.name}`,
+            title: event.name,
+            category: event.category || 'cultural',
+            image: event.imageUrl || event.image,
+            location: destination?.location || event.location || '',
+            subRegion: destination?.subRegion || '',
+            rating: destination?.rating ?? 0,
+            distanceKm: evtLat != null && evtLng != null ? haversineKm(userLat, userLng, evtLat, evtLng) : 0,
+            mood,
+            type: 'event',
+            lat: evtLat,
+            lng: evtLng,
+          };
+          commitResolvedNode(slotIndex, resolvedData, false);
+          return;
+        }
+      }
+
       const selectedMood = MOOD_OPTIONS.find((option) => option.id === mood);
+
+      // Specific matching (badge → destination id → keywords), nearest-first
+      if (selectedMood) {
+        const exactDest = findBestMatchingDestination(slotIndex, selectedMood);
+        if (exactDest) {
+          const resolvedData: ResolvedNode = {
+            id: exactDest.id,
+            title: exactDest.name,
+            category: exactDest.category,
+            image: exactDest.images?.[0]?.url ?? '',
+            location: exactDest.location,
+            subRegion: exactDest.subRegion,
+            rating: exactDest.rating,
+            distanceKm: haversineKm(userLat, userLng, exactDest.latitude, exactDest.longitude),
+            mood,
+            rawItem: exactDest,
+            lat: exactDest.latitude,
+            lng: exactDest.longitude,
+          };
+          commitResolvedNode(slotIndex, resolvedData, false);
+          return;
+        }
+      }
+
+      const excludeIds = getResolvedIds();
       const apiCategory = selectedMood?.category ?? mood;
       const res = await ai.getNextStop(userLat, userLng, apiCategory, excludeIds, isPlanningMode ? 7 : currentHour);
       if (res.data) {
@@ -676,71 +894,7 @@ export default function RouteMapItinerary({
           lng: destLng,
         };
 
-        const isTargetSlotTomorrow = isPlanningMode || (currentPeriod + slotIndex + 1) >= 4;
-
-        if (nodeSource.isTomorrow && !isTargetSlotTomorrow) {
-          // Ask user confirmation ONLY if picking an unreachable mood on a TODAY slot
-          setSlots((prev) => {
-            const next = [...prev];
-            next[slotIndex] = {
-              status: 'confirming',
-              index: slotIndex,
-              node: resolvedData,
-            };
-            return next;
-          });
-        } else {
-          // Directly resolve & unlock next node. On tomorrow slots, popup is 100% normal
-          setSlots((prev) => {
-            const next = [...prev];
-
-            // Calculate distance from previous resolved destination
-            let distanceFromPrev: number | undefined;
-            const newLat = resolvedData.lat;
-            const newLng = resolvedData.lng;
-            if (newLat != null && newLng != null) {
-              // Find the closest previously resolved slot with valid coordinates
-              for (let i = slotIndex - 1; i >= 0; i--) {
-                const prevSlot = next[i];
-                if (prevSlot?.status === 'resolved') {
-                  const prevLat = prevSlot.node.lat;
-                  const prevLng = prevSlot.node.lng;
-                  if (prevLat != null && prevLng != null) {
-                    distanceFromPrev = haversineKm(prevLat, prevLng, newLat, newLng);
-                    break;
-                  }
-                }
-              }
-              // If no previous resolved slot, use user location
-              if (distanceFromPrev === undefined) {
-                distanceFromPrev = haversineKm(userLat, userLng, newLat, newLng);
-              }
-            }
-            // Fallback: use API distanceKm if coordinates unavailable
-            if (distanceFromPrev === undefined && resolvedData.distanceKm > 0) {
-              distanceFromPrev = resolvedData.distanceKm;
-            }
-
-            next[slotIndex] = {
-              status: 'resolved',
-              index: slotIndex,
-              resolvedAt: Date.now(),
-              scheduledPeriod: (firstSlotPeriod + slotIndex) % 4,
-              node: {
-                ...resolvedData,
-                distanceFromPrev,
-                isTomorrow: isTargetSlotTomorrow,
-                requiresTomorrowSlot: nodeSource.isTomorrow,
-              },
-            };
-            if (slotIndex + 1 < next.length) {
-              if (next[slotIndex + 1].status === 'locked') {
-                next[slotIndex + 1] = { status: 'open', index: slotIndex + 1 };
-              }
-            }
-            return next;
-          });
-        }
+        commitResolvedNode(slotIndex, resolvedData, nodeSource.isTomorrow);
       }
     } catch {
       setSlots((prev) => {
@@ -1292,7 +1446,7 @@ export default function RouteMapItinerary({
 
             // ── RESOLVED ──
             const node = slot.node;
-            const TypeIcon = getCategoryIcon('destination', node.category);
+            const TypeIcon = getCategoryIcon(node.type === 'event' ? 'event' : 'destination', node.category);
             const nodeKey = node.id + slotIndex;
             const isPopupOpen = pinnedNodeId === nodeKey || hoveredNodeId === nodeKey;
             const isNextDestination = slotIndex === nextDestinationSlotIndex;
@@ -1368,7 +1522,9 @@ export default function RouteMapItinerary({
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (node.rawItem && onExploreDestination) {
+                      if (node.type === 'event') {
+                        router.push(`/events/${node.id}`);
+                      } else if (node.rawItem && onExploreDestination) {
                         onExploreDestination(node.rawItem);
                       }
                     }}

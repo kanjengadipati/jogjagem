@@ -83,6 +83,12 @@ export interface Festival {
   category: string;
   badge?: string;
   badges?: string[];
+  latitude?: number;
+  longitude?: number;
+  destinationId?: string;
+  startDate?: string;
+  endDate?: string;
+  imageUrl?: string;
 }
 
 export interface TripDay {

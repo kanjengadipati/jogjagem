@@ -93,6 +93,12 @@ export default function App() {
           description: raw.description || '',
           highlights: Array.isArray(raw.highlights) ? raw.highlights : [],
           category: raw.category || '',
+          latitude: raw.latitude ?? raw.Latitude ?? undefined,
+          longitude: raw.longitude ?? raw.Longitude ?? undefined,
+          destinationId: raw.destination_id || raw.DestinationID || '',
+          startDate: raw.start_date || raw.StartDate || undefined,
+          endDate: raw.end_date || raw.EndDate || undefined,
+          imageUrl: raw.image_url || raw.ImageURL || undefined,
         }));
         setAllEvents(mapped);
         const meta = (eventRes as any).meta;
