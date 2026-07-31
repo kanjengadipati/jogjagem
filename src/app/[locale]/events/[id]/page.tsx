@@ -39,12 +39,27 @@ async function fetchEvent(id: string): Promise<EventData | null> {
 
 type PageProps = { params: Promise<{ id: string; locale: string }> };
 
+/** Returns an absolute OG image URL, proxying external images through our domain. */
+function resolveOgImage(imageUrl: string | null | undefined): string {
+  const fallback = `${SITE_URL}/og-default.png`;
+  if (!imageUrl) return fallback;
+  // Already on our domain — use as-is
+  if (imageUrl.startsWith(SITE_URL) || imageUrl.startsWith('/')) {
+    return imageUrl.startsWith('/') ? `${SITE_URL}${imageUrl}` : imageUrl;
+  }
+  // External image — proxy it so Google can crawl it from our domain
+  return `${SITE_URL}/api/og-proxy?url=${encodeURIComponent(imageUrl)}`;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id, locale } = await params;
   const event = await fetchEvent(id);
 
   if (!event) {
-    notFound();
+    return {
+      title: 'Event Tidak Ditemukan — Jogjagem',
+      description: 'Event yang Anda cari tidak ditemukan di Jogjagem.',
+    };
   }
 
   const title = `${event.title} — Events & Festivals Jogjagem`;
@@ -52,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? (event.description.length > 160 ? event.description.slice(0, 157) + '...' : event.description)
     : `Informasi lengkap event ${event.title} di Yogyakarta.`;
 
-  const ogImage = event.image_url || '/og.png';
+  const ogImage = resolveOgImage(event.image_url);
   const pageUrl = locale === 'en' ? `${SITE_URL}/en/events/${id}` : `${SITE_URL}/events/${id}`;
 
   return {
