@@ -10,7 +10,7 @@ const SITE_NAME = 'Jogjagem';
 async function fetchDestinationBySlug(slugStr: string) {
   try {
     const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
-    const res = await fetch(`${API_BASE}/destinations`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE}/destinations?limit=100`, { next: { revalidate: 3600 } });
     if (!res.ok) return null;
     const body = await res.json();
     const list = body?.data || body || [];
@@ -29,7 +29,7 @@ async function fetchDestinationBySlug(slugStr: string) {
 export async function generateStaticParams() {
   try {
     const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
-    const res = await fetch(`${API_BASE}/destinations`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE}/destinations?limit=100`, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const body = await res.json();
     const list = body?.data || body || [];
