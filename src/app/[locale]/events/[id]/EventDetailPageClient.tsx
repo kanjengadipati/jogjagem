@@ -264,25 +264,24 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
 
-        <div className="absolute top-6 left-0 right-0 xl:top-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border ${badgeStyle}`}>
-              {badgeLabel}
-            </span>
-            {secondaryBadges.map((b, i) => (
-              <span key={i} className={`inline-flex items-center text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${b.style} opacity-80 ml-1`}>
-                {b.label}
-              </span>
-            ))}
-          </div>
-        </div>
-
         <div className="absolute bottom-0 left-0 right-0">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8 sm:pb-10 lg:pb-12">
             <div className="max-w-3xl">
-          <h1 className="font-manrope text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight drop-shadow-lg mb-3">
-            {event.title}
-          </h1>
+              {/* Badges positioned cleanly above title */}
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className={`inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full border shadow-sm ${badgeStyle}`}>
+                  {badgeLabel}
+                </span>
+                {secondaryBadges.map((b, i) => (
+                  <span key={i} className={`inline-flex items-center text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border ${b.style} opacity-90`}>
+                    {b.label}
+                  </span>
+                ))}
+              </div>
+
+              <h1 className="font-manrope text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight drop-shadow-lg mb-3">
+                {event.title}
+              </h1>
           {event.description && (
             <p className="text-white/75 text-sm sm:text-base leading-relaxed max-w-xl line-clamp-2 mb-5">
               {event.description.split('\n')[0]}

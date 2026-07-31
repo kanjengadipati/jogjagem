@@ -24,56 +24,56 @@ export default function MobileOverlayNav({
   const { t, locale, setLocale } = useLocale();
 
   return (
-    <div className="xl:hidden absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-black/60 via-black/30 to-transparent px-4 pt-3 pb-4">
+    <div className="xl:hidden absolute top-0 left-0 right-0 z-40 bg-gradient-to-b from-black/70 via-black/35 to-transparent px-4 pt-3.5 pb-6">
       <div className="flex items-center justify-between">
-        {/* Left: back + title */}
-        <div className="flex items-center gap-2 min-w-0">
+        {/* Left: back button (+ title on sm screens only) */}
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={onBack}
-            className="p-2 -ml-2 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm transition-colors text-white"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/15 text-white transition-all shadow-md shrink-0"
             title={t('subnav.go_back')}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           {title && (
-            <span className="font-manrope text-sm font-bold text-white truncate max-w-[140px] drop-shadow-lg">
+            <span className="hidden sm:block font-manrope text-xs font-bold text-white/90 truncate max-w-[200px] drop-shadow-lg">
               {title}
             </span>
           )}
         </div>
 
         {/* Right: lang switch + save + share */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {/* Language toggle */}
           <button
             onClick={() => setLocale(locale === 'id' ? 'en' : 'id')}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm border border-white/10 transition-all text-white/80"
+            className="h-9 px-2.5 flex items-center gap-1 rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/15 transition-all text-white/90 shadow-md shrink-0"
             title={locale === 'id' ? 'Switch to English' : 'Ganti ke Indonesia'}
           >
             <span className="text-sm leading-none">{locale === 'id' ? '🇮🇩' : '🇬🇧'}</span>
-            <span className="text-[10px] font-bold uppercase">{locale === 'id' ? 'ID' : 'EN'}</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider">{locale === 'id' ? 'ID' : 'EN'}</span>
           </button>
 
           {onToggleSave && (
             <button
               onClick={onToggleSave}
-              className={`p-2 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm transition-all ${isSaved ? 'text-gold-400' : 'text-white/80'}`}
+              className={`w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/15 transition-all shadow-md shrink-0 ${isSaved ? 'text-gold-400 border-gold-400/40' : 'text-white/90'}`}
               title={t('subnav.save')}
             >
-              <Heart className={`h-5 w-5 ${isSaved ? 'fill-gold-400 text-gold-400' : ''}`} />
+              <Heart className={`h-4.5 w-4.5 ${isSaved ? 'fill-gold-400 text-gold-400' : ''}`} />
             </button>
           )}
           {onShare && (
             <button
               onClick={onShare}
-              className="p-2 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm transition-colors text-white/80"
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 active:scale-95 backdrop-blur-md border border-white/15 transition-all text-white/90 shadow-md shrink-0"
               title={t('subnav.share')}
             >
-              <Share2 className="h-5 w-5" />
+              <Share2 className="h-4.5 w-4.5" />
             </button>
           )}
           {copiedToast && (
-            <span className="absolute top-full right-0 mt-2 bg-gold-400 text-royal-950 font-mono text-[10px] font-bold px-3 py-1 rounded-full shadow-md border border-gold-300 whitespace-nowrap">
+            <span className="absolute top-full right-4 mt-2 bg-gold-400 text-royal-950 font-mono text-[10px] font-bold px-3 py-1 rounded-full shadow-md border border-gold-300 whitespace-nowrap">
               {t('common.copied')}
             </span>
           )}
