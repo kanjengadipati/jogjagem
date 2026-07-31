@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import Link from 'next/link';
 import {
-  Calendar, MapPin, ArrowLeft, Search, ChevronLeft, ChevronRight,
-  Star, Heart, Flame, SlidersHorizontal, X, Sparkles,
+  Calendar, MapPin, ArrowLeft, Search,
+  Star, Heart, Flame, SlidersHorizontal, Sparkles,
 } from 'lucide-react';
 import { EventCardSkeleton } from '@/components/CardSkeleton';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -219,50 +219,87 @@ function EventsPageContent() {
   const [loadingMore, setLoadingMore]     = useState(false);
   const [searchQuery, setSearchQuery]     = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [quickFilter, setQuickFilter]     = useState<string | null>(null);
+  const [showQuickFilters, setShowQuickFilters] = useState(true);
 
   // Infinite scroll
-  const loadNextPage = async () => {
-    if (loadingMore || page >= totalPages) return;
-    setLoadingMore(true);
+  const footerRef = useRef<HTMLElement>(null);
+  const requestIdRef = useRef(0);
+
+  const fetchEvents = async (targetPage: number, append: boolean) => {
+    const reqId = ++requestIdRef.current;
+    if (targetPage === 1) setIsLoading(true); else setLoadingMore(true);
     try {
-      const nextPage = page + 1;
-      const res = await eventsApi.getAll({ limit: 15, page: nextPage });
+      const res = await eventsApi.getAll({
+        limit: 15,
+        page: targetPage,
+        category: selectedCategory ?? undefined,
+        q: searchQuery.trim() || undefined,
+      });
+      if (reqId !== requestIdRef.current) return;
       if (res.status === 'success' && res.data) {
-        setEventList(prev => [...prev, ...(res.data as EventItem[])]);
-        setPage(nextPage);
+        const items = res.data as EventItem[];
+        setEventList(prev => append ? [...prev, ...items] : items);
+        setPage(targetPage);
         const meta = (res as any).meta;
         if (meta) setTotalPages(meta.total_pages ?? 1);
       }
-    } catch (e) { console.error('Failed to load more events:', e); }
-    finally { setLoadingMore(false); }
+    } catch (e) { console.error('Failed to load events:', e); }
+    finally {
+      if (reqId === requestIdRef.current) {
+        if (targetPage === 1) setIsLoading(false); else setLoadingMore(false);
+      }
+    }
   };
 
+  const loadNextPage = () => {
+    if (loadingMore || page >= totalPages) return;
+    fetchEvents(page + 1, true);
+  };
+
+  // Debounced fetch on filter/search change (also runs on mount)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      fetchEvents(1, false);
+    }, searchQuery ? 300 : 0);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, searchQuery]);
+
+  // Infinite scroll observer — scoped to this page's footer, not a global query
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => { if (entries[0].isIntersecting) loadNextPage(); },
       { threshold: 0.1 }
     );
-    const footer = document.querySelector('footer');
+    const footer = footerRef.current;
     if (footer) observer.observe(footer);
     return () => { if (footer) observer.unobserve(footer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, totalPages, loadingMore]);
-
-  useEffect(() => {
-    eventsApi.getAll({ limit: 15, page: 1 })
-      .then(res => {
-        if (res.status === 'success' && res.data) {
-          setEventList(res.data as EventItem[]);
-          const meta = (res as any).meta;
-          if (meta) { setPage(meta.page ?? 1); setTotalPages(meta.total_pages ?? 1); }
-        }
-      })
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
-  }, []);
 
   // Filter
   const filtered = eventList.filter(evt => {
     if (selectedCategory && evt.category?.toLowerCase() !== selectedCategory) return false;
+    if (quickFilter === 'Gratis') {
+      const isFree = !evt.ticket_price
+        || evt.ticket_price === '0'
+        || String(evt.ticket_price).toLowerCase() === 'gratis';
+      if (!isFree) return false;
+    }
+    if (quickFilter === 'Hari Ini') {
+      if (!evt.start_date || !evt.end_date) return false;
+      const today = new Date().toISOString().slice(0, 10);
+      if (evt.start_date > today || evt.end_date < today) return false;
+    }
+    if (quickFilter === 'Akhir Pekan') {
+      if (!evt.start_date || !evt.end_date) return false;
+      let weekend = false;
+      for (let d = new Date(evt.start_date); d <= new Date(evt.end_date); d.setDate(d.getDate() + 1)) {
+        if (d.getDay() === 0 || d.getDay() === 6) { weekend = true; break; }
+      }
+      if (!weekend) return false;
+    }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const match =
@@ -273,6 +310,21 @@ function EventsPageContent() {
     }
     return true;
   });
+
+  // Date range for the hero chip, derived from actual event data
+  const periodLabel = useMemo(() => {
+    const starts = eventList.map(e => e.start_date).filter((d): d is string => !!d).sort();
+    if (starts.length === 0) return String(new Date().getFullYear());
+    const max = eventList.reduce<string>((m, e) => {
+      const d = e.end_date || e.start_date;
+      return d && d > m ? d : m;
+    }, starts[starts.length - 1]);
+    const fmt = (d: string) => new Date(d).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    const a = new Date(starts[0]);
+    const b = new Date(max);
+    if (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()) return fmt(starts[0]);
+    return `${fmt(starts[0])} – ${fmt(max)}`;
+  }, [eventList]);
 
   return (
     <div className="min-h-screen bg-[#faf9f6] flex flex-col">
@@ -342,7 +394,7 @@ function EventsPageContent() {
               </div>
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/6 border border-white/10 text-xs text-white/60">
                 <Calendar className="h-3 w-3 text-gold-400" />
-                <span>Juli – Desember 2025</span>
+                <span>{periodLabel}</span>
               </div>
             </div>
           </div>
@@ -377,25 +429,39 @@ function EventsPageContent() {
         <div className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 shadow-sm">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-stone-300 text-stone-700 hover:border-gold-400/60 transition-all shrink-0 bg-white">
+              <button
+                onClick={() => setShowQuickFilters(v => !v)}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all shrink-0 bg-white ${
+                  showQuickFilters
+                    ? 'border-gold-400 text-gold-700'
+                    : 'border-stone-300 text-stone-700 hover:border-gold-400/60'
+                }`}
+              >
                 <SlidersHorizontal className="h-3.5 w-3.5" />
                 Filter
               </button>
               <div className="w-px h-5 bg-stone-200 shrink-0" />
               {/* Quick filter chips */}
-              {['Gratis', 'Hari Ini', 'Akhir Pekan', 'Keluarga'].map(label => (
-                <button
-                  key={label}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-stone-200 text-stone-700 hover:border-gold-400/60 hover:text-stone-900 bg-white transition-all shrink-0"
-                >
-                  {label}
-                </button>
-              ))}
+              {showQuickFilters && ['Gratis', 'Hari Ini', 'Akhir Pekan'].map(label => {
+                const active = quickFilter === label;
+                return (
+                  <button
+                    key={label}
+                    onClick={() => setQuickFilter(active ? null : label)}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border bg-white transition-all shrink-0 ${
+                      active
+                        ? 'border-gold-400 bg-gold-50 text-gold-700'
+                        : 'border-stone-200 text-stone-700 hover:border-gold-400/60 hover:text-stone-900'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
               <div className="flex-1" />
-              <div className="shrink-0 hidden sm:flex items-center gap-1.5 text-xs text-stone-500">
+              <div className="shrink-0 hidden sm:flex items-center gap-1.5 text-xs text-stone-400">
                 <span>Urutkan:</span>
-                <span className="font-semibold text-stone-700">Terbaru</span>
-                <ChevronRight className="h-3 w-3 rotate-90" />
+                <span className="font-semibold text-stone-600">Terbaru</span>
               </div>
             </div>
           </div>
@@ -404,7 +470,7 @@ function EventsPageContent() {
         {/* ── Results info ──────────────────────────────────────────────────── */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-5 pb-2">
           <p className="text-xs text-stone-500">
-            {filtered.length === eventList.length && !searchQuery && !selectedCategory
+            {filtered.length === eventList.length && !searchQuery && !selectedCategory && !quickFilter
               ? `Menampilkan semua ${eventList.length} event`
               : `${filtered.length} event ditemukan`}
           </p>
@@ -421,13 +487,13 @@ function EventsPageContent() {
               <Sparkles className="h-10 w-10 text-gold-300 mb-4" />
               <h3 className="font-manrope text-base font-bold text-royal-950 mb-1">Tidak Ada Event</h3>
               <p className="text-xs text-stone-500 max-w-xs">
-                {searchQuery || selectedCategory
-                  ? 'Coba kata kunci atau kategori yang berbeda.'
+                {searchQuery || selectedCategory || quickFilter
+                  ? 'Coba kata kunci, kategori, atau filter yang berbeda.'
                   : 'Pantau terus untuk event dan festival mendatang.'}
               </p>
-              {(searchQuery || selectedCategory) && (
+              {(searchQuery || selectedCategory || quickFilter) && (
                 <button
-                  onClick={() => { setSearchQuery(''); setSelectedCategory(null); }}
+                  onClick={() => { setSearchQuery(''); setSelectedCategory(null); setQuickFilter(null); }}
                   className="mt-4 px-4 py-2 rounded-full bg-gold-500 text-royal-950 text-xs font-bold hover:bg-gold-400 transition-colors"
                 >
                   Hapus Filter
@@ -456,14 +522,14 @@ function EventsPageContent() {
       </main>
 
       {/* ── Footer ───────────────────────────────────────────────────────────── */}
-      <footer className="bg-royal-950 text-white border-t border-royal-900 py-12 px-4 sm:px-6 lg:px-8">
+      <footer ref={footerRef} className="bg-royal-950 text-white border-t border-royal-900 py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div>
             <span className="font-manrope font-bold text-sm tracking-[0.08em] uppercase text-white">Jogjagem</span>
             <p className="text-[10px] text-gold-100/40 font-mono tracking-widest uppercase mt-1">Pesona Yogyakarta</p>
           </div>
           <div className="text-[10px] font-mono text-gold-200/40 uppercase tracking-widest">
-            © 2025 Jogjagem. All rights reserved.
+            © {new Date().getFullYear()} Jogjagem. All rights reserved.
           </div>
         </div>
       </footer>

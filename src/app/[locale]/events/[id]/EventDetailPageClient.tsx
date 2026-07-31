@@ -8,7 +8,7 @@ import {
   Calendar, MapPin, Loader2, Users, Ticket,
   ExternalLink, CheckCircle, Share2, Heart,
   ChefHat, Music, UtensilsCrossed, Shield,
-  ShoppingBag, Clock, ArrowRight, Info, Umbrella,
+  ShoppingBag, Info, Umbrella,
   RotateCcw, Star, ChevronRight,
 } from 'lucide-react';
 import YouTubePlayer from '@/components/YouTubePlayer';
@@ -85,14 +85,6 @@ const GOOD_TO_KNOW_KEYS = [
   { icon: Users,       key: 'good_to_know_all_ages' },
   { icon: Umbrella,    key: 'good_to_know_rain' },
   { icon: Info,        key: 'good_to_know_bottle' },
-];
-
-const LINEUP_SCHEDULE_KEYS = [
-  { time: '15:00', key: 'schedule_gate_open' },
-  { time: '16:00', key: 'schedule_opening' },
-  { time: '18:30', key: 'schedule_session_1' },
-  { time: '20:00', key: 'schedule_main' },
-  { time: '22:00', key: 'schedule_closing' },
 ];
 
 const BADGE_STYLES: Record<string, string> = {
@@ -319,11 +311,6 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
               <Ticket className="h-4 w-4" />
               {t('event_detail.buy_ticket')}
             </a>
-            <button
-              className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white text-sm font-bold rounded-2xl transition-all">
-              <Clock className="h-4 w-4" />
-              {t('event_detail.see_lineup')}
-            </button>
           </div>
           </div>{/* end max-w-3xl */}
           </div>{/* end mx-auto max-w-7xl */}
@@ -421,53 +408,10 @@ function EventDetailContent({ initialEvent, id }: { initialEvent: EventDetail | 
               )}
             </div>
 
-            <div className="bg-white rounded-3xl border border-stone-200/60 shadow-sm p-6">
-              <h2 className="font-manrope font-bold text-base text-royal-950 mb-5 flex items-center gap-2">
-                <span className="w-1 h-5 rounded-full bg-gold-400 shrink-0" />
-                {t('event_detail.lineup_schedule')}
-              </h2>
-              <div className="flex flex-col sm:flex-row gap-6">
-                <div className="flex-1 space-y-2">
-                  {event.start_date && event.end_date && event.start_date !== event.end_date && (
-                    <div className="flex gap-2 mb-4">
-                      {Array.from({ length: Math.min(3, parseInt(durationLabel(event.start_date, event.end_date))) }).map((_, d) => {
-                        const day = new Date(event.start_date);
-                        day.setDate(day.getDate() + d);
-                        const label = day.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-                        return (
-                          <button key={d} className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${d === 0 ? 'bg-gold-500 border-gold-400 text-white' : 'border-stone-200 text-stone-500 hover:border-gold-300'}`}>
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {LINEUP_SCHEDULE_KEYS.map(({ time, key }) => (
-                    <div key={time} className="flex items-center gap-4 py-2 border-b border-stone-100 last:border-0">
-                      <span className="text-xs font-mono font-bold text-gold-600 w-12 shrink-0">{time}</span>
-                      <span className="text-sm text-stone-700">{t(`event_detail.${key}`)}</span>
-                    </div>
-                  ))}
-                  <button className="mt-3 flex items-center gap-1.5 text-xs font-bold text-gold-600 hover:text-gold-800 transition-colors">
-                    {t('event_detail.see_all_lineup')} <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                {event.image_url && (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 sm:w-[220px] shrink-0">
-                    {['Idang Rasjidi Project', 'Andien', 'Kunto Aji', 'Tokyo Jazz Orchestra'].map((name, i) => (
-                      <div key={name} className="flex flex-col items-center gap-1.5">
-                        <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-stone-100">
-                          <Image src={event.image_url} alt={name} fill sizes="100px"
-                            className={`object-cover ${i % 2 === 0 ? 'brightness-90' : 'brightness-75 saturate-50'}`}
-                            referrerPolicy="no-referrer" />
-                        </div>
-                        <p className="text-[10px] font-semibold text-royal-950 text-center leading-tight">{name}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Lineup & schedule intentionally omitted — the event model has no
+                lineup/schedule field, so a static template would fabricate
+                performer names and times for events that don't have them. */}
+
           </div>
 
           <div className="space-y-5 lg:sticky lg:top-24 lg:self-start order-first lg:order-last">

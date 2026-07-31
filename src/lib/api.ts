@@ -410,11 +410,11 @@ export const destinations = {
 };
 
 export const events = {
-  async getAll(params?: { limit?: number; page?: number }) {
-    const qs = params
-      ? `?limit=${params.limit ?? 15}&page=${params.page ?? 1}`
-      : '?limit=15&page=1';
-    return request(`/events${qs}`);
+  async getAll(params?: { limit?: number; page?: number; category?: string; q?: string }) {
+    const qs = [`limit=${params?.limit ?? 15}`, `page=${params?.page ?? 1}`];
+    if (params?.category) qs.push(`category=${encodeURIComponent(params.category)}`);
+    if (params?.q?.trim()) qs.push(`q=${encodeURIComponent(params.q.trim())}`);
+    return request(`/events?${qs.join('&')}`);
   },
 
   async getById(id: string) {
