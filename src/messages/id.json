@@ -844,7 +844,9 @@
     "map_footer": "Atraksi Yogyakarta tersebar di berbagai sub-wilayah. Gunakan Google Maps untuk info lalu lintas real-time.",
     "route_placeholder": "Rute ke...",
     "railway_desc": "Stasiun kereta api melayani Yogyakarta.",
-    "bus_desc": "Terminal bus melayani Yogyakarta."
+    "bus_desc": "Terminal bus melayani Yogyakarta.",
+    "load_error": "Gagal memuat destinasi",
+    "retry": "Coba lagi"
   },
   "ai_page": {
     "title": "Ngobrol sama AI"

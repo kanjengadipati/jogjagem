@@ -844,7 +844,9 @@
     "map_footer": "Yogyakarta attractions span across natural subregions. Use Google Maps redirect for real-time traffic.",
     "route_placeholder": "Route to...",
     "railway_desc": "Railway station serving Yogyakarta.",
-    "bus_desc": "Bus terminal serving Yogyakarta."
+    "bus_desc": "Bus terminal serving Yogyakarta.",
+    "load_error": "Failed to load destinations",
+    "retry": "Retry"
   },
   "ai_page": {
     "title": "Chat with AI"

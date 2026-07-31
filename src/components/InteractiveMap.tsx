@@ -56,6 +56,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
   });
 
   const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [destStatus, setDestStatus] = useState<'loading' | 'error' | 'ready'>('loading');
   const [activeLayer, setActiveLayer] = useState<LayerFilter>('all');
   const [showParking, setShowParking] = useState(false);
 
@@ -80,6 +81,7 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const routePolylineRef = useRef<any>(null);
+  const routeRequestIdRef = useRef(0);
 
   // Re-render markers when dependencies change
   useEffect(() => {
@@ -109,17 +111,20 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
     drawRoute();
   }, [routeTargetId, coords]);
 
-  useEffect(() => {
+  const loadDestinations = () => {
+    setDestStatus('loading');
     destinationApi.getAll().then((res) => {
       const data = (res as any).data || res;
       setDestinations(Array.isArray(data) ? data : []);
-    }).catch(() => {});
-  }, []);
+      setDestStatus('ready');
+    }).catch(() => {
+      setDestStatus('error');
+    });
+  };
 
   useEffect(() => {
-    if (!routeTargetId) { clearRoute(); return; }
-    drawRoute();
-  }, [routeTargetId, coords]);
+    loadDestinations();
+  }, []);
 
   const clearRoute = () => {
     if (routePolylineRef.current && mapInstance.current) {
@@ -140,11 +145,14 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
 
     setRoutingLoading(true);
     clearRoute();
+    const requestId = ++routeRequestIdRef.current;
 
     try {
       const url = `https://router.project-osrm.org/route/v1/driving/${fromDest.longitude},${fromDest.latitude};${toDest.longitude},${toDest.latitude}?overview=full&geometries=geojson`;
       const res = await fetch(url);
       const data = await res.json();
+
+      if (requestId !== routeRequestIdRef.current) return;
 
       if (data.code === 'Ok' && data.routes?.length > 0) {
         const route = data.routes[0];
@@ -174,9 +182,12 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
         mapInstance.current.fitBounds(polyline.getBounds(), { padding: [50, 50] });
       }
     } catch (e) {
+      if (requestId !== routeRequestIdRef.current) return;
       console.error('OSRM Routing failed:', e);
     } finally {
-      setRoutingLoading(false);
+      if (requestId === routeRequestIdRef.current) {
+        setRoutingLoading(false);
+      }
     }
   };
 
@@ -190,7 +201,9 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
 
     // Destinations
     if (activeLayer === 'all' || activeLayer === 'destinations') {
-      destinations.forEach((dest) => {
+      destinations
+        .filter((dest) => Number.isFinite(dest.latitude) && Number.isFinite(dest.longitude) && dest.latitude !== 0 && dest.longitude !== 0)
+        .forEach((dest) => {
         const isSelected = selectedPin?.id === dest.id;
         const destIcon = L.divIcon({
           className: 'custom-leaflet-marker',
@@ -219,14 +232,16 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
     // Partners
     if (activeLayer === 'all' || activeLayer === 'destinations') {
       destinations.flatMap((d) => d.partners || []).forEach((partner) => {
-        if (!partner.coordinates?.lat || !partner.coordinates?.lng) return;
+        const lat = partner?.coordinates?.lat;
+        const lng = partner?.coordinates?.lng;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat === 0 || lng === 0) return;
         const icon = L.divIcon({
           className: 'custom-partner-marker',
           html: `<div style="display:flex;height:22px;width:22px;align-items:center;justify-content:center;border-radius:50%;background:#d4a853;color:#1C1A17;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);font-size:9px;font-weight:900;font-family:monospace">P</div>`,
           iconSize: [22, 22],
           iconAnchor: [11, 11],
         });
-        const marker = L.marker([partner.coordinates.lat, partner.coordinates.lng], { icon });
+        const marker = L.marker([lat, lng], { icon });
         marker.on('click', () => {
           setSelectedPin({ id: partner.id, name: partner.name, type: 'partner', desc: partner.description, data: partner });
           setSheetOpen(true);
@@ -322,6 +337,17 @@ export default function InteractiveMap({ onExploreDestination, selectedDestinati
           <span className="hidden sm:inline">{t('map_page.parking')}</span>
         </button>
       </div>
+
+      {/* ── Load status banner ── */}
+      {destStatus === 'error' && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-xl text-[11px] font-semibold shadow-lg">
+          <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+          <span>{t('map_page.load_error')}</span>
+          <button onClick={loadDestinations} className="underline font-bold hover:text-red-800">
+            {t('map_page.retry')}
+          </button>
+        </div>
+      )}
 
       {/* ── User Location Button ── */}
       <button
