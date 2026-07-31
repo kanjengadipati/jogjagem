@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import DestinationsPageClient from './DestinationsPageClient';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const isEn = locale === 'en';
@@ -9,6 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     ? 'Explore 100+ curated tourist destinations in Yogyakarta. Discover Prambanan Temple, Malioboro, Parangtritis Beach, hidden gems, and travel recommendations.'
     : 'Jelajahi 100+ destinasi wisata terkurasi di Yogyakarta. Temukan Candi Prambanan, Malioboro, Pantai Parangtritis, hidden gems, dan rekomendasi perjalanan terbaik.';
 
+  const pageUrl = isEn ? `${SITE_URL}/en/destinations` : `${SITE_URL}/destinations`;
+
   return {
     title,
     description,
@@ -16,6 +20,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       title,
       description,
       type: 'website',
+      url: pageUrl,
+    },
+    alternates: {
+      canonical: pageUrl,
+      languages: {
+        id: `${SITE_URL}/destinations`,
+        en: `${SITE_URL}/en/destinations`,
+      },
     },
   };
 }

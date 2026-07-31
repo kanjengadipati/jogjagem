@@ -4,13 +4,13 @@ import { toSlug } from '@/lib/slug';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 
-const FIXED_DATE = '2025-01-01T00:00:00.000Z';
+const NOW = new Date().toISOString();
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: SITE_URL,
-      lastModified: FIXED_DATE,
+      lastModified: NOW,
       changeFrequency: 'daily',
       priority: 1,
       alternates: {
@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${SITE_URL}/destinations`,
-      lastModified: FIXED_DATE,
+      lastModified: NOW,
       changeFrequency: 'daily',
       priority: 0.9,
       alternates: {
@@ -34,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${SITE_URL}/events`,
-      lastModified: FIXED_DATE,
+      lastModified: NOW,
       changeFrequency: 'weekly',
       priority: 0.7,
       alternates: {
@@ -45,8 +45,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     },
     {
+      url: `${SITE_URL}/blog`,
+      lastModified: NOW,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/blog`,
+          en: `${SITE_URL}/en/blog`,
+        },
+      },
+    },
+    {
       url: `${SITE_URL}/map`,
-      lastModified: FIXED_DATE,
+      lastModified: NOW,
       changeFrequency: 'monthly',
       priority: 0.6,
       alternates: {
@@ -58,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${SITE_URL}/planner`,
-      lastModified: FIXED_DATE,
+      lastModified: NOW,
       changeFrequency: 'monthly',
       priority: 0.6,
       alternates: {
@@ -70,7 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${SITE_URL}/ai`,
-      lastModified: FIXED_DATE,
+      lastModified: NOW,
       changeFrequency: 'monthly',
       priority: 0.5,
       alternates: {
@@ -80,12 +92,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       },
     },
+    {
+      url: `${SITE_URL}/kebijakan-privasi`,
+      lastModified: NOW,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/kebijakan-privasi`,
+          en: `${SITE_URL}/en/kebijakan-privasi`,
+        },
+      },
+    },
+    {
+      url: `${SITE_URL}/syarat-ketentuan`,
+      lastModified: NOW,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/syarat-ketentuan`,
+          en: `${SITE_URL}/en/syarat-ketentuan`,
+        },
+      },
+    },
   ];
 
   try {
-    const [destRes, eventRes] = await Promise.all([
+    const [destRes, eventRes, articleRes] = await Promise.all([
       fetch(`${API_BASE}/destinations`, { next: { revalidate: 3600 } }),
       fetch(`${API_BASE}/events`, { next: { revalidate: 3600 } }),
+      fetch(`${API_BASE}/articles?status=published`, { next: { revalidate: 3600 } }),
     ]);
 
     if (destRes.ok) {
@@ -96,7 +133,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const name = d.name || d.Name || '';
           const id = d.id || d.ExternalID || '';
           const slug = toSlug(name) || id;
-          const updated = d.updated_at || d.UpdatedAt || d.updatedAt || FIXED_DATE;
+          const updated = d.updated_at || d.UpdatedAt || d.updatedAt || NOW;
           return {
             url: `${SITE_URL}/destinations/${slug}`,
             lastModified: updated,
@@ -120,7 +157,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (Array.isArray(list)) {
         const eventPages: MetadataRoute.Sitemap = list.map((e: any) => {
           const id = e.id || e.Id || '';
-          const updated = e.updated_at || e.UpdatedAt || e.updatedAt || FIXED_DATE;
+          const updated = e.updated_at || e.UpdatedAt || e.updatedAt || NOW;
           return {
             url: `${SITE_URL}/events/${id}`,
             lastModified: updated,
@@ -135,6 +172,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           };
         });
         staticPages.push(...eventPages);
+      }
+    }
+
+    if (articleRes.ok) {
+      const body = await articleRes.json();
+      const list = body?.data || body || [];
+      if (Array.isArray(list)) {
+        const articlePages: MetadataRoute.Sitemap = list.map((a: any) => {
+          const slug = a.slug || a.Slug || '';
+          const updated = a.updated_at || a.UpdatedAt || a.updatedAt || NOW;
+          if (!slug) return null;
+          return {
+            url: `${SITE_URL}/blog/${slug}`,
+            lastModified: updated,
+            changeFrequency: 'weekly' as const,
+            priority: 0.6,
+            alternates: {
+              languages: {
+                id: `${SITE_URL}/blog/${slug}`,
+                en: `${SITE_URL}/en/blog/${slug}`,
+              },
+            },
+          };
+        }).filter(Boolean) as MetadataRoute.Sitemap;
+        staticPages.push(...articlePages);
       }
     }
   } catch {

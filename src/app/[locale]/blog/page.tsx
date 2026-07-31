@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import BlogListClient from './BlogListClient';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
+
 export async function generateMetadata({
   params,
 }: {
@@ -17,6 +19,8 @@ export async function generateMetadata({
     ? 'Discover travel guides, itineraries, local food recommendations, and hidden gems in Yogyakarta. Practical tips for your next Jogja trip.'
     : 'Temukan panduan wisata, itinerary, rekomendasi kuliner, dan hidden gems di Yogyakarta. Tips praktis untuk perjalananmu ke Jogja berikutnya.';
 
+  const pageUrl = isEn ? `${SITE_URL}/en/blog` : `${SITE_URL}/blog`;
+
   return {
     title,
     description,
@@ -24,11 +28,13 @@ export async function generateMetadata({
       title,
       description,
       type: 'website',
+      url: pageUrl,
     },
     alternates: {
+      canonical: pageUrl,
       languages: {
-        id: '/blog',
-        en: '/en/blog',
+        id: `${SITE_URL}/blog`,
+        en: `${SITE_URL}/en/blog`,
       },
     },
   };

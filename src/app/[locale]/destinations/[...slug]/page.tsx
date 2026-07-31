@@ -34,7 +34,7 @@ export async function generateStaticParams() {
     const body = await res.json();
     const list = body?.data || body || [];
     if (!Array.isArray(list)) return [];
-    
+
     const params: { locale: string; slug: string[] }[] = [];
     list.forEach((d: any) => {
       const name = d.name || d.Name || '';
@@ -59,7 +59,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const dest = await fetchDestinationBySlug(slugStr);
 
   if (!dest) {
-    notFound();
+    return {
+      title: 'Destinasi Tidak Ditemukan — Jogjagem',
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
   }
 
   const name = dest.name || dest.Name || '';
@@ -74,7 +80,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const reviewCount = dest.review_count || dest.ReviewCount || 0;
   const latitude = dest.latitude || dest.Latitude || 0;
   const longitude = dest.longitude || dest.Longitude || 0;
-  
+
   const pageUrl = locale === 'en' ? `${SITE_URL}/en/destinations/${slugStr}` : `${SITE_URL}/destinations/${slugStr}`;
 
   const seoTitle = locale === 'en'
