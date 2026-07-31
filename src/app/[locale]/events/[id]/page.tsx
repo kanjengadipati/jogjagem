@@ -123,10 +123,10 @@ export default async function EventDetailPage({ params }: PageProps) {
             location={event.location}
             latitude={event.latitude}
             longitude={event.longitude}
+            organizer={event.organizer}
             offers={event.ticket_price ? {
               price: event.ticket_price,
               priceCurrency: 'IDR',
-              availability: 'https://schema.org/InStock',
             } : undefined}
           />
           <BreadcrumbJsonLd

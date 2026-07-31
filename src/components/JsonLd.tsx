@@ -134,9 +134,39 @@ interface FAQJsonLdProps {
   items: { question: string; answer: string }[];
 }
 
+/** Parse a free-form price string into a plain number for schema.org (which requires a numeric `price`). */
+function normalizePrice(raw?: string | number): number | null {
+  if (raw === undefined || raw === null) return null;
+  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
+
+  const s = String(raw).trim();
+  if (!s) return null;
+
+  const lower = s.toLowerCase();
+  if (lower === 'gratis' || lower === 'free' || lower === '0' || lower === '0,00' || lower === '0.00') {
+    return 0;
+  }
+
+  // Take the first value of a price range: "25.000 - 50.000", "25.000 s/d 50.000", "25.000–50.000"
+  const firstPart = s.split(/\s*(?:[-–—]|\bs\/d\b|\bsd\b|sampai|\bto\b)\s*/i)[0] || s;
+  // Strip currency symbols and thousand separators, then convert a comma decimal to a dot.
+  const cleaned = firstPart.replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.');
+  const num = Number(cleaned);
+  return Number.isFinite(num) && num >= 0 ? num : null;
+}
+
+/** Map event dates to the closest schema.org EventStatus. */
+function computeEventStatus(startDate: string, endDate: string): string {
+  const end = new Date(endDate).getTime();
+  if (Number.isFinite(end) && end < Date.now()) {
+    return 'https://schema.org/EventPast';
+  }
+  return 'https://schema.org/EventScheduled';
+}
+
 interface EventJsonLdProps {
   name: string;
-  description: string;
+  description?: string;
   image?: string;
   url: string;
   startDate: string;
@@ -144,8 +174,10 @@ interface EventJsonLdProps {
   location?: string;
   latitude?: number;
   longitude?: number;
+  organizer?: string;
+  performer?: string;
   offers?: {
-    price?: string;
+    price?: string | number;
     priceCurrency?: string;
     availability?: string;
   };
@@ -161,20 +193,34 @@ export function EventJsonLd({
   location,
   latitude,
   longitude,
+  organizer,
+  performer,
   offers,
 }: EventJsonLdProps) {
+  const effectiveEndDate = endDate || startDate;
+  const status = computeEventStatus(startDate, effectiveEndDate);
+  const orgName = organizer || performer || name;
+
   const data: Record<string, any> = {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name,
-    description,
+    description: description || `${name} — Informasi lengkap event di Yogyakarta.`,
     url,
     startDate,
+    endDate: effectiveEndDate,
+    eventStatus: status,
+    organizer: {
+      '@type': 'Organization',
+      name: orgName,
+      url,
+    },
+    performer: {
+      '@type': 'Organization',
+      name: performer || orgName,
+      url,
+    },
   };
-
-  if (endDate) {
-    data.endDate = endDate;
-  }
 
   if (image) {
     data.image = image;
@@ -201,11 +247,20 @@ export function EventJsonLd({
   }
 
   if (offers) {
-    data.offers = {
-      '@type': 'Offer',
-      url,
-      ...offers,
-    };
+    const price = normalizePrice(offers.price);
+    if (price !== null) {
+      data.offers = {
+        '@type': 'Offer',
+        url,
+        price,
+        priceCurrency: offers.priceCurrency || 'IDR',
+        availability: offers.availability || (
+          status === 'https://schema.org/EventPast' ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock'
+        ),
+        validFrom: startDate,
+        validThrough: effectiveEndDate,
+      };
+    }
   }
 
   return <JsonLd data={data} />;
