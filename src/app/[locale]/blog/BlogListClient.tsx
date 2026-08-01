@@ -15,6 +15,7 @@ interface BlogMessages {
   title: string;
   subtitle: string;
   all_articles: string;
+  load_more: string;
   read_more: string;
   min_read: string;
   by: string;
@@ -293,6 +294,9 @@ export default function BlogListClient({
   const [all, setAll] = useState<Article[]>([]);
   const [filtered, setFiltered] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('');
   const isSearching = search.length > 0 || activeCategory !== '';
@@ -300,16 +304,37 @@ export default function BlogListClient({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await articles.getAll({ limit: 50 });
+      const res = await articles.getAll({ limit: 10, page: 1 });
       const list = (res as { data?: Article[] }).data ?? [];
       setAll(list);
       setFiltered(list);
+      setPage(1);
+      const meta = (res as { meta?: { total_pages?: number } }).meta;
+      setTotalPages(meta?.total_pages ?? 1);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const loadMore = async () => {
+    if (loadingMore || page >= totalPages) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await articles.getAll({ limit: 10, page: nextPage });
+      const list = (res as { data?: Article[] }).data ?? [];
+      setAll(prev => [...prev, ...list]);
+      setPage(nextPage);
+      const meta = (res as { meta?: { total_pages?: number } }).meta;
+      if (meta?.total_pages) setTotalPages(meta.total_pages);
+    } catch {
+      // silent
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     let list = all;
@@ -322,7 +347,7 @@ export default function BlogListClient({
   }, [search, activeCategory, all]);
 
   const featured = all[0] ?? null;
-  const latestArticles = all.slice(0, 6);
+  const latestArticles = all;
   const itineraries = all.filter(a => a.category === 'itinerary').slice(0, 3);
   const categories = Object.keys(CATEGORY_KEYS).filter(cat => all.some(a => a.category === cat));
 
@@ -518,6 +543,25 @@ export default function BlogListClient({
                   {latestArticles.map(a => (
                     <ArticleCard key={a.id} article={a} locale={locale} messages={messages} />
                   ))}
+                </div>
+              )}
+
+              {!loading && page < totalPages && (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                    className="px-6 py-2.5 bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-600 hover:to-amber-700 disabled:opacity-50 text-white rounded-full font-semibold text-xs transition-all duration-300 shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
+                        <span>{messages.loading}</span>
+                      </>
+                    ) : (
+                      <span>{messages.load_more}</span>
+                    )}
+                  </button>
                 </div>
               )}
             </section>

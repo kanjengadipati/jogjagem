@@ -55,6 +55,7 @@ export default async function BlogPage({
         title: t('title'),
         subtitle: t('subtitle'),
         all_articles: t('all_articles'),
+        load_more: t('load_more'),
         read_more: t('read_more'),
         min_read: t('min_read'),
         by: t('by'),
