@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { useParams } from 'next/navigation';
-import { Calendar, MapPin, Users, Ticket, ExternalLink, CheckCircle, ChevronLeft, ChevronRight, Camera } from 'lucide-react';
+import { Calendar, MapPin, Users, Ticket, ExternalLink, CheckCircle, ChevronLeft, ChevronRight, Camera, Briefcase } from 'lucide-react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LocationProvider } from '@/contexts/LocationContext';
+import { useLocale } from '@/contexts/LocaleContext';
 import Header from '@/components/Header';
 import SubNav from '@/components/SubNav';
 import { events as eventsApi } from '@/lib/api';
@@ -42,12 +43,14 @@ interface EventDetail {
   organizer: string;
   highlights: string[];
   video_url?: string;
+  businessId?: string | number | null;
 }
 
 function EventDetailContent() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const { t } = useLocale();
 
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -319,6 +322,16 @@ function EventDetailContent() {
               ))}
             </ul>
           </div>
+        )}
+
+        {!event.businessId && (
+          <a
+            href={`/business/claim?type=event&listingId=${event.id}&name=${encodeURIComponent(event.title)}`}
+            className="flex items-center justify-center gap-2 w-full py-3 mb-3 border border-gold-400/50 text-gold-700 hover:bg-gold-50 text-sm font-semibold rounded-2xl transition-colors"
+          >
+            <Briefcase className="h-4 w-4" />
+            <span>{t('business_page.claim_event') || 'Ini acara/usaha saya'}</span>
+          </a>
         )}
 
         <a

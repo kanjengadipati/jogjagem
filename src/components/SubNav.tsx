@@ -40,7 +40,7 @@ export default function SubNav({
   copiedToast = false,
   userInitials,
   rightExtra,
-  zClass = 'z-50',
+  zClass = 'z-30',
 }: SubNavProps) {
   const { t } = useLocale();
   return (

@@ -8,9 +8,15 @@ interface HouseAdProps {
   placement: string;
   variant?: 'wide' | 'native';
   className?: string;
+  /**
+   * Extra query params merged into content.target_url at render time — e.g. { listingId: destination.id }
+   * so a generic per-placement CTA ("Klaim & Pasang Iklan") becomes specific to the listing
+   * currently being viewed, without needing a separate target_url per listing in the DB.
+   */
+  extraParams?: Record<string, string>;
 }
 
-export default function HouseAd({ placement, variant = 'wide', className = '' }: HouseAdProps) {
+export default function HouseAd({ placement, variant = 'wide', className = '', extraParams }: HouseAdProps) {
   const [content, setContent] = useState<BeHouseAd | null>(null);
   const [status, setStatus] = useState<'loading' | 'resolved'>('loading');
 
@@ -39,9 +45,23 @@ export default function HouseAd({ placement, variant = 'wide', className = '' }:
   const aspect = variant === 'wide' ? 'aspect-[16/5] sm:aspect-[21/5]' : 'aspect-[3/4]';
   const hasImage = Boolean(content.image_url);
 
+  // Merge extraParams (e.g. listingId of the destination currently being viewed) into
+  // the placement's static target_url — turns a generic "Klaim & Pasang Iklan" CTA into
+  // one scoped to this specific listing, e.g. /business/claim?type=destination&listingId=123.
+  let href = content.target_url;
+  if (extraParams && Object.keys(extraParams).length > 0) {
+    try {
+      const url = new URL(href, window.location.origin);
+      Object.entries(extraParams).forEach(([key, value]) => url.searchParams.set(key, value));
+      href = url.pathname + url.search;
+    } catch {
+      // target_url malformed — fall back to the unmodified value rather than breaking the CTA.
+    }
+  }
+
   return (
     <a
-      href={content.target_url}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={`relative flex flex-col justify-center gap-2 w-full ${aspect} overflow-hidden rounded-2xl sm:rounded-3xl bg-stone-100 transition-colors text-left px-5 sm:px-7 ${className}`}

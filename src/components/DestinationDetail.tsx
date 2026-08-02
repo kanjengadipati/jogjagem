@@ -10,7 +10,7 @@ import {
   Footprints, MessageSquare, Map, Camera, Video, Eye, Award, 
   ChevronRight, Calendar, Users, AlertTriangle, Play,
   ShoppingBag, Landmark, ArrowRight, Check, HeartHandshake,
-  MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle, Pencil, X, Navigation, BookOpen
+  MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle, Pencil, X, Navigation, BookOpen, Briefcase
 } from 'lucide-react';
 import { Destination, EcosystemPartner, Review } from '@/types';
 import { events as eventsApi, reviews as reviewsApi, partners as partnersApi } from '@/lib/api';
@@ -27,6 +27,7 @@ import SubNav from '@/components/SubNav';
 import DestinationGallery from '@/components/DestinationGallery';
 import DestinationReviews from '@/components/DestinationReviews';
 import DestinationInfoPanel from '@/components/DestinationInfoPanel';
+import AdBanner from '@/components/AdBanner';
 import { useLocale } from '@/contexts/LocaleContext';
 
 interface DestinationDetailProps {
@@ -962,6 +963,16 @@ export default function DestinationDetail({
                   <Navigation className="h-4 w-4 text-gold-400" />
                   {t('destination_detail.get_directions') || 'Petunjuk Arah'}
                 </a>
+                {/* Claim ownership entry point */}
+                {!destination.businessId && (
+                  <a
+                    href={`/business/claim?type=destination&listingId=${destination.id}&name=${encodeURIComponent(destination.name)}`}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-gold-400/40 text-gold-300 hover:bg-gold-400/20 font-semibold text-sm rounded-xl transition-colors"
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    {t('destination_detail.claim_business') || 'Ini usaha saya'}
+                  </a>
+                )}
               </div>
             </div>
 
@@ -1165,6 +1176,15 @@ export default function DestinationDetail({
                 })}
               </div>
             </div>
+
+            {/* Ad slot: destination_detail placement — falls back to the House Ad
+                "Klaim & Pasang Iklan" CTA when no paid campaign is live, scoped to
+                THIS destination via extraParams so the claim link is pre-filled. */}
+            <AdBanner
+              placement="destination_detail"
+              variant="wide"
+              houseAdExtraParams={{ listingId: destination.id, type: 'destination' }}
+            />
 
             {/* 6. INTERACTIVE MAP SECTION */}
             <div id="interactive-map-section" className="space-y-6 scroll-mt-20">
@@ -1664,6 +1684,15 @@ export default function DestinationDetail({
                   <Map className="h-3.5 w-3.5" />
                   {t('destination_detail.get_directions')}
                 </a>
+                {!selectedPartner.businessId && (
+                  <a
+                    href={`/business/claim?type=${selectedPartner.category}&listingId=${selectedPartner.id}&name=${encodeURIComponent(selectedPartner.name)}`}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gold-400/50 text-gold-700 hover:bg-gold-50 transition-colors text-xs font-semibold"
+                  >
+                    <Briefcase className="h-3.5 w-3.5" />
+                    {t('destination_detail.claim_business') || 'Ini usaha saya'}
+                  </a>
+                )}
               </div>
             </div>
           </div>

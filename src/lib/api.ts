@@ -173,7 +173,7 @@ async function request<T>(
     });
   } catch (err) {
     console.warn(`API request failed: ${path}`, err);
-    return { status: 'error', message: 'Server unreachable' } satisfies APIResponse<T>;
+    return { status: 'error', message: 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.' } satisfies APIResponse<T>;
   }
 
   if (res.status === 401 && path !== '/auth/refresh') {
@@ -182,14 +182,14 @@ async function request<T>(
       return request<T>(path, options);
     }
     setAccessToken(null);
-    return { status: 'error', message: 'Unauthorized' } satisfies APIResponse<T>;
+    return { status: 'error', message: 'Sesi Anda telah berakhir. Silakan login kembali.' } satisfies APIResponse<T>;
   }
 
   let json: APIResponse<T>;
   try {
     json = await res.json();
   } catch {
-    json = { status: 'error', message: `Server returned status ${res.status}` } satisfies APIResponse<T>;
+    json = { status: 'error', message: `Terjadi kesalahan server (status ${res.status}). Silakan coba lagi.` } satisfies APIResponse<T>;
   }
 
   return json;
@@ -671,6 +671,47 @@ export const partnerApplications = {
   getMine: () => request<BePartnerApplication[]>('/partner-applications/me'),
 };
 
+export const businesses = {
+  getMine: () => request<BeBusiness[]>('/businesses/me'),
+  getMineByID: (id: string) => request<BeBusiness>(`/businesses/me/${encodeURIComponent(id)}`),
+  create: (data: { name: string; description?: string; category: string; phone?: string; email?: string; website?: string }) =>
+    request<BeBusiness>('/businesses', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Partial<BeBusiness>) =>
+    request<BeBusiness>(`/businesses/me/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }),
+};
+
+export const listingClaims = {
+  submit: (data: { business_external_id: string; listing_type: string; listing_external_id: string }) =>
+    request<BeListingClaim>('/listing-claims/submit', { method: 'POST', body: JSON.stringify(data) }),
+  getMine: () => request<BeListingClaim[]>('/listing-claims/me'),
+};
+
+export interface BeBusiness {
+  id: number;
+  external_id: string;
+  name: string;
+  description?: string;
+  category: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  avatar_url?: string;
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended';
+  rejection_reason?: string;
+  created_at?: string;
+}
+
+export interface BeListingClaim {
+  id: string;
+  external_id: string;
+  business_id: number;
+  listing_type: string;
+  listing_external_id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejection_reason?: string;
+  submitted_at: string;
+}
+
 // BE partner shape (snake_case from the API)
 interface BePartner {
   id: string;
@@ -712,7 +753,8 @@ interface BePartnerApplication {
 
 interface BeAdCampaign {
   id: string;
-  partner_name: string;
+  partner_name?: string;
+  business_name?: string;
   placement: string;
   image_url: string;
   target_url: string;

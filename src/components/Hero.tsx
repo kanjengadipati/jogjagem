@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useRouter } from '@/i18n/navigation';
 import { Search, ChevronLeft, ChevronRight, Mic, MicOff, Camera, Loader2, Bookmark, X, Star, CalendarDays, Heart, MapPin } from 'lucide-react';
 import { Destination, Festival } from '../types';
-import { ai } from '../lib/api';
+import { ai, ads, type BeAdCampaign } from '../lib/api';
 import NearbyMapCard from './NearbyMapCard';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -77,6 +77,12 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
     ctaText: t('hero.fallback_cta'),
   };
   const [isRecommendationDismissed, setIsRecommendationDismissed] = useState(false);
+  // 50:50 share of voice between "Jogjagem's Pick" (organic AI recommendation) and a
+  // paid homepage_hero campaign. Each page load flips a coin; if it lands on sponsored
+  // AND a campaign is live, the sponsored card renders instead of the organic pick in
+  // the same card slot.
+  const [sponsoredCampaign, setSponsoredCampaign] = useState<BeAdCampaign | null>(null);
+  const heroCoinFlipRef = useRef<boolean | null>(null); // null = not decided yet this load
   const [recommendation, setRecommendation] = useState<{
     headline: string; reason: string; dest: Destination; image: string;
     temp: string; condition: string; distance: string; crowd: string;
@@ -85,6 +91,25 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
   const [trendingLoading, setTrendingLoading] = useState(true);
   const [expandedCardKey, setExpandedCardKey] = useState<string | null>(null);
   const expandingRef = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    ads.getBanner('homepage_hero').then((res) => {
+      if (cancelled) return;
+      const campaign = res.status === 'success' ? res.data ?? null : null;
+      if (heroCoinFlipRef.current === null) {
+        heroCoinFlipRef.current = Math.random() < 0.5; // true = show sponsored this load
+      }
+      if (campaign && heroCoinFlipRef.current) {
+        setSponsoredCampaign(campaign);
+        ads.trackImpression(campaign.id);
+      }
+    }).catch(() => {
+      // Silently fall through to organic — a failed ad fetch should never block
+      // "Jogjagem's Pick" from showing.
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (destinations.length === 0) return;
@@ -379,7 +404,21 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
           <div className="relative mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-0 lg:justify-center lg:pb-[340px]">
 
             {/* RECOMMENDATIONS */}
-            {recommendation ? (
+            {sponsoredCampaign ? (
+              <div className="absolute top-[22px] right-4 sm:right-6 lg:right-8 z-20 w-[140px] sm:w-[185px] lg:w-[210px] flex flex-col gap-3">
+                <AIPickCard
+                  recommendation={{ dest: {} as Destination }}
+                  isSaved={isSaved}
+                  onToggleSave={onToggleSave}
+                  onExplore={onExploreDestination}
+                  onDismiss={() => setIsRecommendationDismissed(true)}
+                  sizes="(max-width: 640px) 140px, (max-width: 1024px) 185px, 210px"
+                  className="relative w-full animate-fade-in"
+                  sponsored={sponsoredCampaign}
+                />
+                <NearbyMapCard />
+              </div>
+            ) : recommendation ? (
               <div className="absolute top-[22px] right-4 sm:right-6 lg:right-8 z-20 w-[140px] sm:w-[185px] lg:w-[210px] flex flex-col gap-3">
                 <AIPickCard
                   recommendation={recommendation}

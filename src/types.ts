@@ -23,6 +23,7 @@ export interface EcosystemPartner {
   coordinates: { lat: number; lng: number };
   isSponsored?: boolean;
   sponsorTier?: number;
+  businessId?: string | number | null;
 }
 
 export interface FAQ {
@@ -70,6 +71,7 @@ export interface Destination {
   ogImageUrl?: string;
   badge?: string;
   badges?: string[];  videoUrl?: string;
+  businessId?: string | number | null;
 }
 
 export interface Festival {
@@ -89,6 +91,7 @@ export interface Festival {
   startDate?: string;
   endDate?: string;
   imageUrl?: string;
+  businessId?: string | number | null;
 }
 
 export interface TripDay {

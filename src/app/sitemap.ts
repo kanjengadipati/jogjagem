@@ -33,6 +33,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     },
     {
+      url: `${SITE_URL}/business`,
+      lastModified: NOW,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/business`,
+          en: `${SITE_URL}/en/business`,
+        },
+      },
+    },
+    {
       url: `${SITE_URL}/events`,
       lastModified: NOW,
       changeFrequency: 'weekly',

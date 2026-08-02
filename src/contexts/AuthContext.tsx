@@ -48,8 +48,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const maybeRedirectToAdmin = useCallback(async () => {
-    // Don't redirect if user is on the partner application page
-    if (typeof window !== 'undefined' && window.location.pathname.includes('/partner')) {
+    // Don't redirect if user is on the partner/business application page
+    if (
+      typeof window !== 'undefined' &&
+      (window.location.pathname.includes('/partner') || window.location.pathname.includes('/business'))
+    ) {
       return;
     }
     try {
@@ -133,9 +136,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         maybeRedirectToAdmin();
         return { success: true };
       }
-      return { success: false, error: res.message || 'Login failed' };
+      return { success: false, error: res.message || 'Terjadi kesalahan saat login.' };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Network error' };
+      return { success: false, error: err.message || 'Tidak dapat terhubung ke server.' };
     }
   };
 
@@ -145,9 +148,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.status === 'success') {
         return { success: true };
       }
-      return { success: false, error: res.message || 'Registration failed' };
+      return { success: false, error: res.message || 'Pendaftaran gagal. Silakan coba lagi.' };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Network error' };
+      return { success: false, error: err.message || 'Tidak dapat terhubung ke server.' };
     }
   };
 
@@ -160,9 +163,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         maybeRedirectToAdmin();
         return { success: true };
       }
-      return { success: false, error: res.message || 'Social login failed' };
+      return { success: false, error: res.message || 'Gagal login via media sosial.' };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Social login failed' };
+      return { success: false, error: err.message || 'Gagal login via media sosial.' };
     }
   };
 
@@ -170,9 +173,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await auth.forgotPassword(email);
       if (res.status === 'success') return { success: true };
-      return { success: false, error: res.message || 'Failed to send reset email' };
+      return { success: false, error: res.message || 'Gagal mengirim email reset kata sandi.' };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Network error' };
+      return { success: false, error: err.message || 'Tidak dapat terhubung ke server.' };
     }
   };
 
@@ -180,9 +183,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await auth.resetPassword(token, newPassword);
       if (res.status === 'success') return { success: true };
-      return { success: false, error: res.message || 'Failed to reset password' };
+      return { success: false, error: res.message || 'Gagal mengatur ulang kata sandi.' };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Network error' };
+      return { success: false, error: err.message || 'Tidak dapat terhubung ke server.' };
     }
   };
 

@@ -10,9 +10,9 @@ export default function SocialLoginButtons({ onError, onSuccess }: { onError?: (
   const handleGoogleClick = () => {
     if (!GOOGLE_CLIENT_ID) return;
 
-    // Save current path so we can return here after OAuth callback
-    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-      sessionStorage.setItem('auth_return_to', window.location.pathname);
+    // Save current full path and search query so we can return here after OAuth callback
+    if (typeof window !== 'undefined' && (window.location.pathname !== '/' || window.location.search)) {
+      sessionStorage.setItem('auth_return_to', window.location.pathname + window.location.search);
     }
 
     // Use OAuth redirect flow — works on HTTP and HTTPS, no popup blocking

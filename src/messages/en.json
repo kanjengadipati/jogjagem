@@ -136,7 +136,9 @@
     "browse_categories": "Browse Categories",
     "jogjagem_rekom": "Jogjagem Pick",
     "explore_cta": "Explore",
-    "event_cta": "View Event"
+    "event_cta": "View Event",
+    "sponsored_badge": "SPONSORED",
+    "sponsored_cta": "See more"
   },
   "badges": {
     "trending": "Trending",
@@ -521,11 +523,18 @@
     "season_detail_balanced": "Pleasant weather",
     "error_submit_review": "Failed to submit review",
     "error_network": "Network connection issue. Please try again.",
-    "anonymous_user": "Anonymous"
+    "anonymous_user": "Anonymous",
+    "claim_business": "Claim Business"
   },
   "destination_detail_client": {
     "not_found": "Destination not found",
     "browse_all": "Browse all destinations"
+  },
+  "business_page": {
+    "become_a_business": "Become a Business",
+    "business_dashboard": "Business Dashboard",
+    "claim_business": "Claim Business",
+    "claim_event": "Claim Event / Business"
   },
   "partner_page": {
     "hero_title": "Become a",

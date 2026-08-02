@@ -136,7 +136,9 @@
     "browse_categories": "Jelajahi Kategori",
     "jogjagem_rekom": "Pilihan Jogjagem",
     "explore_cta": "Jelajahi",
-    "event_cta": "Lihat Event"
+    "event_cta": "Lihat Event",
+    "sponsored_badge": "DISPONSORI",
+    "sponsored_cta": "Lihat selengkapnya"
   },
   "badges": {
     "trending": "Trending",
@@ -521,11 +523,18 @@
     "season_detail_balanced": "Cuaca bersahabat",
     "error_submit_review": "Gagal mengirim ulasan",
     "error_network": "Koneksi bermasalah. Coba lagi ya.",
-    "anonymous_user": "Anonim"
+    "anonymous_user": "Anonim",
+    "claim_business": "Ini usaha saya"
   },
   "destination_detail_client": {
     "not_found": "Destinasi tidak ditemukan",
     "browse_all": "Telusuri semua destinasi"
+  },
+  "business_page": {
+    "become_a_business": "Buat Bisnis",
+    "business_dashboard": "Dashboard Bisnis",
+    "claim_business": "Ini usaha saya",
+    "claim_event": "Ini acara/usaha saya"
   },
   "partner_page": {
     "hero_title": "Jadi Mitra",

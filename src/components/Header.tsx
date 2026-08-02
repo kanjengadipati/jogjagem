@@ -83,8 +83,8 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
   const handleNav = (id: string) => { setActiveTab(id); setDrawerOpen(false); };
 
   const headerClass = isOverHero
-    ? "absolute top-0 left-0 right-0 z-50 w-full transition-all duration-300 bg-gradient-to-b from-black/60 via-black/20 to-transparent border-transparent text-white"
-    : "sticky top-0 z-50 w-full transition-all duration-300 bg-royal-950 border-b border-royal-900 text-white shadow-md";
+    ? "absolute top-0 left-0 right-0 z-[100] w-full transition-all duration-300 bg-gradient-to-b from-black/60 via-black/20 to-transparent border-transparent text-white"
+    : "sticky top-0 z-[100] w-full transition-all duration-300 bg-royal-950 border-b border-royal-900 text-white shadow-md";
 
   return (
     <>
@@ -139,25 +139,25 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
           {/* Desktop Action Icons — lg and above */}
           <div className="hidden lg:flex items-center space-x-2 shrink-0">
 
-            {/* Jadi Mitra / Dashboard Partner — first in right group */}
+            {/* Business Platform entry points */}
             {(!isAuthenticated || user?.role === 'user') && (
               <a
-                href="/partner"
+                href="/business"
                 className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
               >
                 <Briefcase className="h-3 w-3 shrink-0" />
-                <span>Jadi Mitra</span>
+                <span>{t('business_page.become_a_business') || 'Buat Bisnis'}</span>
               </a>
             )}
             {isAuthenticated && user?.role === 'partner' && (
               <a
-                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner`}
+                href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/business`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
               >
                 <Briefcase className="h-3 w-3 shrink-0" />
-                <span>{t('partner_page.partner_dashboard')}</span>
+                <span>{t('business_page.business_dashboard') || 'Dashboard Bisnis'}</span>
               </a>
             )}
 
@@ -198,8 +198,8 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 
                 {bellOpen && (
                   <>
-                    <div className="fixed inset-0 z-40" onClick={() => setBellOpen(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden z-50 animate-fade-in">
+                    <div className="fixed inset-0 z-[9990]" onClick={() => setBellOpen(false)} />
+                    <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden z-[9999] animate-fade-in">
                       <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
                         <span className="text-sm font-bold text-royal-950">{t('common.notifications')}</span>
                         <button onClick={() => setBellOpen(false)} className="text-xs text-stone-400 hover:text-stone-600">
@@ -255,8 +255,8 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
 
                   {profileOpen && (
                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                      <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden z-50 animate-fade-in">
+                      <div className="fixed inset-0 z-[9990]" onClick={() => setProfileOpen(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-stone-200 overflow-hidden z-[9999] animate-fade-in">
                         <div className="px-4 py-3 border-b border-stone-100 flex items-center gap-2.5">
                           <Image
                             src={user?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || '')}`}
