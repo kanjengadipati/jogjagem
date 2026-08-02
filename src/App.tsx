@@ -15,7 +15,8 @@ import { useLocation } from '@/contexts/LocationContext';
 import { toSlug } from '@/lib/slug';
 
 import { Destination, Festival } from './types';
-import { destinations, events, config, auth, ai, APIResponse } from '@/lib/api';
+import { destinations, events, config, auth, ai, ads, APIResponse } from '@/lib/api';
+import type { BeAdCampaign, BeHouseAd } from '@/lib/api';
 import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, Moon, RefreshCw, User, ChevronRight, Star } from 'lucide-react';
 
 export default function App() {
@@ -48,6 +49,10 @@ export default function App() {
   }>>([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  // ── Ad slots ──────────────────────────────────────────────────────────────
+  const [topCampaign, setTopCampaign] = useState<BeAdCampaign | null>(null);
+  const [topHouseAd, setTopHouseAd] = useState<BeHouseAd | null>(null);
+  const [nativeCampaign, setNativeCampaign] = useState<BeAdCampaign | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -364,6 +369,19 @@ export default function App() {
       .finally(() => setTrendingLoading(false));
   }, []);
 
+  // Fetch ad slots: listing_top (Destinasi Populer grid) + listing_native (Festival & Event carousel)
+  useEffect(() => {
+    Promise.all([
+      ads.getBanner('listing_top').catch(() => null),
+      ads.getHouseAd('listing_top').catch(() => null),
+      ads.getBanner('listing_native').catch(() => null),
+    ]).then(([campRes, houseRes, nativeRes]) => {
+      if (campRes?.status === 'success') setTopCampaign(campRes.data ?? null);
+      if (houseRes?.status === 'success') setTopHouseAd(houseRes.data ?? null);
+      if (nativeRes?.status === 'success') setNativeCampaign(nativeRes.data ?? null);
+    }).catch(() => {});
+  }, []);
+
   // Quick helper to choose random quote
   const [quoteIdx, setQuoteIdx] = useState(0);
   useEffect(() => {
@@ -388,6 +406,68 @@ export default function App() {
         );
         return scoreB - scoreA;
       });
+
+  // ── Sponsored grid item types ───────────────────────────────────────────────
+  type DesktopGridItem =
+    | { kind: 'organic'; dest: Destination }
+    | { kind: 'campaign'; camp: BeAdCampaign }
+    | { kind: 'house'; ad: BeHouseAd };
+
+  // Build grid with sponsored at positions #1 (idx 0) and #5 (idx 4)
+  // Fallback chain per slot: campaign → house ad → organic
+  const buildDesktopGrid = (): DesktopGridItem[] => {
+    const organic = displayDestinations;
+    if (organic.length === 0) return [];
+    const items: DesktopGridItem[] = organic.map(d => ({ kind: 'organic', dest: d }));
+    // Slot #1 (index 0)
+    const slot1: DesktopGridItem = topCampaign
+      ? { kind: 'campaign', camp: topCampaign }
+      : topHouseAd
+        ? { kind: 'house', ad: topHouseAd }
+        : { kind: 'organic', dest: organic[0] };
+    items[0] = slot1;
+    // Slot #5 (index 4) — only if we have enough organic
+    if (items.length >= 5) {
+      const slot5: DesktopGridItem = topCampaign
+        ? { kind: 'campaign', camp: topCampaign }
+        : topHouseAd
+          ? { kind: 'house', ad: topHouseAd }
+          : { kind: 'organic', dest: organic[4] };
+      items[4] = slot5;
+    }
+    return items;
+  };
+  const desktopGridItems = buildDesktopGrid();
+
+  // ── Sponsored event carousel item types ────────────────────────────────────
+  type EventCarouselItem =
+    | { kind: 'organic'; evt: Festival }
+    | { kind: 'sponsored'; camp: BeAdCampaign };
+
+  // Build event carousel: inject sponsored at positions #3 and #8 (0-indexed 2 and 7)
+  const buildEventCarousel = (): EventCarouselItem[] => {
+    const organic: EventCarouselItem[] = allEvents.slice(0, 10).map(e => ({ kind: 'organic', evt: e }));
+    if (!nativeCampaign || organic.length === 0) return organic;
+    const sponsored: EventCarouselItem = { kind: 'sponsored', camp: nativeCampaign };
+    if (organic.length >= 2) organic.splice(2, 0, sponsored);
+    if (organic.length >= 8) organic.splice(8, 0, { ...sponsored });
+    return organic;
+  };
+  const eventCarouselItems = buildEventCarousel();
+
+  // ── IntersectionObserver impression ref factory ─────────────────────────────
+  const makeImpressionRef = (campaignId: string) => (el: HTMLDivElement | null) => {
+    if (!el) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        timer = setTimeout(() => { ads.trackImpression(campaignId); obs.disconnect(); }, 1000);
+      } else {
+        if (timer) { clearTimeout(timer); timer = null; }
+      }
+    }, { threshold: 0.5 });
+    obs.observe(el);
+  };
 
   if (isLoading) {
     return (
@@ -468,6 +548,9 @@ export default function App() {
                   destTotalPages={destTotalPages}
                   loadingMore={loadingMore}
                   onLoadMore={loadMoreDestinations}
+                  topCampaign={topCampaign}
+                  topHouseAd={topHouseAd}
+                  nativeCampaign={nativeCampaign}
                 />
 
                 {/* ── Desktop layout (unchanged) ── */}
@@ -532,26 +615,86 @@ export default function App() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6">
-                      {displayDestinations.map((dest, index) => (
-                        <React.Fragment key={dest.id}>
-                          <DestinationCard
-                            destination={dest}
-                            onExplore={handleExploreDestination}
-                            onToggleSave={handleToggleSave}
-                            onAuthRequired={() => openAuth('login')}
-                            isSaved={isSaved(dest.id)}
-                            className={index % 7 === 0 ? 'col-span-2 lg:col-span-2' : 'col-span-1 lg:col-span-1'}
-                          />
-                          {index === 3 && (
-                            <AdBanner
-                              placement="listing_native"
-                              category={selectedCategory ?? undefined}
-                              variant="native"
-                              className="col-span-1 rounded-3xl"
+                      {desktopGridItems.map((item, index) => {
+                        if (item.kind === 'campaign' || item.kind === 'house') {
+                          const isCamp = item.kind === 'campaign';
+                          const campaignId = isCamp ? item.camp.id : item.ad.id;
+                          const title = isCamp ? (item.camp.business_name || item.camp.partner_name || 'Iklan Pilihan') : item.ad.headline;
+                          const imageUrl = isCamp ? item.camp.image_url : item.ad.image_url;
+                          const targetUrl = isCamp ? item.camp.target_url : item.ad.target_url;
+
+                          const handleClick = (e: React.MouseEvent) => {
+                            e.preventDefault();
+                            if (isCamp) ads.trackClick(campaignId);
+                            if (targetUrl) window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                          };
+
+                          return (
+                            <div
+                              key={`sponsored-grid-${campaignId}-${index}`}
+                              ref={isCamp ? makeImpressionRef(campaignId) : undefined}
+                              onClick={handleClick}
+                              className={`group relative w-full overflow-hidden rounded-[24px] bg-stone-900 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-2xl cursor-pointer border border-gold-500/40 ring-1 ring-gold-400/30 h-[160px] sm:h-[360px] md:h-[400px] ${index % 7 === 0 ? 'col-span-2 lg:col-span-2' : 'col-span-1 lg:col-span-1'}`}
+                            >
+                              {imageUrl ? (
+                                <Image
+                                  src={imageUrl}
+                                  alt={title}
+                                  fill
+                                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                  className="h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-105"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <div className="absolute inset-0 bg-gradient-to-br from-royal-900 to-royal-950" />
+                              )}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
+                              <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-1.5">
+                                <div className="bg-gold-500 text-royal-950 px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-[8px] sm:text-[9px] font-sans font-bold uppercase tracking-[0.08em] shadow-md">
+                                  DISPONSORI
+                                </div>
+                              </div>
+                              <div className="absolute bottom-0 inset-x-0 p-2.5 sm:p-5 flex flex-col justify-end text-left">
+                                <h3 className="font-manrope text-[11px] sm:text-base md:text-lg font-bold tracking-tight text-white leading-tight drop-shadow-sm group-hover:text-gold-300 transition-colors line-clamp-2">
+                                  {title}
+                                </h3>
+                                <div className="flex items-center justify-between mt-2">
+                                  <span className="text-[9px] sm:text-xs font-semibold text-gold-400 bg-black/40 px-2 py-1 rounded-full border border-gold-500/20">
+                                    Promosi Spesial
+                                  </span>
+                                  <div className="hidden sm:flex h-7 w-7 items-center justify-center rounded-full bg-gold-400 text-royal-950 shadow-md group-hover:bg-gold-300 group-hover:scale-105 transition-all duration-300">
+                                    <svg className="h-3.5 w-3.5 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="2.5">
+                                      <path d="M5 12h14M12 5l7 7-7 7" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        const dest = item.dest;
+                        return (
+                          <React.Fragment key={dest.id}>
+                            <DestinationCard
+                              destination={dest}
+                              onExplore={handleExploreDestination}
+                              onToggleSave={handleToggleSave}
+                              onAuthRequired={() => openAuth('login')}
+                              isSaved={isSaved(dest.id)}
+                              className={index % 7 === 0 ? 'col-span-2 lg:col-span-2' : 'col-span-1 lg:col-span-1'}
                             />
-                          )}
-                        </React.Fragment>
-                      ))}
+                            {index === 3 && (
+                              <AdBanner
+                                placement="listing_native"
+                                category={selectedCategory ?? undefined}
+                                variant="native"
+                                className="col-span-1 rounded-3xl"
+                              />
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
                     </div>
                   )}
 
@@ -595,63 +738,119 @@ export default function App() {
 
                   {/* 5 events: row 1 = 3 cards, row 2 = 2 cards centered */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                    {allEvents.slice(0, 5).map((fest, idx) => {
-                          const fallbackBadges = [t('common.badge_limited'), t('common.badge_popular'), t('common.badge_live_tonight'), t('common.badge_upcoming'), t('common.badge_upcoming')];
-                          const subBadge = [t('common.badge_starts_5'), t('common.badge_starts_18'), t('common.badge_tonight_7'), t('common.badge_upcoming'), t('common.badge_upcoming')];
-                          
-                          const apiBadge = fest.badge;
-                          const rawBadgeText = apiBadge 
-                            ? t(`badges.${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
-                            : (fallbackBadges[idx] || fest.category);
-                          const badgeText = rawBadgeText.toUpperCase();
-                          const badgeKey = (apiBadge || fallbackBadges[idx] || fest.category)
-                            .toLowerCase().replace(/-/g, '_').replace(/ /g, '_');
+                    {eventCarouselItems.map((item, idx) => {
+                      if (item.kind === 'sponsored') {
+                        const camp = item.camp;
+                        const handleClick = (e: React.MouseEvent) => {
+                          e.preventDefault();
+                          ads.trackClick(camp.id);
+                          if (camp.target_url) window.open(camp.target_url, '_blank', 'noopener,noreferrer');
+                        };
 
-                          const BADGE_STYLES: Record<string, string> = {
-                            'trending': 'bg-red-600/90 border border-red-500/30 text-white',
-                            'akan_datang': 'bg-blue-600/90 border border-blue-500/30 text-white',
-                            'spesial_hari_ini': 'bg-amber-600/90 border border-amber-500/30 text-white',
-                            'populer': 'bg-purple-600/90 border border-purple-500/30 text-white',
-                            'terbatas': 'bg-orange-600/90 border border-orange-500/30 text-white',
-                            'live_malam_ini': 'bg-green-600/90 border border-green-500/30 text-white',
-                            'sunrise_spot': 'bg-amber-400/90 border border-amber-300/30 text-white',
-                            'sunset_spot': 'bg-orange-500/90 border border-orange-400/30 text-white',
-                            'camping_spot': 'bg-lime-700/90 border border-lime-600/30 text-white',
-                            'budget_friendly': 'bg-emerald-600/90 border border-emerald-500/30 text-white',
-                            'waterfall': 'bg-cyan-600/90 border border-cyan-500/30 text-white',
-                            'night_spot': 'bg-indigo-600/90 border border-indigo-500/30 text-white',
-                            'photographer_pick': 'bg-fuchsia-600/90 border border-fuchsia-500/30 text-white',
+                        return (
+                          <div
+                            key={`sponsored-event-${camp.id}-${idx}`}
+                            ref={makeImpressionRef(camp.id)}
+                            onClick={handleClick}
+                            className="group relative aspect-[3/4] w-full overflow-hidden rounded-[20px] bg-royal-950 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer border border-gold-500/40 ring-1 ring-gold-400/30"
+                          >
+                            {camp.image_url ? (
+                              <Image
+                                src={camp.image_url}
+                                alt={camp.business_name || camp.partner_name || 'Event Sponsor'}
+                                fill
+                                sizes="(max-width: 640px) 50vw, 20vw"
+                                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                              />
+                            ) : (
+                              <div className="absolute inset-0 bg-gradient-to-br from-royal-900 to-royal-950" />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
+
+                            <div className="absolute top-3.5 left-3.5">
+                              <div className="bg-gold-500 text-royal-950 px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-sans font-bold uppercase tracking-[0.08em] shadow-md">
+                                DISPONSORI
+                              </div>
+                            </div>
+
+                            <div className="absolute bottom-0 inset-x-0 p-4 flex flex-col justify-end text-left">
+                              <span className="text-[9px] font-sans font-semibold text-gold-400 mb-1 tracking-[0.08em] uppercase">
+                                PROMO PILIHAN
+                              </span>
+                              <h3 className="font-manrope text-sm font-bold tracking-tight text-white leading-tight mb-1.5 group-hover:text-gold-300 transition-colors line-clamp-2">
+                                {camp.business_name || camp.partner_name || 'Event Sponsor'}
+                              </h3>
+                              <p className="text-[10px] text-white/60 font-light leading-snug">
+                                Sponsored Event
+                              </p>
+                              <div className="absolute bottom-4 right-4 h-6 w-6 rounded-full bg-gold-400 text-royal-950 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300">
+                                <svg className="h-3 w-3 stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3">
+                                  <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const fest = item.evt;
+                      const fallbackBadges = [t('common.badge_limited'), t('common.badge_popular'), t('common.badge_live_tonight'), t('common.badge_upcoming'), t('common.badge_upcoming')];
+                      const subBadge = [t('common.badge_starts_5'), t('common.badge_starts_18'), t('common.badge_tonight_7'), t('common.badge_upcoming'), t('common.badge_upcoming')];
+
+                      const apiBadge = fest.badge;
+                      const rawBadgeText = apiBadge 
+                        ? t(`badges.${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
+                        : (fallbackBadges[idx] || fest.category);
+                      const badgeText = rawBadgeText.toUpperCase();
+                      const badgeKey = (apiBadge || fallbackBadges[idx] || fest.category)
+                        .toLowerCase().replace(/-/g, '_').replace(/ /g, '_');
+
+                      const BADGE_STYLES: Record<string, string> = {
+                        'trending': 'bg-red-600/90 border border-red-500/30 text-white',
+                        'akan_datang': 'bg-blue-600/90 border border-blue-500/30 text-white',
+                        'spesial_hari_ini': 'bg-amber-600/90 border border-amber-500/30 text-white',
+                        'populer': 'bg-purple-600/90 border border-purple-500/30 text-white',
+                        'terbatas': 'bg-orange-600/90 border border-orange-500/30 text-white',
+                        'live_malam_ini': 'bg-green-600/90 border border-green-500/30 text-white',
+                        'sunrise_spot': 'bg-amber-400/90 border border-amber-300/30 text-white',
+                        'sunset_spot': 'bg-orange-500/90 border border-orange-400/30 text-white',
+                        'camping_spot': 'bg-lime-700/90 border border-lime-600/30 text-white',
+                        'budget_friendly': 'bg-emerald-600/90 border border-emerald-500/30 text-white',
+                        'waterfall': 'bg-cyan-600/90 border border-cyan-500/30 text-white',
+                        'night_spot': 'bg-indigo-600/90 border border-indigo-500/30 text-white',
+                        'photographer_pick': 'bg-fuchsia-600/90 border border-fuchsia-500/30 text-white',
+                      };
+                      const badgeBgClass = BADGE_STYLES[badgeKey] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white';
+
+                      // Secondary badges
+                      const festBadges = (fest.badges && fest.badges.length > 0)
+                        ? fest.badges
+                        : apiBadge
+                          ? [apiBadge]
+                          : [];
+                      const festSecondary = festBadges
+                        .filter((b: string) => b !== apiBadge)
+                        .slice(0, 2)
+                        .map((b: string) => {
+                          const key = b.toLowerCase().replace(/[\s-]/g, '_');
+                          return {
+                            label: t(`badges.${b.toLowerCase().replace(/ /g, '_')}`).toUpperCase(),
+                            style: BADGE_STYLES[key] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white',
                           };
-                          const badgeBgClass = BADGE_STYLES[badgeKey] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white';
+                        });
 
-                          // Secondary badges
-                          const festBadges = (fest.badges && fest.badges.length > 0)
-                            ? fest.badges
-                            : apiBadge
-                              ? [apiBadge]
-                              : [];
-                          const festSecondary = festBadges
-                            .filter((b: string) => b !== apiBadge)
-                            .slice(0, 2)
-                            .map((b: string) => {
-                              const key = b.toLowerCase().replace(/[\s-]/g, '_');
-                              return {
-                                label: t(`badges.${b.toLowerCase().replace(/ /g, '_')}`).toUpperCase(),
-                                style: BADGE_STYLES[key] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white',
-                              };
-                            });
+                      return (
+                        <div
+                          key={fest.id}
+                          onClick={() => router.push(`/events/${fest.id}`)}
+                          className="group relative aspect-[3/4] w-full overflow-hidden rounded-[20px] bg-royal-950 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer border border-stone-200/10"
+                        >
+                          {fest.image ? (
+                            <Image 
+                              src={fest.image} 
+                              alt={fest.name} 
+                              fill
 
-                          return (
-                            <div
-                              key={fest.id}
-                              onClick={() => router.push(`/events/${fest.id}`)}
-                              className="group relative aspect-[3/4] w-full overflow-hidden rounded-[20px] bg-royal-950 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer border border-stone-200/10"
-                            >
-                              {fest.image ? (
-                                <Image 
-                                  src={fest.image} 
-                                  alt={fest.name} 
-                                  fill
                                   sizes="(max-width: 640px) 50vw, 20vw"
                                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                                 />

@@ -212,11 +212,22 @@ export default function BusinessPage() {
     setSubmitting(true);
     setMessage(null);
     try {
-      await businesses.create(formData);
-      setMessage({ type: 'success', text: 'Bisnis berhasil didaftarkan! Status: Menunggu Verifikasi' });
+      const res = await businesses.create(formData);
+      const createdBiz = (res as any)?.data || res;
+      const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
+      const bizId = createdBiz?.external_id || createdBiz?.id || '';
+
+      setMessage({
+        type: 'success',
+        text: 'Bisnis berhasil didaftarkan & terverifikasi! Mengalihkan ke Business Portal...',
+      });
       setFormData({ name: '', category: CATEGORIES[0], description: '', phone: '', email: '', website: '' });
       setShowCreateForm(false);
-      loadBusinesses();
+
+      setTimeout(() => {
+        const targetUrl = `${adminUrl}/business/${bizId}/dashboard${placement ? `?placement=${encodeURIComponent(placement)}` : ''}`;
+        window.location.href = targetUrl;
+      }, 1000);
     } catch (err: any) {
       setMessage({ type: 'error', text: err?.message || 'Gagal memproses pendaftaran bisnis.' });
     } finally {

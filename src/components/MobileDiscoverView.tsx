@@ -10,7 +10,7 @@ import {
   Sun, Leaf, Sunset, Moon,
 } from 'lucide-react';
 import { Destination, Festival } from '../types';
-import { auth, ai } from '../lib/api';
+import { auth, ai, ads, type BeAdCampaign, type BeHouseAd } from '../lib/api';
 import { useLocation } from '@/contexts/LocationContext';
 import { toSlug } from '@/lib/slug';
 import {
@@ -73,6 +73,9 @@ interface MobileDiscoverViewProps {
   destTotalPages: number;
   loadingMore: boolean;
   onLoadMore: () => void;
+  topCampaign?: BeAdCampaign | null;
+  topHouseAd?: BeHouseAd | null;
+  nativeCampaign?: BeAdCampaign | null;
 }
 
 // ─── Category pill config ─────────────────────────────────────────────────────
@@ -170,6 +173,9 @@ export default function MobileDiscoverView({
   destTotalPages,
   loadingMore,
   onLoadMore,
+  topCampaign,
+  topHouseAd,
+  nativeCampaign,
 }: MobileDiscoverViewProps) {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
@@ -719,136 +725,300 @@ export default function MobileDiscoverView({
         })()}
 
         {/* ── Popular destinations ── */}
-        <div>
-          <SectionHeader title={t('home.popular_destinations')} onSeeAll={() => router.push('/destinations')} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4">
-            {popularDests.length === 0
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <MobileDestinationCardSkeleton key={i} landscape={i % 7 === 0} />
-                ))
-              : popularDests.map((dest, index) => (
-                  <MobileDestinationCard
-                    key={dest.id}
-                    destination={dest}
-                    isSaved={isSaved(dest.id)}
-                    onToggleSave={(d) => {
-                      if (!auth.isLoggedIn()) { onOpenAuth('login'); return; }
-                      onToggleSave(d);
-                    }}
-                    onAuthRequired={() => onOpenAuth('login')}
-                    className={index % 7 === 0 ? 'col-span-2' : ''}
-                  />
-                ))
+        {(() => {
+          type MobileGridItem =
+            | { kind: 'organic'; dest: Destination }
+            | { kind: 'campaign'; camp: BeAdCampaign }
+            | { kind: 'house'; ad: BeHouseAd };
+
+          const buildMobileGrid = (): MobileGridItem[] => {
+            if (popularDests.length === 0) return [];
+            const items: MobileGridItem[] = popularDests.map(d => ({ kind: 'organic', dest: d }));
+            const slot1: MobileGridItem = topCampaign
+              ? { kind: 'campaign', camp: topCampaign }
+              : topHouseAd
+                ? { kind: 'house', ad: topHouseAd }
+                : { kind: 'organic', dest: popularDests[0] };
+            items[0] = slot1;
+            if (items.length >= 5) {
+              const slot5: MobileGridItem = topCampaign
+                ? { kind: 'campaign', camp: topCampaign }
+                : topHouseAd
+                  ? { kind: 'house', ad: topHouseAd }
+                  : { kind: 'organic', dest: popularDests[4] };
+              items[4] = slot5;
             }
-          </div>
-          {!selectedCategory && destPage < destTotalPages && (
-            <div className="mt-6 flex justify-center px-4">
-              <button
-                onClick={onLoadMore}
-                disabled={loadingMore}
-                className="px-6 py-2 bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-600 hover:to-amber-700 disabled:opacity-50 text-white rounded-full font-semibold text-xs transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2 cursor-pointer"
-              >
-                {loadingMore ? (
-                  <>
-                    <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
-                    <span>{t('common.loading')}</span>
-                  </>
-                ) : (
-                  <span>{t('common.load_more')}</span>
-                )}
-              </button>
+            return items;
+          };
+          const mobileGrid = buildMobileGrid();
+
+          const makeImpressionRef = (campaignId: string) => (el: HTMLDivElement | null) => {
+            if (!el) return;
+            let timer: ReturnType<typeof setTimeout> | null = null;
+            const obs = new IntersectionObserver(([entry]) => {
+              if (entry.isIntersecting) {
+                timer = setTimeout(() => { ads.trackImpression(campaignId); obs.disconnect(); }, 1000);
+              } else {
+                if (timer) { clearTimeout(timer); timer = null; }
+              }
+            }, { threshold: 0.5 });
+            obs.observe(el);
+          };
+
+          return (
+            <div>
+              <SectionHeader title={t('home.popular_destinations')} onSeeAll={() => router.push('/destinations')} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4">
+                {popularDests.length === 0
+                  ? Array.from({ length: 4 }).map((_, i) => (
+                      <MobileDestinationCardSkeleton key={i} landscape={i % 7 === 0} />
+                    ))
+                  : mobileGrid.map((item, index) => {
+                      if (item.kind === 'campaign' || item.kind === 'house') {
+                        const isCamp = item.kind === 'campaign';
+                        const campaignId = isCamp ? item.camp.id : item.ad.id;
+                        const title = isCamp ? (item.camp.business_name || item.camp.partner_name || 'Iklan Pilihan') : item.ad.headline;
+                        const imageUrl = isCamp ? item.camp.image_url : item.ad.image_url;
+                        const targetUrl = isCamp ? item.camp.target_url : item.ad.target_url;
+
+                        const handleClick = (e: React.MouseEvent) => {
+                          e.preventDefault();
+                          if (isCamp) ads.trackClick(campaignId);
+                          if (targetUrl) window.open(targetUrl, '_blank', 'noopener,noreferrer');
+                        };
+
+                        return (
+                          <div
+                            key={`mobile-sponsored-grid-${campaignId}-${index}`}
+                            ref={isCamp ? makeImpressionRef(campaignId) : undefined}
+                            onClick={handleClick}
+                            className={`group relative w-full overflow-hidden rounded-[20px] bg-stone-900 border border-gold-500/40 ring-1 ring-gold-400/30 h-[180px] cursor-pointer ${index % 7 === 0 ? 'col-span-2' : ''}`}
+                          >
+                            {imageUrl ? (
+                              <Image
+                                src={imageUrl}
+                                alt={title}
+                                fill
+                                sizes="200px"
+                                className="object-cover object-center"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <div className="absolute inset-0 bg-gradient-to-br from-royal-900 to-royal-950" />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                            <div className="absolute top-2.5 left-2.5">
+                              <div className="bg-gold-500 text-royal-950 px-2 py-0.5 rounded-lg text-[8px] font-sans font-bold uppercase tracking-wider shadow-md">
+                                DISPONSORI
+                              </div>
+                            </div>
+                            <div className="absolute bottom-0 inset-x-0 p-2.5 flex flex-col justify-end text-left">
+                              <p className="text-white font-extrabold text-[11px] leading-tight line-clamp-2 drop-shadow-sm">
+                                {title}
+                              </p>
+                              <span className="text-[9px] text-gold-400 font-semibold mt-0.5">
+                                Promosi Spesial
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const dest = item.dest;
+                      return (
+                        <MobileDestinationCard
+                          key={dest.id}
+                          destination={dest}
+                          isSaved={isSaved(dest.id)}
+                          onToggleSave={(d) => {
+                            if (!auth.isLoggedIn()) { onOpenAuth('login'); return; }
+                            onToggleSave(d);
+                          }}
+                          onAuthRequired={() => onOpenAuth('login')}
+                          className={index % 7 === 0 ? 'col-span-2' : ''}
+                        />
+                      );
+                    })
+                }
+              </div>
+              {!selectedCategory && destPage < destTotalPages && (
+                <div className="mt-6 flex justify-center px-4">
+                  <button
+                    onClick={onLoadMore}
+                    disabled={loadingMore}
+                    className="px-6 py-2 bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-600 hover:to-amber-700 disabled:opacity-50 text-white rounded-full font-semibold text-xs transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2 cursor-pointer"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+                        <span>{t('common.loading')}</span>
+                      </>
+                    ) : (
+                      <span>{t('common.load_more')}</span>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })()}
 
         {/* ── Event & Festival ── */}
-        {(allEvents.length > 0 || trendingLoading) && (
-          <div>
-            <SectionHeader title={t('home.upcoming_events')} onSeeAll={() => router.push('/events')} />
-            <div
-              className="flex gap-3.5 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-1"
-              onScroll={() => { if (expandedTrendingKey?.startsWith('evt-')) setExpandedTrendingKey(null); }}
-            >
-              {allEvents.length === 0
-                ? Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="shrink-0 snap-start w-[140px] rounded-2xl overflow-hidden bg-royal-950/5 border border-royal-950/10 animate-pulse aspect-[3/4]" />
-                  ))
-                : allEvents.slice(0, 6).map(evt => {
-                const { day, month } = parseEventDate(evt.date);
-                const evtKey = `evt-${evt.id}`;
-                const isExpanded = expandedTrendingKey === evtKey;
+        {(allEvents.length > 0 || trendingLoading) && (() => {
+          type MobileEventItem =
+            | { kind: 'organic'; evt: Festival }
+            | { kind: 'sponsored'; camp: BeAdCampaign };
 
-                const handleEvtClick = () => {
-                  if (!isExpanded) { setExpandedTrendingKey(evtKey); return; }
-                  setExpandedTrendingKey(null);
-                };
-                const handleEvtCTA = (e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  router.push(`/events/${evt.id}`);
-                };
+          const buildMobileEvents = (): MobileEventItem[] => {
+            const organic: MobileEventItem[] = allEvents.slice(0, 10).map(e => ({ kind: 'organic', evt: e }));
+            if (!nativeCampaign || organic.length === 0) return organic;
+            const sponsored: MobileEventItem = { kind: 'sponsored', camp: nativeCampaign };
+            if (organic.length >= 2) organic.splice(2, 0, sponsored);
+            if (organic.length >= 8) organic.splice(8, 0, { ...sponsored });
+            return organic;
+          };
+          const mobileEvents = buildMobileEvents();
 
-                return (
-                  <div
-                    key={evt.id}
-                    onClick={handleEvtClick}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleEvtClick(); }}
-                    aria-expanded={isExpanded}
-                    className={`shrink-0 snap-start relative rounded-2xl overflow-hidden border text-left cursor-pointer select-none transition-all duration-300 ease-out
-                      ${isExpanded
-                        ? 'w-[200px] h-[260px] border-gold-500/40'
-                        : 'w-[140px] h-[186px] border-white/10 active:scale-95'}
-                    `}
-                  >
-                    {/* Image — full card */}
-                    <div className="absolute inset-0 bg-[#1c1a17]">
-                      {evt.image
-                        ? <Image src={evt.image} alt={evt.name} fill sizes="200px" className="object-cover" referrerPolicy="no-referrer" />
-                        : <div className="w-full h-full bg-[#2a2724]" />
-                      }
-                    </div>
+          const makeImpressionRef = (campaignId: string) => (el: HTMLDivElement | null) => {
+            if (!el) return;
+            let timer: ReturnType<typeof setTimeout> | null = null;
+            const obs = new IntersectionObserver(([entry]) => {
+              if (entry.isIntersecting) {
+                timer = setTimeout(() => { ads.trackImpression(campaignId); obs.disconnect(); }, 1000);
+              } else {
+                if (timer) { clearTimeout(timer); timer = null; }
+              }
+            }, { threshold: 0.5 });
+            obs.observe(el);
+          };
 
-                    {/* Gradient scrim */}
-                    <div className={`absolute inset-0 bg-gradient-to-t ${isExpanded ? 'from-black/90 via-black/50 to-black/10' : 'from-black/80 via-black/20 to-transparent'}`} />
+          return (
+            <div>
+              <SectionHeader title={t('home.upcoming_events')} onSeeAll={() => router.push('/events')} />
+              <div
+                className="flex gap-3.5 overflow-x-auto scrollbar-none px-4 snap-x snap-mandatory pb-1"
+                onScroll={() => { if (expandedTrendingKey?.startsWith('evt-')) setExpandedTrendingKey(null); }}
+              >
+                {allEvents.length === 0
+                  ? Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="shrink-0 snap-start w-[140px] rounded-2xl overflow-hidden bg-royal-950/5 border border-royal-950/10 animate-pulse aspect-[3/4]" />
+                    ))
+                  : mobileEvents.slice(0, 7).map((item, idx) => {
+                      if (item.kind === 'sponsored') {
+                        const camp = item.camp;
+                        const handleClick = (e: React.MouseEvent) => {
+                          e.preventDefault();
+                          ads.trackClick(camp.id);
+                          if (camp.target_url) window.open(camp.target_url, '_blank', 'noopener,noreferrer');
+                        };
 
-                    {/* Date badge — top-left */}
-                    <div className="absolute top-2.5 left-2.5 bg-gold-400 text-royal-950 rounded-xl px-2 py-1 text-center min-w-[32px] shadow-md border border-gold-300/30">
-                      <p className="text-[12px] font-black leading-none text-[#1c1a17]">{day}</p>
-                      <p className="text-[8px] font-bold leading-none mt-0.5 text-[#1c1a17]">{month}</p>
-                    </div>
-
-                    {/* Info overlay — bottom */}
-                    <div className={`absolute bottom-0 left-0 right-0 flex flex-col transition-all duration-300 ${isExpanded ? 'p-2.5' : 'px-2.5 pb-2.5 pt-0'}`}>
-                      <p className={`text-white font-extrabold leading-tight drop-shadow-sm ${isExpanded ? 'text-[11px] line-clamp-2 mb-1' : 'text-[11px] line-clamp-2 mb-0.5'}`}>
-                        {evt.name}
-                      </p>
-                      <p className="text-white/60 text-[9px] truncate flex items-center gap-0.5">
-                        <MapPin className="h-2.5 w-2.5 shrink-0" />{evt.location}
-                      </p>
-
-                      {/* Expanded panel */}
-                      {isExpanded && (
-                        <div className="mt-2 space-y-2">
-                          {evt.description && (
-                            <p className="text-[9px] text-white/65 leading-relaxed line-clamp-3">{evt.description}</p>
-                          )}
-                          <button
-                            onClick={handleEvtCTA}
-                            className="w-full flex items-center justify-center gap-1 bg-gold-500 active:bg-gold-600 active:scale-[0.97] text-royal-950 font-bold text-[10px] py-1.5 rounded-lg transition-all"
+                        return (
+                          <div
+                            key={`mobile-sponsored-evt-${camp.id}-${idx}`}
+                            ref={makeImpressionRef(camp.id)}
+                            onClick={handleClick}
+                            className="shrink-0 snap-start relative rounded-2xl overflow-hidden border border-gold-500/40 ring-1 ring-gold-400/30 text-left cursor-pointer select-none w-[140px] h-[186px]"
                           >
-                            {t('hero.event_cta') || 'Lihat Event'}
-                            <ChevronRight className="h-3 w-3" />
-                          </button>
+                            <div className="absolute inset-0 bg-[#1c1a17]">
+                              {camp.image_url ? (
+                                <Image src={camp.image_url} alt={camp.business_name || camp.partner_name || 'Event Sponsor'} fill sizes="200px" className="object-cover" referrerPolicy="no-referrer" />
+                              ) : (
+                                <div className="w-full h-full bg-[#2a2724]" />
+                              )}
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                            <div className="absolute top-2.5 left-2.5 bg-gold-500 text-royal-950 rounded-lg px-2 py-0.5 text-center shadow-md">
+                              <p className="text-[9px] font-black leading-none uppercase">DISPONSORI</p>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 flex flex-col px-2.5 pb-2.5 pt-0">
+                              <p className="text-white font-extrabold text-[11px] leading-tight line-clamp-2 mb-0.5 drop-shadow-sm">
+                                {camp.business_name || camp.partner_name || 'Event Sponsor'}
+                              </p>
+                              <p className="text-gold-400 text-[9px] truncate font-semibold">
+                                Promo Spesial
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const evt = item.evt;
+                      const { day, month } = parseEventDate(evt.date);
+                      const evtKey = `evt-${evt.id}`;
+                      const isExpanded = expandedTrendingKey === evtKey;
+
+                      const handleEvtClick = () => {
+                        if (!isExpanded) { setExpandedTrendingKey(evtKey); return; }
+                        setExpandedTrendingKey(null);
+                      };
+                      const handleEvtCTA = (e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        router.push(`/events/${evt.id}`);
+                      };
+
+                      return (
+                        <div
+                          key={evt.id}
+                          onClick={handleEvtClick}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleEvtClick(); }}
+                          aria-expanded={isExpanded}
+                          className={`shrink-0 snap-start relative rounded-2xl overflow-hidden border text-left cursor-pointer select-none transition-all duration-300 ease-out
+                            ${isExpanded
+                              ? 'w-[200px] h-[260px] border-gold-500/40'
+                              : 'w-[140px] h-[186px] border-white/10 active:scale-95'}
+                          `}
+                        >
+                          {/* Image — full card */}
+                          <div className="absolute inset-0 bg-[#1c1a17]">
+                            {evt.image
+                              ? <Image src={evt.image} alt={evt.name} fill sizes="200px" className="object-cover" referrerPolicy="no-referrer" />
+                              : <div className="w-full h-full bg-[#2a2724]" />
+                            }
+                          </div>
+
+                          {/* Gradient scrim */}
+                          <div className={`absolute inset-0 bg-gradient-to-t ${isExpanded ? 'from-black/90 via-black/50 to-black/10' : 'from-black/80 via-black/20 to-transparent'}`} />
+
+                          {/* Date badge — top-left */}
+                          <div className="absolute top-2.5 left-2.5 bg-gold-400 text-royal-950 rounded-xl px-2 py-1 text-center min-w-[32px] shadow-md border border-gold-300/30">
+                            <p className="text-[12px] font-black leading-none text-[#1c1a17]">{day}</p>
+                            <p className="text-[8px] font-bold leading-none mt-0.5 text-[#1c1a17]">{month}</p>
+                          </div>
+
+                          {/* Info overlay — bottom */}
+                          <div className={`absolute bottom-0 left-0 right-0 flex flex-col transition-all duration-300 ${isExpanded ? 'p-2.5' : 'px-2.5 pb-2.5 pt-0'}`}>
+                            <p className={`text-white font-extrabold leading-tight drop-shadow-sm ${isExpanded ? 'text-[11px] line-clamp-2 mb-1' : 'text-[11px] line-clamp-2 mb-0.5'}`}>
+                              {evt.name}
+                            </p>
+                            <p className="text-white/60 text-[9px] truncate flex items-center gap-0.5">
+                              <MapPin className="h-2.5 w-2.5 shrink-0" />{evt.location}
+                            </p>
+
+                            {/* Expanded panel */}
+                            {isExpanded && (
+                              <div className="mt-2 space-y-2">
+                                {evt.description && (
+                                  <p className="text-[9px] text-white/65 leading-relaxed line-clamp-3">{evt.description}</p>
+                                )}
+                                <button
+                                  onClick={handleEvtCTA}
+                                  className="w-full flex items-center justify-center gap-1 bg-gold-500 active:bg-gold-600 active:scale-[0.97] text-royal-950 font-bold text-[10px] py-1.5 rounded-lg transition-all"
+                                >
+                                  {t('hero.event_cta') || 'Lihat Event'}
+                                  <ChevronRight className="h-3 w-3" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                      );
+                    })}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ── AI Picks ── */}
         {(aiDestinations.length > 0 || trendingLoading) && (
