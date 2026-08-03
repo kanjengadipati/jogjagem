@@ -69,6 +69,10 @@ interface MobileDiscoverViewProps {
   onOpenAuth: (mode: 'login' | 'register') => void;
   selectedCategory: string | null;
   onSelectCategory: (cat: string | null) => void;
+  destPage: number;
+  destTotalPages: number;
+  loadingMore: boolean;
+  onLoadMore: () => void;
 }
 
 // ─── Category pill config ─────────────────────────────────────────────────────
@@ -162,6 +166,10 @@ export default function MobileDiscoverView({
   onOpenAuth,
   selectedCategory,
   onSelectCategory,
+  destPage,
+  destTotalPages,
+  loadingMore,
+  onLoadMore,
 }: MobileDiscoverViewProps) {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
@@ -327,8 +335,7 @@ export default function MobileDiscoverView({
 // Popular destinations — sorted by popularity score DESC
   const popularDests = (() => {
     return [...allDestinations]
-      .sort((a, b) => calculatePopularityScore(b) - calculatePopularityScore(a))
-      .slice(0, 15);
+      .sort((a, b) => calculatePopularityScore(b) - calculatePopularityScore(a));
   })();
 
   const handleToggleSave = (e: React.MouseEvent | undefined, dest: Destination) => {
@@ -719,7 +726,7 @@ export default function MobileDiscoverView({
               ? Array.from({ length: 4 }).map((_, i) => (
                   <MobileDestinationCardSkeleton key={i} landscape={i % 7 === 0} />
                 ))
-              : popularDests.slice(0, 6).map((dest, index) => (
+              : popularDests.map((dest, index) => (
                   <MobileDestinationCard
                     key={dest.id}
                     destination={dest}
@@ -734,6 +741,24 @@ export default function MobileDiscoverView({
                 ))
             }
           </div>
+          {!selectedCategory && destPage < destTotalPages && (
+            <div className="mt-6 flex justify-center px-4">
+              <button
+                onClick={onLoadMore}
+                disabled={loadingMore}
+                className="px-6 py-2 bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-600 hover:to-amber-700 disabled:opacity-50 text-white rounded-full font-semibold text-xs transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2 cursor-pointer"
+              >
+                {loadingMore ? (
+                  <>
+                    <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+                    <span>{t('common.loading')}</span>
+                  </>
+                ) : (
+                  <span>{t('common.load_more')}</span>
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ── Event & Festival ── */}

@@ -464,6 +464,10 @@ export default function App() {
                   onOpenAuth={openAuth}
                   selectedCategory={selectedCategory}
                   onSelectCategory={setSelectedCategory}
+                  destPage={destPage}
+                  destTotalPages={destTotalPages}
+                  loadingMore={loadingMore}
+                  onLoadMore={loadMoreDestinations}
                 />
 
                 {/* ── Desktop layout (unchanged) ── */}
