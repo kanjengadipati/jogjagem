@@ -446,7 +446,7 @@ export default function PartnerPage() {
     if (res.status === 'success') {
       await auth.refreshToken();
       const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
-      window.location.href = `${adminUrl}/partner`;
+      window.location.href = `${adminUrl}/business`;
       return;
     } else {
       setError(res.message || t('partner_page.error_generic'));
@@ -488,9 +488,9 @@ export default function PartnerPage() {
             if (authModalMode === 'login') {
               const profileRes = await auth.getProfile();
               const role = profileRes?.data?.role;
-              if (role === 'partner' || role === 'admin' || role === 'superadmin') {
+              if (role === 'partner' || role === 'business_owner' || role === 'admin' || role === 'superadmin') {
                 const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
-                window.location.href = role === 'partner' ? `${adminUrl}/partner` : `${adminUrl}/dashboard`;
+                window.location.href = (role === 'partner' || role === 'business_owner') ? `${adminUrl}/business` : `${adminUrl}/dashboard`;
                 return;
               }
             }
@@ -538,7 +538,7 @@ export default function PartnerPage() {
               <div className="flex justify-between py-2 border-b border-stone-100"><span className="text-stone-500">{t('partner_page.location')}</span><span className="font-medium text-stone-800">{myListing!.location || '-'}</span></div>
             </div>
             {status === 'approved' && (
-              <a href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/partner`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors">
+              <a href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/business`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-3 bg-gold-500 text-white font-semibold rounded-xl hover:bg-gold-600 transition-colors">
                 {t('partner_page.listing_approved_dashboard')} <ExternalLink className="w-4 h-4" />
               </a>
             )}

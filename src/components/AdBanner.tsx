@@ -11,6 +11,8 @@ interface AdBannerProps {
   variant?: 'wide' | 'native';
   className?: string;
   showHouseAdFallback?: boolean;
+  /** Forwarded to HouseAd's fallback — see HouseAd.tsx for what this does. */
+  houseAdExtraParams?: Record<string, string>;
 }
 
 export default function AdBanner({
@@ -19,6 +21,7 @@ export default function AdBanner({
   variant = 'wide',
   className = '',
   showHouseAdFallback = true,
+  houseAdExtraParams,
 }: AdBannerProps) {
   const [campaign, setCampaign] = useState<BeAdCampaign | null>(null);
   const [status, setStatus] = useState<'loading' | 'resolved'>('loading');
@@ -69,7 +72,7 @@ export default function AdBanner({
 
   if (!campaign) {
     return showHouseAdFallback ? (
-      <HouseAd placement={placement} variant={variant} className={className} />
+      <HouseAd placement={placement} variant={variant} className={className} extraParams={houseAdExtraParams} />
     ) : null;
   }
 
@@ -87,7 +90,7 @@ export default function AdBanner({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={campaign.image_url}
-          alt={campaign.partner_name}
+          alt={campaign.business_name ?? campaign.partner_name ?? 'Sponsored'}
           onLoad={() => setLoaded(true)}
           className={`h-full w-full object-cover transition-all duration-500 group-hover:scale-[1.02] ${
             loaded ? 'opacity-100' : 'opacity-0'

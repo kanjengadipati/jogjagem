@@ -114,8 +114,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
 
   const handleGoogleClick = () => {
     if (!GOOGLE_CLIENT_ID) return;
-    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-      sessionStorage.setItem('auth_return_to', window.location.pathname);
+    if (typeof window !== 'undefined' && (window.location.pathname !== '/' || window.location.search)) {
+      sessionStorage.setItem('auth_return_to', window.location.pathname + window.location.search);
     }
     const redirectUri = window.location.origin;
     const nonce = Math.random().toString(36).substring(2);
@@ -135,7 +135,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, defaultMode = 'l
       if (result.success) {
         setSuccess(t('auth.reset_link_sent'));
       } else {
-        setError(result.error || 'Failed to send reset email');
+        setError(result.error || 'Gagal mengirim email reset kata sandi. Silakan coba lagi.');
       }
       return;
     }

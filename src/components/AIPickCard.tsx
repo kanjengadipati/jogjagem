@@ -1,9 +1,10 @@
 import React from 'react';
 import Image from 'next/image';
-import { Sparkles, Bookmark, Star, X, ArrowRight } from 'lucide-react';
+import { Sparkles, Bookmark, Star, X, ArrowRight, Megaphone } from 'lucide-react';
 import { Destination } from '../types';
 import { useLocale } from '@/contexts/LocaleContext';
 import { toSlug } from '@/lib/slug';
+import { ads, type BeAdCampaign } from '../lib/api';
 
 export interface AIPickCardProps {
   recommendation: {
@@ -18,6 +19,12 @@ export interface AIPickCardProps {
   onDismiss?: () => void;
   className?: string;
   sizes?: string;
+  /**
+   * When set, renders this card as the sponsored `homepage_hero` variant instead of
+   * the organic AI pick — same outer shell/dimensions, different content, badge, and
+   * click target. See Hero.tsx's 50:50 coin-flip logic for how this gets populated.
+   */
+  sponsored?: BeAdCampaign;
 }
 
 function getCtaText(destName: string, category: string, t: (key: string) => string): string {
@@ -79,11 +86,87 @@ export const AIPickCard: React.FC<AIPickCardProps> = ({
   onDismiss,
   className = '',
   sizes = '200px',
+  sponsored,
 }) => {
+  const { t, locale } = useLocale();
+
+  // Sponsored branch: same card shell/dimensions as the organic pick below, but
+  // content, badge, and click target come from the live homepage_hero AdCampaign
+  // instead of a Destination. Kept as a separate early return rather than threading
+  // conditionals through every `dest.*` reference below.
+  if (sponsored) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => {
+          ads.trackClick(sponsored.id);
+          window.open(sponsored.target_url, '_blank', 'noopener,noreferrer');
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            ads.trackClick(sponsored.id);
+            window.open(sponsored.target_url, '_blank', 'noopener,noreferrer');
+          }
+        }}
+        className={`aspect-[2/3] rounded-2xl overflow-hidden border border-gold-500/40 shadow-2xl shadow-black/60 cursor-pointer transition-transform active:scale-95 duration-200 select-none relative ${className}`}
+      >
+        {sponsored.image_url && (
+          <Image
+            src={sponsored.image_url}
+            alt={sponsored.partner_name ?? ''}
+            fill
+            sizes={sizes}
+            className="object-cover object-center"
+            referrerPolicy="no-referrer"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/10 to-black/85" />
+
+        <div className="relative z-10 flex flex-col h-full px-3 lg:px-4 pt-3 lg:pt-4 pb-3 lg:pb-4">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1">
+              <Megaphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gold-400 shrink-0" />
+              <span className="text-[8.5px] sm:text-[9.5px] lg:text-[10px] font-extrabold tracking-widest uppercase text-gold-400">
+                {t('hero.sponsored_badge') || 'DISPONSORI'}
+              </span>
+            </div>
+            {onDismiss && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDismiss(); }}
+                className="p-1 hover:bg-white/10 rounded-full transition-colors relative z-20"
+                aria-label="Dismiss sponsored card"
+              >
+                <X className="h-3.5 w-3.5 text-white/70 hover:text-white" />
+              </button>
+            )}
+          </div>
+
+          <h3 className="text-[12px] sm:text-[14px] lg:text-[17px] font-extrabold text-white leading-tight mb-0.5 line-clamp-1 drop-shadow">
+            {sponsored.partner_name}
+          </h3>
+
+          <div className="mt-auto">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                ads.trackClick(sponsored.id);
+                window.open(sponsored.target_url, '_blank', 'noopener,noreferrer');
+              }}
+              className="w-full h-7 lg:h-9 bg-gold-500 hover:bg-gold-400 active:scale-95 font-bold text-[9.5px] lg:text-[11px] text-white rounded-xl transition-all shadow-lg shadow-gold-500/40 cursor-pointer flex items-center justify-center gap-1 px-2.5"
+            >
+              <span className="truncate">{t('hero.sponsored_cta') || 'Lihat selengkapnya'}</span>
+              <ArrowRight className="h-3 w-3 shrink-0" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const { dest, reason } = recommendation;
   const img = dest.images?.[0]?.url || dest.ogImageUrl || '';
   const saved = isSaved(dest.id);
-  const { t, locale } = useLocale();
 
   const fullCta = getCtaText(dest.name, dest.category, t);
   const shortCta = getShortCtaText(dest.name, dest.category, locale);

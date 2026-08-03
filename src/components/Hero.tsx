@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { useRouter } from '@/i18n/navigation';
 import { Search, ChevronLeft, ChevronRight, Mic, MicOff, Camera, Loader2, Bookmark, X, Star, CalendarDays, Heart, MapPin } from 'lucide-react';
 import { Destination, Festival } from '../types';
-import { ai } from '../lib/api';
+import { ai, ads, type BeAdCampaign } from '../lib/api';
 import NearbyMapCard from './NearbyMapCard';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +32,10 @@ type TrendingItem = {
   rating: number;
   distance: string;
   location: string;
+  // Native ad fields
+  isSponsored?: boolean;
+  campaignId?: string;  // for trackImpression / trackClick
+  targetUrl?: string;   // override link for sponsored items
 };
 
 interface HeroProps {
@@ -77,6 +81,12 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
     ctaText: t('hero.fallback_cta'),
   };
   const [isRecommendationDismissed, setIsRecommendationDismissed] = useState(false);
+  // 50:50 share of voice between "Jogjagem's Pick" (organic AI recommendation) and a
+  // paid homepage_hero campaign. Each page load flips a coin; if it lands on sponsored
+  // AND a campaign is live, the sponsored card renders instead of the organic pick in
+  // the same card slot.
+  const [sponsoredCampaign, setSponsoredCampaign] = useState<BeAdCampaign | null>(null);
+  const heroCoinFlipRef = useRef<boolean | null>(null); // null = not decided yet this load
   const [recommendation, setRecommendation] = useState<{
     headline: string; reason: string; dest: Destination; image: string;
     temp: string; condition: string; distance: string; crowd: string;
@@ -85,6 +95,31 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
   const [trendingLoading, setTrendingLoading] = useState(true);
   const [expandedCardKey, setExpandedCardKey] = useState<string | null>(null);
   const expandingRef = useRef(false);
+  // Auto-advance carousel state
+  const trendingScrollRef = useRef<HTMLDivElement | null>(null);
+  const trendingMobileScrollRef = useRef<HTMLDivElement | null>(null);
+  const autoAdvanceRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [trendingPaused, setTrendingPaused] = useState(false);
+  const [sponsoredNativeCampaigns, setSponsoredNativeCampaigns] = useState<BeAdCampaign[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    ads.getBanner('homepage_hero').then((res) => {
+      if (cancelled) return;
+      const campaign = res.status === 'success' ? res.data ?? null : null;
+      if (heroCoinFlipRef.current === null) {
+        heroCoinFlipRef.current = Math.random() < 0.5; // true = show sponsored this load
+      }
+      if (campaign && heroCoinFlipRef.current) {
+        setSponsoredCampaign(campaign);
+        ads.trackImpression(campaign.id);
+      }
+    }).catch(() => {
+      // Silently fall through to organic — a failed ad fetch should never block
+      // "Jogjagem's Pick" from showing.
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (destinations.length === 0) return;
@@ -145,15 +180,53 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
   useEffect(() => {
     let cancelled = false;
     setTrendingLoading(true);
-    ai.trending()
-      .then(res => {
+
+    Promise.all([
+      ai.trending(),
+      ads.getBanner('listing_native').catch(() => null),
+    ]).then(([trendingRes, nativeRes]) => {
+      if (cancelled) return;
+
+      let organic: TrendingItem[] = [];
+      if (trendingRes.status === 'success' && trendingRes.data?.items?.length) {
+        organic = trendingRes.data.items.slice(0, 10);
+      }
+
+      // Collect native campaign(s) if any
+      const nativeCampaign = nativeRes?.status === 'success' ? nativeRes.data ?? null : null;
+      if (nativeCampaign) setSponsoredNativeCampaigns([nativeCampaign]);
+
+      // Inject sponsored at positions 3 and 8 (0-indexed: 2 and 7)
+      let merged: TrendingItem[] = [...organic];
+      if (nativeCampaign && organic.length > 0) {
+        const sponsored: TrendingItem = {
+          type: 'destination',
+          id: `sponsored-${nativeCampaign.id}`,
+          badge: 'Disponsori',
+          badgeType: 'sponsored',
+          headline: nativeCampaign.business_name || nativeCampaign.partner_name || 'Promo Spesial',
+          reason: '',
+          imageUrl: nativeCampaign.image_url,
+          rating: 0,
+          distance: '',
+          location: '',
+          isSponsored: true,
+          campaignId: nativeCampaign.id,
+          targetUrl: nativeCampaign.target_url,
+        };
+        // Insert at pos 2 (3rd) and pos 7 (8th), adjusting for earlier insertion
+        if (merged.length >= 2) merged.splice(2, 0, sponsored);
+        if (merged.length >= 8) merged.splice(8, 0, { ...sponsored, id: `sponsored-${nativeCampaign.id}-b` });
+      }
+
+      setTrendingItems(merged);
+    }).catch(() => {
+      ai.trending().then(res => {
         if (cancelled) return;
-        if (res.status === 'success' && res.data?.items?.length) {
-          setTrendingItems(res.data.items);
-        }
-      })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setTrendingLoading(false); });
+        if (res.status === 'success' && res.data?.items?.length) setTrendingItems(res.data.items.slice(0, 10));
+      }).catch(() => {});
+    }).finally(() => { if (!cancelled) setTrendingLoading(false); });
+
     return () => { cancelled = true; };
   }, []);
 
@@ -161,6 +234,27 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
     const timer = setInterval(() => setCurrentSlide(prev => (prev + 1) % HERO_SLIDES.length), 6000);
     return () => clearInterval(timer);
   }, []);
+
+  // Auto-advance carousel for trending (4s interval, paused on hover/expand)
+  useEffect(() => {
+    if (trendingItems.length === 0) return;
+    if (autoAdvanceRef.current) clearInterval(autoAdvanceRef.current);
+
+    autoAdvanceRef.current = setInterval(() => {
+      if (trendingPaused || expandedCardKey) return;
+      const CARD_W_DESKTOP = 140 + 12; // w-[140px] + gap-3
+      const CARD_W_MOBILE = 100 + 8;   // w-[100px] + gap-2
+      [trendingScrollRef.current, trendingMobileScrollRef.current].forEach((el, i) => {
+        if (!el) return;
+        const cardW = i === 0 ? CARD_W_DESKTOP : CARD_W_MOBILE;
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        const next = el.scrollLeft + cardW;
+        el.scrollTo({ left: next >= maxScroll ? 0 : next, behavior: 'smooth' });
+      });
+    }, 4000);
+
+    return () => { if (autoAdvanceRef.current) clearInterval(autoAdvanceRef.current); };
+  }, [trendingItems, trendingPaused, expandedCardKey]);
 
   const slide = HERO_SLIDES[currentSlide];
 
@@ -213,12 +307,20 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
   // Reusable trending card renderer — tap to expand (mobile-first interactive)
   const renderTrendingCard = (item: TrendingItem, keyPrefix: string, rank: number) => {
     const cardKey = `${keyPrefix}-${item.type}-${item.id}`;
-    const badgeColor = BADGE_COLOR[item.badgeType ?? ''] ?? 'bg-gold-500';
-    const dest = item.type === 'destination' ? destinations.find(d => d.id === item.id) : null;
+    // Sponsored badge is always gold; organic uses BADGE_COLOR map
+    const badgeColor = item.isSponsored ? 'bg-gold-500' : (BADGE_COLOR[item.badgeType ?? ''] ?? 'bg-gold-500');
+    const dest = !item.isSponsored && item.type === 'destination' ? destinations.find(d => d.id === item.id) : null;
     const isExpanded = expandedCardKey === cardKey;
     const isMobile = keyPrefix === 'mobile';
 
     const handleCardClick = (e: React.MouseEvent) => {
+      // Sponsored: track click + open targetUrl directly (may be external)
+      if (item.isSponsored && item.campaignId && item.targetUrl) {
+        e.preventDefault();
+        ads.trackClick(item.campaignId);
+        window.open(item.targetUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
       // On mobile: first tap expands, second tap navigates
       if (isMobile) {
         if (!isExpanded) {
@@ -242,6 +344,11 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
 
     const handleCTA = (e: React.MouseEvent) => {
       e.stopPropagation();
+      if (item.isSponsored && item.campaignId && item.targetUrl) {
+        ads.trackClick(item.campaignId);
+        window.open(item.targetUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
       if (dest) onExploreDestination(dest);
       else if (item.type === 'destination') router.push(`/destinations/${item.id}`);
       else if (item.type === 'event') router.push(`/events/${item.id}`);
@@ -252,11 +359,30 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
       if (dest) onToggleSave(dest);
     };
 
+    // IntersectionObserver for sponsored impression (min 1s visible)
+    const sponsoredImpressionRef = (el: HTMLDivElement | null) => {
+      if (!el || !item.isSponsored || !item.campaignId) return;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            timer = setTimeout(() => { ads.trackImpression(item.campaignId!); obs.disconnect(); }, 1000);
+          } else {
+            if (timer) { clearTimeout(timer); timer = null; }
+          }
+        },
+        { threshold: 0.5 }
+      );
+      obs.observe(el);
+    };
+
     return (
       <div
         key={cardKey}
+        ref={item.isSponsored ? sponsoredImpressionRef : undefined}
         className={`shrink-0 snap-start relative rounded-xl overflow-hidden text-left cursor-pointer select-none
           transition-all duration-300 ease-out
+          ${item.isSponsored ? 'ring-1 ring-gold-400/50' : ''}
           ${isMobile
             ? isExpanded
               ? 'w-[200px] h-[220px] border border-gold-500/40'
@@ -281,14 +407,16 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
         {/* Gradient scrim */}
         <div className={`absolute inset-0 bg-gradient-to-t ${isExpanded && isMobile ? 'from-black/90 via-black/40 to-black/10' : 'from-black/75 via-black/10 to-transparent'}`} />
 
-        {/* Rank number top-left */}
-        <span className="absolute top-2 left-2 z-10 flex items-center justify-center w-5 h-5 rounded-full bg-gold-500 text-royal-950 text-[9px] font-black leading-none shadow-lg">
-          {rank}
-        </span>
+        {/* Rank number top-left — hidden for sponsored */}
+        {!item.isSponsored && (
+          <span className="absolute top-2 left-2 z-10 flex items-center justify-center w-5 h-5 rounded-full bg-gold-500 text-royal-950 text-[9px] font-black leading-none shadow-lg">
+            {rank}
+          </span>
+        )}
 
-        {/* Badge top-left */}
-        <span className={`absolute top-2 left-8 ${badgeColor} text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none`}>
-          {item.badge}
+        {/* Badge top-left — gold for sponsored, category color for organic */}
+        <span className={`absolute top-2 ${item.isSponsored ? 'left-2' : 'left-8'} ${badgeColor} text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none`}>
+          {item.isSponsored ? 'Disponsori' : item.badge}
         </span>
 
         {/* Event chip top-right */}
@@ -379,7 +507,21 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
           <div className="relative mx-auto w-full max-w-7xl flex flex-col flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-0 pb-0 lg:justify-center lg:pb-[340px]">
 
             {/* RECOMMENDATIONS */}
-            {recommendation ? (
+            {sponsoredCampaign ? (
+              <div className="absolute top-[22px] right-4 sm:right-6 lg:right-8 z-20 w-[140px] sm:w-[185px] lg:w-[210px] flex flex-col gap-3">
+                <AIPickCard
+                  recommendation={{ dest: {} as Destination }}
+                  isSaved={isSaved}
+                  onToggleSave={onToggleSave}
+                  onExplore={onExploreDestination}
+                  onDismiss={() => setIsRecommendationDismissed(true)}
+                  sizes="(max-width: 640px) 140px, (max-width: 1024px) 185px, 210px"
+                  className="relative w-full animate-fade-in"
+                  sponsored={sponsoredCampaign}
+                />
+                <NearbyMapCard />
+              </div>
+            ) : recommendation ? (
               <div className="absolute top-[22px] right-4 sm:right-6 lg:right-8 z-20 w-[140px] sm:w-[185px] lg:w-[210px] flex flex-col gap-3">
                 <AIPickCard
                   recommendation={recommendation}
@@ -496,8 +638,13 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
                 <span className="text-gold-400 text-xs">✦</span>
               </div>
               <div
+                ref={trendingMobileScrollRef}
                 className="flex gap-2 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory"
                 onScroll={() => { if (!expandingRef.current && expandedCardKey) setExpandedCardKey(null); }}
+                onMouseEnter={() => setTrendingPaused(true)}
+                onMouseLeave={() => setTrendingPaused(false)}
+                onTouchStart={() => setTrendingPaused(true)}
+                onTouchEnd={() => setTimeout(() => setTrendingPaused(false), 2000)}
               >
                 {trendingLoading
                   ? Array.from({ length: 4 }).map((_, i) => (
@@ -535,7 +682,12 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
                 <span className="text-[11px] font-bold text-white tracking-wide">{t('hero.trending')}</span>
                 <span className="text-gold-400 text-xs">✦</span>
               </div>
-              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory">
+              <div
+                ref={trendingScrollRef}
+                className="flex gap-3 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory"
+                onMouseEnter={() => setTrendingPaused(true)}
+                onMouseLeave={() => setTrendingPaused(false)}
+              >
                 {trendingLoading
                   ? Array.from({ length: 4 }).map((_, i) => (
                       <div key={i} className="shrink-0 w-[140px] snap-start bg-white/5 border border-white/10 rounded-xl overflow-hidden animate-pulse">

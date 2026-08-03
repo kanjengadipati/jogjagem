@@ -73,10 +73,11 @@ function ProfilePageContent() {
       ]);
 
       if (profileRes.status !== 'success' || !profileRes.data) {
-        if (profileRes.message === 'Unauthorized') {
+        const msg = profileRes.message || '';
+        if (msg.includes('Sesi') || msg.includes('login') || msg.toLowerCase().includes('unauthorized')) {
           setAuthModalOpen(true);
         } else {
-          setError('Failed to load profile');
+          setError('Gagal memuat profil. Silakan refresh halaman.');
         }
         setLoading(false);
         return;
@@ -99,7 +100,7 @@ function ProfilePageContent() {
         // silently fail
       }
     } catch {
-      setError('Network error');
+      setError('Gagal memuat profil. Periksa koneksi internet Anda.');
     } finally {
       setLoading(false);
     }
@@ -121,7 +122,7 @@ function ProfilePageContent() {
       }
     } catch {
       if (!isAuthenticated) { setAuthModalOpen(true); return; }
-      setProfileError('Network error');
+      setProfileError('Gagal memperbarui profil. Periksa koneksi internet Anda.');
     } finally {
       setProfileSaving(false);
     }
@@ -155,7 +156,7 @@ function ProfilePageContent() {
       }
     } catch {
       if (!isAuthenticated) { setAuthModalOpen(true); return; }
-      setPasswordError('Network error');
+      setPasswordError('Gagal mengubah kata sandi. Periksa koneksi internet Anda.');
     } finally {
       setPasswordSaving(false);
     }
