@@ -279,6 +279,7 @@ function DestinationsPageInner() {
   const [totalPages, setTotalPages]               = useState(1);
   const [loadingMore, setLoadingMore]             = useState(false);
   const hasLoadedOnce = useRef(false);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   const [trendingItems, setTrendingItems]   = useState<TrendingItem[]>([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
@@ -467,14 +468,6 @@ function DestinationsPageInner() {
                     `Temukan ${allDestinations.length || '90+'} destinasi terkurasi di seluruh Yogyakarta.`}
                 </p>
               </div>
-
-              <div className="w-full lg:w-[440px] shrink-0">
-                <SearchBar
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                  placeholder={t('destinations_page.search_placeholder') || 'Cari destinasi, aktivitas, atau pengalaman...'}
-                />
-              </div>
             </div>
 
             {(trendingLoading || trendingItems.length > 0) && (
@@ -502,6 +495,15 @@ function DestinationsPageInner() {
                 />
               </div>
             )}
+
+            <div className="w-full sm:max-w-xl mb-2">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSubmit={() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                placeholder={t('destinations_page.search_placeholder') || 'Cari destinasi, aktivitas, atau pengalaman...'}
+              />
+            </div>
           </div>
 
           <div className="border-t border-white/8 mt-2 relative z-40">
@@ -548,7 +550,7 @@ function DestinationsPageInner() {
           </p>
         </div>
 
-        <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+        <section ref={resultsRef} className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
           {isLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
               {Array.from({ length: 12 }).map((_, i) => (
