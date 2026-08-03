@@ -13,10 +13,15 @@ test.describe('Full Ad Campaign Workflow', () => {
     const userPage = await userContext.newPage();
     
     // 2. Create Business
+    console.log('Navigating to business');
     await userPage.goto(`${WEB}/business`);
-    await userPage.getByRole('button', { name: 'Tambah Bisnis' }).click();
+    console.log('Clicking Tambah Bisnis');
+    await userPage.getByRole('button', { name: 'Tambah Bisnis', exact: true }).click();
+    console.log('Filling business name');
     await userPage.fill('input[name="name"]', 'E2E Biz ' + Date.now());
+    console.log('Submitting');
     await userPage.click('button[type="submit"]');
+    console.log('Business created');
     
     // Claim business (simplified, assuming it goes to claim page)
     await userPage.goto(`${WEB}/business/claim`);
