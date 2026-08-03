@@ -50,10 +50,11 @@ interface CategoryLinksProps {
   selectedCategory: string | null;
   onSelectCategory: (categoryId: string | null) => void;
   dark?: boolean;
+  onViewAll?: (categoryId: string) => void;
 }
 
-export default function CategoryLinks({ selectedCategory, onSelectCategory, dark = false }: CategoryLinksProps) {
-  const { t } = useLocale();
+export default function CategoryLinks({ selectedCategory, onSelectCategory, dark = false, onViewAll }: CategoryLinksProps) {
+  const { t, locale } = useLocale();
   const [categories, setCategories] = useState<Category[]>([]);
   const [showMore, setShowMore] = useState(false);
 
@@ -183,6 +184,19 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
           );
         })}
       </div>
+
+      {selectedCategory && onViewAll && (
+        <div className="text-center pt-3 pb-1">
+          <button
+            onClick={() => onViewAll(selectedCategory)}
+            className="text-xs font-semibold text-gold-600 hover:text-gold-700 underline underline-offset-2 transition-colors"
+          >
+            {locale === 'en'
+              ? `View all ${t(`category.${selectedCategory.replace('-', '_')}`) || selectedCategory}`
+              : `Lihat semua ${t(`category.${selectedCategory.replace('-', '_')}`) || selectedCategory}`}
+          </button>
+        </div>
+      )}
 
     </div>
   );

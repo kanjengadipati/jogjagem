@@ -367,11 +367,18 @@ function DestinationsPageInner() {
     return () => { if (footer) observer.unobserve(footer); };
   }, [selectedCategory, page, totalPages, loadingMore]);
 
-  useEffect(() => {
+   useEffect(() => {
     async function loadInitial() {
       setIsLoading(true);
       try {
-        if (selectedCategory) {
+        if (selectedCategory === 'hidden-gem') {
+          const response = await destinationApi.getAll({ limit: 100 });
+          const data = (response as any).data || (response as any);
+          const mapped = Array.isArray(data) ? data.map(mapApiToDestination) : [];
+          const filtered = mapped.filter(d => (d.badge || '').toLowerCase() === 'hidden_gem');
+          setAllDestinations(filtered);
+          setPage(1); setTotalPages(1);
+        } else if (selectedCategory) {
           const response = await destinationApi.getByCategory(selectedCategory);
           const data = (response as any).data || (response as any);
           setAllDestinations(Array.isArray(data) ? data.map(mapApiToDestination) : []);
@@ -506,13 +513,14 @@ function DestinationsPageInner() {
             </div>
           </div>
 
-          <div className="border-t border-white/8 mt-2 relative z-40">
-            <CategoryLinks
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-              dark
-            />
-          </div>
+            <div className="border-t border-white/8 mt-2 relative z-40">
+              <CategoryLinks
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+                dark
+                onViewAll={(cat) => router.push(`/destinations/${cat}`)}
+              />
+            </div>
         </section>
 
         <div className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 shadow-sm">

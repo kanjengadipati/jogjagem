@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from '@/i18n/navigation';
-import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, ShieldCheck, Settings, HelpCircle, Bookmark, ChevronRight, MapPin, Briefcase, User, ExternalLink } from 'lucide-react';
+import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, ShieldCheck, Settings, HelpCircle, Bookmark, ChevronRight, MapPin, Briefcase, User, ExternalLink, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -70,6 +70,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
     { id: 'planner', label: t('common.planner'), icon: CalendarDays },
     { id: 'ai-assistant', label: t('common.ai_assistant'), icon: Brain },
     { id: 'map', label: t('common.map'), icon: Map },
+    { id: 'hidden-gems', label: t('category.hidden-gem'), icon: Sparkles },
   ];
 
   useEffect(() => {
@@ -122,6 +123,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                     else if (item.id === 'saved') { router.push('/saved'); }
                     else if (item.id === 'ai-assistant') { router.push('/ai'); }
                     else if (item.id === 'map') { router.push('/map'); }
+                    else if (item.id === 'hidden-gems') { router.push('/destinations/hidden-gem'); }
                     else setActiveTab(item.id);
                   }}
                   className={`text-sm font-medium tracking-wide transition-all duration-300 border-b-2 py-1 ${
@@ -397,12 +399,13 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
             return (
               <button
                 key={item.id}
-                onClick={() => {
-                    if (item.id === 'planner') { setDrawerOpen(false); router.push('/planner'); }
-                    else if (item.id === 'ai-assistant') { setDrawerOpen(false); router.push('/ai'); }
-                    else if (item.id === 'map') { setDrawerOpen(false); router.push('/map'); }
-                    else handleNav(item.id);
-                  }}
+                  onClick={() => {
+                      if (item.id === 'planner') { setDrawerOpen(false); router.push('/planner'); }
+                      else if (item.id === 'ai-assistant') { setDrawerOpen(false); router.push('/ai'); }
+                      else if (item.id === 'map') { setDrawerOpen(false); router.push('/map'); }
+                      else if (item.id === 'hidden-gems') { setDrawerOpen(false); router.push('/destinations/hidden-gem'); }
+                      else handleNav(item.id);
+                    }}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group ${
                   isActive ? 'bg-gold-700/30 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'
                 }`}

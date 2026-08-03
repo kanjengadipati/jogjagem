@@ -684,7 +684,14 @@ export const listingClaims = {
   submit: (data: { business_external_id: string; listing_type: string; listing_external_id: string }) =>
     request<BeListingClaim>('/listing-claims/submit', { method: 'POST', body: JSON.stringify(data) }),
   getMine: () => request<BeListingClaim[]>('/listing-claims/me'),
+  search: (query: string) => request<SearchResult[]>('/listings/search?q=' + encodeURIComponent(query)),
 };
+
+export interface SearchResult {
+  listing_type: string;
+  id: string;
+  name: string;
+}
 
 export interface BeBusiness {
   id: number;

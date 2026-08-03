@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { businesses, listingClaims, BeBusiness } from '@/lib/api';
+import { businesses, listingClaims, BeBusiness, SearchResult } from '@/lib/api';
 import Image from 'next/image';
-import { Briefcase, CheckCircle2, Shield, AlertCircle, ArrowLeft, Building2, Plus } from 'lucide-react';
+import { Briefcase, CheckCircle2, Shield, AlertCircle, ArrowLeft, Building2, Plus, Search, Loader2 } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
+import { useLocale } from '@/contexts/LocaleContext';
 
 const CATEGORIES = ['Kuliner', 'Hotel & Penginapan', 'Wisata & Destinasi', 'Oleh-oleh', 'Jasa', 'Lainnya'];
 
@@ -60,6 +61,7 @@ function validatePhone(phone: string): boolean {
 }
 
 function ClaimFormContent() {
+  const { t } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawType = searchParams.get('type') || 'destination';
@@ -68,7 +70,45 @@ function ClaimFormContent() {
   const listingName = searchParams.get('name') || '';
 
   const [manualListingId, setManualListingId] = useState('');
-  const targetListingId = listingId || manualListingId;
+  const [selectedListingId, setSelectedListingId] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  
+  const targetListingId = listingId || selectedListingId || manualListingId;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    setSelectedListingId(''); // Reset selection if typing
+    const search = async () => {
+      if (manualListingId.length < 3) {
+        setSearchResults([]);
+        return;
+      }
+      setSearching(true);
+      try {
+        const res = await listingClaims.search(manualListingId);
+        setSearchResults(res.data ?? []);
+        setShowResults(true);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    };
+    const debounce = setTimeout(search, 300);
+    return () => clearTimeout(debounce);
+  }, [manualListingId]);
 
   const { isAuthenticated } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -207,32 +247,54 @@ function ClaimFormContent() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-stone-900">Klaim Kepemilikan Usaha</h1>
-            <p className="text-xs text-stone-500">Hubungkan listing publik dengan bisnis terdaftar Anda</p>
+            <h1 className="text-xl font-bold text-stone-900">{t('business_claim.title')}</h1>
+            <p className="text-xs text-stone-500">{t('business_claim.subtitle')}</p>
           </div>
         </div>
 
         <div className="p-3.5 bg-gold-50 border border-gold-200/60 rounded-2xl flex items-start gap-3 text-xs text-gold-900">
           <Shield className="w-5 h-5 text-gold-600 shrink-0 mt-0.5" />
           <div className="w-full">
-            <span className="font-bold text-[11px] text-gold-800 uppercase tracking-wider block">Listing Target yang Diklaim:</span>
+             <span className="font-bold text-[11px] text-gold-800 uppercase tracking-wider block">{t('business_claim.target_listing')}</span>
             {listingName || listingId ? (
               <>
                 <span className="font-bold text-stone-900 text-sm block mt-0.5">{listingName || listingId}</span>
                 <span className="text-[11px] text-stone-600 block mt-0.5">
-                  Kategori: <span className="capitalize font-medium">{listingType}</span> {listingId ? `• ID: ${listingId}` : ''}
+                   {t('business_claim.category')} <span className="capitalize font-medium">{listingType}</span>
                 </span>
               </>
             ) : (
-              <div className="mt-1 space-y-1.5">
-                <span className="text-xs text-stone-600 block font-medium">Masukkan ID / Nama Listing yang Hendak Diklaim:</span>
-                <input
-                  type="text"
-                  placeholder="Contoh: candi-prambanan atau nama usaha"
-                  value={manualListingId}
-                  onChange={(e) => setManualListingId(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-lg bg-white font-mono focus:outline-none focus:ring-1 focus:ring-gold-500"
-                />
+              <div className="mt-1 space-y-1.5 relative" ref={searchRef}>
+                 <span className="text-xs text-stone-600 block font-medium">{t('business_claim.search_prompt')}</span>
+                <div className="relative">
+                  <input
+                    type="text"
+                     placeholder={t('business_claim.search_placeholder')}
+                    value={manualListingId}
+                    onChange={(e) => setManualListingId(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 text-xs border border-stone-300 rounded-lg bg-white font-mono focus:outline-none focus:ring-1 focus:ring-gold-500"
+                  />
+                  <Search className="w-4 h-4 text-stone-400 absolute left-2.5 top-1.5" />
+                  {searching && <Loader2 className="w-4 h-4 animate-spin text-gold-500 absolute right-2.5 top-1.5" />}
+                </div>
+                {showResults && searchResults.length > 0 && (
+                  <ul className="absolute z-50 w-full bg-white border border-stone-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto">
+                    {searchResults.map((r) => (
+                        <li
+                          key={`${r.listing_type}:${r.id}`}
+                          className="px-3 py-2 text-xs hover:bg-stone-100 cursor-pointer border-b last:border-0 border-stone-100"
+                          onClick={() => {
+                            setManualListingId(r.name);
+                            setSelectedListingId(r.id);
+                            setShowResults(false);
+                          }}
+                        >
+                          <div className="font-semibold text-stone-900">{r.name}</div>
+                          <div className="text-[10px] text-stone-500 capitalize">{r.listing_type}</div>
+                        </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
           </div>
@@ -248,12 +310,12 @@ function ClaimFormContent() {
 
         {!isAuthenticated ? (
           <div className="text-center py-6 space-y-4">
-            <p className="text-xs text-stone-600">Anda harus masuk ke akun Jogjagem untuk melakukan klaim kepemilikan.</p>
+            <p className="text-xs text-stone-600">{t('business_claim.must_login')}</p>
             <button
               onClick={() => setShowAuthModal(true)}
               className="w-full py-3 bg-royal-950 hover:bg-royal-900 text-white font-semibold text-xs rounded-xl transition-colors shadow-md"
             >
-              Masuk / Daftar Akun
+              {t('business_claim.login_btn')}
             </button>
           </div>
         ) : (
@@ -264,7 +326,7 @@ function ClaimFormContent() {
               <>
                 {myBusinesses.length > 0 && (
                   <div>
-                    <label className="block text-xs font-bold text-stone-800 mb-1.5">Pilih Entitas Bisnis</label>
+                    <label className="block text-xs font-bold text-stone-800 mb-1.5">{t('business_claim.choose_business')}</label>
                     <select
                       value={selectedBusiness === 'new' ? 'new' : String((selectedBusiness as any).id || (selectedBusiness as any).ID || '')}
                       disabled={resultMessage?.type === 'success' || submitting}
@@ -283,7 +345,7 @@ function ClaimFormContent() {
                           {b.name} ({b.category})
                         </option>
                       ))}
-                      <option value="new">+ Daftarkan Bisnis Baru</option>
+                      <option value="new">+ {t('business_claim.register_new')}</option>
                     </select>
                   </div>
                 )}
@@ -292,25 +354,25 @@ function ClaimFormContent() {
                   <div className="p-4 bg-stone-50 border border-stone-200 rounded-2xl space-y-3">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-stone-800">
                       <Building2 className="w-4 h-4 text-gold-600" />
-                      <span>Daftarkan Bisnis & Kirim Klaim</span>
+                      <span>{t('business_claim.register_new')}</span>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">Nama Usaha / Bisnis *</label>
+                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_claim.biz_name')}</label>
                       <input
                         type="text"
                         required
                         disabled={resultMessage?.type === 'success' || submitting}
                         value={newBizData.name}
                         onChange={(e) => setNewBizData({ ...newBizData, name: e.target.value })}
-                        placeholder="Contoh: Gudeg Pawon Jogja"
+                        placeholder={t('business_claim.biz_name_placeholder')}
                         className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-white disabled:bg-stone-100 disabled:text-stone-500"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-semibold text-stone-700 mb-1">Kategori *</label>
+                        <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_claim.category_label')}</label>
                         <select
                           value={newBizData.category}
                           disabled={resultMessage?.type === 'success' || submitting}
@@ -323,7 +385,7 @@ function ClaimFormContent() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-stone-700 mb-1">No. WhatsApp</label>
+                        <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_claim.whatsapp_label')}</label>
                         <input
                           type="text"
                           inputMode="numeric"
@@ -331,7 +393,7 @@ function ClaimFormContent() {
                           disabled={resultMessage?.type === 'success' || submitting}
                           value={newBizData.phone}
                           onChange={(e) => setNewBizData({ ...newBizData, phone: e.target.value.replace(/[^0-9]/g, '') })}
-                          placeholder="08123456789"
+                          placeholder={t('business_claim.whatsapp_placeholder')}
                           className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-500 bg-white disabled:bg-stone-100 disabled:text-stone-500"
                         />
                       </div>
@@ -347,10 +409,10 @@ function ClaimFormContent() {
                   <Briefcase className="w-4 h-4" />
                   <span>
                     {resultMessage?.type === 'success'
-                      ? 'Klaim Berhasil Dikirim (Menunggu Verifikasi)'
-                      : submitting
-                        ? 'Mengirim Klaim...'
-                        : 'Kirim Klaim Kepemilikan'}
+                      ? t('business_claim.success_btn')
+                        : submitting
+                          ? t('business_claim.submitting_btn')
+                          : t('business_claim.submit_btn')}
                   </span>
                 </button>
 
@@ -360,7 +422,7 @@ function ClaimFormContent() {
                     onClick={handleReturnToBusiness}
                     className="w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl text-center block transition-colors mt-2 cursor-pointer"
                   >
-                    Kembali ke Dashboard Bisnis
+                    {t('business_claim.return_to_biz')}
                   </button>
                 )}
               </>

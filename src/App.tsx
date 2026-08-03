@@ -582,6 +582,7 @@ export default function App() {
                     selectedCategory={selectedCategory}
                     onSelectCategory={setSelectedCategory}
                     dark
+                    onViewAll={(cat) => router.push(`/destinations/${cat}`)}
                   />
 
                   <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

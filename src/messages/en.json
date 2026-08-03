@@ -949,5 +949,32 @@
     "cat_lainnya": "Other",
     "empty": "No published articles yet.",
     "search_placeholder": "Search articles..."
+  },
+  "business_claim": {
+    "title": "Claim Business Ownership",
+    "subtitle": "Connect public listings with your registered business",
+    "target_listing": "Target Listing to Claim:",
+    "category": "Category:",
+    "search_placeholder": "Type business name...",
+    "search_prompt": "Search ID / Name of Listing to Claim:",
+    "must_login": "You must log in to your Jogjagem account to claim ownership.",
+    "login_btn": "Sign In / Register",
+    "choose_business": "Select Business Entity",
+    "register_new": "+ Register New Business",
+    "biz_name": "Business Name *",
+    "biz_name_placeholder": "E.g., Gudeg Pawon Jogja",
+    "category_label": "Category *",
+    "whatsapp_label": "WhatsApp / Phone No.",
+    "whatsapp_placeholder": "08123456789",
+    "submit_btn": "Submit Claim",
+    "submitting_btn": "Submitting Claim...",
+    "success_btn": "Claim Submitted (Pending Review)",
+    "return_to_biz": "Return to Business Dashboard",
+    "error_no_biz_name": "Business name is required.",
+    "error_invalid_phone": "Invalid phone / WhatsApp number.",
+    "error_failed_register": "Failed to register new business.",
+    "error_failed_id": "Failed to retrieve business identity.",
+    "error_no_id": "Please enter the ID / Name of the listing to claim.",
+    "success_message": "Ownership claim submitted successfully! Our team will review your claim within 1×24 hours."
   }
 }

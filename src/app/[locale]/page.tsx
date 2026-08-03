@@ -60,7 +60,7 @@ function SeoShell({ destinations }: { destinations: Array<{ id: string; name: st
           <li><a href={`${SITE_URL}/destinations?category=adventure`}>Adventure</a></li>
           <li><a href={`${SITE_URL}/destinations?category=nature`}>Nature</a></li>
           <li><a href={`${SITE_URL}/destinations?category=beach`}>Beach</a></li>
-          <li><a href={`${SITE_URL}/destinations?category=hidden-gem`}>Hidden Gem</a></li>
+          <li><a href={`${SITE_URL}/destinations/hidden-gem`}>Hidden Gem</a></li>
           <li><a href={`${SITE_URL}/destinations?category=culinary`}>Culinary</a></li>
         </ul>
       </nav>

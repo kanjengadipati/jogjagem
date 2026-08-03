@@ -33,6 +33,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     },
     {
+      url: `${SITE_URL}/destinations/hidden-gem`,
+      lastModified: NOW,
+      changeFrequency: 'weekly',
+      priority: 0.85,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/destinations/hidden-gem`,
+          en: `${SITE_URL}/en/destinations/hidden-gem`,
+        },
+      },
+    },
+    {
       url: `${SITE_URL}/business`,
       lastModified: NOW,
       changeFrequency: 'monthly',

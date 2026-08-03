@@ -223,6 +223,25 @@ export default function BlogDetailClient({
               {messages.share}
             </button>
           </div>
+
+          {article.slug === 'hidden-gems-yogyakarta' && (
+            <div className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 text-center">
+              <h3 className="font-manrope text-lg font-bold text-royal-950 mb-2">
+                {locale === 'en' ? 'Explore Hidden Gems in Jogja' : 'Jelajahi Hidden Gem Jogja'}
+              </h3>
+              <p className="text-sm text-stone-600 mb-4">
+                {locale === 'en'
+                  ? 'Discover more secret destinations curated by Jogjagem.'
+                  : 'Temukan lebih banyak destinasi tersembunyi yang terkurasi oleh Jogjagem.'}
+              </p>
+              <Link
+                href={`/${locale}/destinations/hidden-gem`}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-teal-600 text-white text-sm font-bold hover:bg-teal-700 transition-colors"
+              >
+                {locale === 'en' ? 'View All Hidden Gems' : 'Lihat Semua Hidden Gem'}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -949,5 +949,32 @@
     "cat_lainnya": "Lainnya",
     "empty": "Belum ada artikel yang dipublikasikan.",
     "search_placeholder": "Cari artikel..."
+  },
+  "business_claim": {
+    "title": "Klaim Kepemilikan Usaha",
+    "subtitle": "Hubungkan listing publik dengan bisnis terdaftar Anda",
+    "target_listing": "Listing Target yang Diklaim:",
+    "category": "Kategori:",
+    "search_placeholder": "Ketik nama usaha...",
+    "search_prompt": "Cari ID / Nama Listing yang Hendak Diklaim:",
+    "must_login": "Anda harus masuk ke akun Jogjagem untuk melakukan klaim kepemilikan.",
+    "login_btn": "Masuk / Daftar Akun",
+    "choose_business": "Pilih Entitas Bisnis",
+    "register_new": "+ Daftarkan Bisnis Baru",
+    "biz_name": "Nama Usaha / Bisnis *",
+    "biz_name_placeholder": "Contoh: Gudeg Pawon Jogja",
+    "category_label": "Kategori *",
+    "whatsapp_label": "No. WhatsApp",
+    "whatsapp_placeholder": "08123456789",
+    "submit_btn": "Kirim Klaim Kepemilikan",
+    "submitting_btn": "Mengirim Klaim...",
+    "success_btn": "Klaim Berhasil Dikirim (Menunggu Verifikasi)",
+    "return_to_biz": "Kembali ke Dashboard Bisnis",
+    "error_no_biz_name": "Nama bisnis wajib diisi.",
+    "error_invalid_phone": "Nomor telepon / WhatsApp tidak valid.",
+    "error_failed_register": "Gagal mendaftarkan bisnis baru.",
+    "error_failed_id": "Gagal mendapatkan identitas bisnis.",
+    "error_no_id": "Silakan isi ID / Nama listing yang hendak diklaim.",
+    "success_message": "Klaim kepemilikan berhasil dikirim! Tim Jogjagem akan meninjau klaim Anda dalam 1×24 jam."
   }
 }

@@ -282,3 +282,30 @@ export function FAQJsonLd({ items }: FAQJsonLdProps) {
   };
   return <JsonLd data={data} />;
 }
+
+interface ItemListJsonLdProps {
+  items: { position: number; name: string; url: string }[];
+  pageName: string;
+  pageUrl: string;
+  description: string;
+}
+
+export function ItemListJsonLd({ items, pageName, pageUrl, description }: ItemListJsonLdProps) {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: pageName,
+    description,
+    url: pageUrl,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: items.map((item) => ({
+        '@type': 'ListItem',
+        position: item.position,
+        url: item.url,
+        name: item.name,
+      })),
+    },
+  };
+  return <JsonLd data={data} />;
+}
