@@ -819,7 +819,7 @@ export default function DestinationDetail({
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f100c]/60 via-transparent to-[#0f100c]/30" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-10">
           {/* Breadcrumb */}
           <div className="flex items-center gap-1.5 text-xs text-white/50 mb-5 font-mono">
             <button onClick={onBack} className="hover:text-white/80 transition-colors">{t('destination_detail.nav_explore')}</button>

@@ -28,6 +28,7 @@ import {
 } from './CategoryIcons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
+import { localizeCategoryPath } from '@/lib/category-slugs';
 import { AIPickCard } from './AIPickCard';
 import MobileDestinationCard from './MobileDestinationCard';
 import { MobileDestinationCardSkeleton, TrendingCardSkeleton } from './CardSkeleton';
@@ -134,10 +135,12 @@ function parseEventDate(raw: string): { day: string; month: string } {
 function SectionHeader({
   title,
   onSeeAll,
+  seeAllLabel,
   dark,
 }: {
   title: string;
   onSeeAll?: () => void;
+  seeAllLabel?: string;
   dark?: boolean;
 }) {
   return (
@@ -148,7 +151,7 @@ function SectionHeader({
           onClick={onSeeAll}
           className={`flex items-center gap-0.5 ${dark ? 'text-gold-400' : 'text-gold-600'} text-[11px] font-semibold`}
         >
-          Lihat Semua <ChevronRight className="h-3.5 w-3.5" />
+          {seeAllLabel ?? 'Jelajahi Semua'} <ChevronRight className="h-3.5 w-3.5" />
         </button>
       )}
     </div>
@@ -767,7 +770,21 @@ export default function MobileDiscoverView({
 
           return (
             <div>
-              <SectionHeader title={t('home.popular_destinations')} onSeeAll={() => router.push('/destinations')} />
+               <SectionHeader
+                title={
+                  selectedCategory
+                    ? t('home.curated_category', { category: t(`category.${selectedCategory}`) })
+                    : t('home.popular_destinations')
+                }
+                onSeeAll={() => router.push(selectedCategory ? localizeCategoryPath(selectedCategory, locale) : '/destinations')}
+                seeAllLabel={
+                  selectedCategory
+                    ? locale === 'en'
+                      ? `View all ${t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory}`
+                      : `Jelajahi Semua ${t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory}`
+                    : locale === 'en' ? 'See All' : 'Jelajahi Semua'
+                }
+              />
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4">
                 {popularDests.length === 0
                   ? Array.from({ length: 4 }).map((_, i) => (
@@ -857,13 +874,13 @@ export default function MobileDiscoverView({
                       <span>{t('common.load_more')}</span>
                     )}
                   </button>
-                </div>
-              )}
-            </div>
-          );
-        })()}
+                 </div>
+               )}
+             </div>
+           );
+         })()}
 
-        {/* ── Event & Festival ── */}
+         {/* ── Event & Festival ── */}
         {(allEvents.length > 0 || trendingLoading) && (() => {
           type MobileEventItem =
             | { kind: 'organic'; evt: Festival }

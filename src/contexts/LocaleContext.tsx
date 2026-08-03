@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import idMessages from '@/messages/id.json';
 import enMessages from '@/messages/en.json';
 import { setApiLocale } from '@/lib/api';
+import { categoryToSlug, slugToCategory } from '@/lib/category-slugs';
 
 type Locale = 'id' | 'en';
 
@@ -24,6 +25,16 @@ function getNestedValue(obj: Record<string, any>, path: string): string | undefi
     current = current[key];
   }
   return typeof current === 'string' ? current : undefined;
+}
+
+function localizeCategoryRoute(path: string, locale: Locale) {
+  const parts = path.split('/').filter(Boolean);
+  if (parts.length !== 2 || parts[0] !== 'destinations') return path;
+
+  const category = slugToCategory(parts[1]);
+  if (!category) return path;
+
+  return `/destinations/${categoryToSlug(category, locale)}`;
 }
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
@@ -48,21 +59,23 @@ export function LocaleProvider({ children, locale }: LocaleProviderProps) {
       document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
     } catch { /* ignore */ }
 
+    const basePath = pathname.startsWith('/en/') ? pathname.slice(3) : pathname === '/en' ? '/' : pathname;
+    const localizedPath = localizeCategoryRoute(basePath, newLocale);
     let targetPath: string;
 
     if (newLocale === 'en') {
       if (pathname.startsWith('/en')) {
-        targetPath = pathname;
+        targetPath = localizedPath === '/' ? '/en' : `/en${localizedPath}`;
       } else {
-        targetPath = pathname === '/' ? '/en' : `/en${pathname}`;
+        targetPath = localizedPath === '/' ? '/en' : `/en${localizedPath}`;
       }
     } else {
       if (pathname === '/en' || pathname === '/en/') {
         targetPath = '/';
       } else if (pathname.startsWith('/en/')) {
-        targetPath = pathname.slice(3);
+        targetPath = localizedPath;
       } else {
-        targetPath = pathname;
+        targetPath = localizedPath;
       }
     }
 

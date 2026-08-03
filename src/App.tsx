@@ -13,6 +13,7 @@ import MobileDiscoverView from './components/MobileDiscoverView';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useLocation } from '@/contexts/LocationContext';
 import { toSlug } from '@/lib/slug';
+import { localizeCategoryPath } from '@/lib/category-slugs';
 
 import { Destination, Festival } from './types';
 import { destinations, events, config, auth, ai, ads, APIResponse } from '@/lib/api';
@@ -21,7 +22,7 @@ import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, Calendar
 
 export default function App() {
   console.log('DEBUG: App component rendered');
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { coords } = useLocation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>('discover');
@@ -150,7 +151,20 @@ export default function App() {
           ogImageUrl: raw.og_image_url || raw.OgImageUrl || raw.ogImageUrl || '',
         });
 
-        if (selectedCategory) {
+        if (selectedCategory === 'hidden-gem') {
+          const res = await destinations.getAll({ limit: 100, page: 1 });
+          if (res.status === 'success' && res.data) {
+            const mapped = (res.data as any[]).map(mapRaw) as Destination[];
+            const hiddenGems = mapped.filter((dest: any) => {
+              const badges = Array.isArray(dest.badges) ? dest.badges : [];
+              return String(dest.badge || '').toLowerCase() === 'hidden_gem'
+                || badges.some((badge: unknown) => String(badge).toLowerCase() === 'hidden_gem');
+            });
+            setAllDestinations(hiddenGems);
+            setDestPage(1);
+            setDestTotalPages(1);
+          }
+        } else if (selectedCategory) {
           const res = await destinations.getByCategory(selectedCategory);
           if (res.status === 'success' && res.data) {
             setAllDestinations((res.data as any[]).map(mapRaw) as Destination[]);
@@ -582,7 +596,6 @@ export default function App() {
                     selectedCategory={selectedCategory}
                     onSelectCategory={setSelectedCategory}
                     dark
-                    onViewAll={(cat) => router.push(`/destinations/${cat}`)}
                   />
 
                   <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -604,11 +617,17 @@ export default function App() {
                         </h2>
                       </div>
                       <button
-                        onClick={() => router.push('/destinations')}
-                        className="text-xs sm:text-sm font-semibold text-royal-700/80 hover:text-gold-600 transition-colors flex items-center space-x-0.5 border-b border-royal-700/10 hover:border-gold-600 pb-0.5 cursor-pointer"
+                        onClick={() => router.push(selectedCategory ? localizeCategoryPath(selectedCategory, locale) : '/destinations')}
+                        className="group text-xs sm:text-sm font-semibold text-gold-600 hover:text-gold-700 transition-colors flex items-center gap-0.5 cursor-pointer"
                       >
-                        <span>{t('common.see_all')}</span>
-                        <span>&gt;</span>
+                        <span className="underline decoration-1 hover:decoration-2 group-hover:decoration-2 underline-offset-2">
+                          {selectedCategory
+                            ? locale === 'en'
+                              ? `View all ${t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory}`
+                              : `Jelajahi Semua ${t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory}`
+                            : t('common.see_all')}
+                        </span>
+                        <span className="transition-transform duration-200 group-hover:translate-x-1">&gt;</span>
                       </button>
                     </div>
 

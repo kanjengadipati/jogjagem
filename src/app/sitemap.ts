@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { toSlug } from '@/lib/slug';
+import { CATEGORY_IDS, categoryToSlug } from '@/lib/category-slugs';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
@@ -7,6 +8,19 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 const NOW = new Date().toISOString();
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const categoryPages: MetadataRoute.Sitemap = CATEGORY_IDS.map((category) => ({
+    url: `${SITE_URL}/destinations/${categoryToSlug(category, 'id')}`,
+    lastModified: NOW,
+    changeFrequency: 'weekly',
+    priority: category === 'hidden-gem' ? 0.85 : 0.75,
+    alternates: {
+      languages: {
+        id: `${SITE_URL}/destinations/${categoryToSlug(category, 'id')}`,
+        en: `${SITE_URL}/en/destinations/${categoryToSlug(category, 'en')}`,
+      },
+    },
+  }));
+
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: SITE_URL,
@@ -32,18 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       },
     },
-    {
-      url: `${SITE_URL}/destinations/hidden-gem`,
-      lastModified: NOW,
-      changeFrequency: 'weekly',
-      priority: 0.85,
-      alternates: {
-        languages: {
-          id: `${SITE_URL}/destinations/hidden-gem`,
-          en: `${SITE_URL}/en/destinations/hidden-gem`,
-        },
-      },
-    },
+    ...categoryPages,
     {
       url: `${SITE_URL}/business`,
       lastModified: NOW,

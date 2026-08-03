@@ -1,11 +1,31 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import DestinationDetailClient from '@/components/DestinationDetailClient';
+import DestinationsPageClient from '../DestinationsPageClient';
 import { TouristDestinationJsonLd, BreadcrumbJsonLd, FAQJsonLd } from '@/components/JsonLd';
 import { toSlug } from '@/lib/slug';
+import { categoryToSlug, slugToCategory } from '@/lib/category-slugs';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const SITE_NAME = 'Jogjagem';
+
+const CATEGORY_LABELS: Record<string, { id: string; en: string }> = {
+  nature: { id: 'Wisata Alam', en: 'Nature Destinations' },
+  culinary: { id: 'Kuliner Legendaris', en: 'Culinary Legends' },
+  heritage: { id: 'Sejarah & Budaya', en: 'Heritage & Culture' },
+  adventure: { id: 'Petualangan', en: 'Adventure Destinations' },
+  beach: { id: 'Pantai & Sunset', en: 'Beaches & Sunset' },
+  family: { id: 'Ramah Keluarga', en: 'Family Friendly' },
+  weekend: { id: 'Ide Akhir Pekan', en: 'Weekend Ideas' },
+  camping: { id: 'Spot Camping', en: 'Camping Spots' },
+  sunset: { id: 'Spot Sunset', en: 'Sunset Spots' },
+};
+
+function getCategoryLabel(slug: string, locale: string) {
+  const categoryId = slugToCategory(slug) ?? slug;
+  const category = CATEGORY_LABELS[categoryId];
+  if (!category) return null;
+  return locale === 'en' ? category.en : category.id;
+}
 
 async function fetchDestinationBySlug(slugStr: string) {
   try {
@@ -56,6 +76,39 @@ type PageProps = { params: Promise<{ slug: string[]; locale: string }> };
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug, locale } = await params;
   const slugStr = slug.join('/');
+  const categoryLabel = slug.length === 1 ? getCategoryLabel(slugStr, locale) : null;
+
+  if (categoryLabel) {
+    const categoryId = slugToCategory(slugStr) ?? slugStr;
+    const localizedSlug = categoryToSlug(categoryId, locale === 'en' ? 'en' : 'id');
+    const pageUrl = locale === 'en' ? `${SITE_URL}/en/destinations/${localizedSlug}` : `${SITE_URL}/destinations/${localizedSlug}`;
+    const title = locale === 'en'
+      ? `${categoryLabel} — Jogjagem`
+      : `${categoryLabel} Jogja — Jogjagem`;
+    const description = locale === 'en'
+      ? `Explore curated ${categoryLabel.toLowerCase()} across Yogyakarta.`
+      : `Jelajahi pilihan ${categoryLabel.toLowerCase()} terkurasi di Yogyakarta.`;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        type: 'website',
+        url: pageUrl,
+        siteName: SITE_NAME,
+      },
+      alternates: {
+        canonical: pageUrl,
+        languages: {
+          id: `${SITE_URL}/destinations/${categoryToSlug(categoryId, 'id')}`,
+          en: `${SITE_URL}/en/destinations/${categoryToSlug(categoryId, 'en')}`,
+        },
+      },
+    };
+  }
+
   const dest = await fetchDestinationBySlug(slugStr);
 
   if (!dest) {
@@ -143,6 +196,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function DestinationDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const slugStr = slug.join('/');
+  const categoryId = slug.length === 1 ? slugToCategory(slugStr) : null;
+  if (categoryId && CATEGORY_LABELS[categoryId]) {
+    return <DestinationsPageClient initialCategory={categoryId} />;
+  }
+
   const dest = await fetchDestinationBySlug(slugStr);
 
   const name = dest?.name || dest?.Name || '';

@@ -24,37 +24,36 @@ interface Category {
 }
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
-  HiddenGems:      HiddenGemsIcon,
-  NatureEscapes:   NatureEscapesIcon,
+  HiddenGems: HiddenGemsIcon,
+  NatureEscapes: NatureEscapesIcon,
   CulinaryLegends: CulinaryLegendsIcon,
-  Heritage:        HeritageIcon,
-  Castle:          HeritageIcon,
-  Adventure:       AdventureIcon,
-  Compass:         AdventureIcon,
-  Beaches:         BeachesIcon,
-  Sun:             BeachesIcon,
-  FamilyFriendly:  FamilyFriendlyIcon,
-  Users:           FamilyFriendlyIcon,
-  WeekendIdeas:    WeekendIdeasIcon,
-  CalendarDays:    WeekendIdeasIcon,
-  Sparkles:        HiddenGemsIcon,
-  Leaf:            NatureEscapesIcon,
-  Utensils:        CulinaryLegendsIcon,
-  Tent:            CampingIcon,
-  Sunset:          SunsetIcon,
-  camping:         CampingIcon,
-  sunset:          SunsetIcon,
+  Heritage: HeritageIcon,
+  Castle: HeritageIcon,
+  Adventure: AdventureIcon,
+  Compass: AdventureIcon,
+  Beaches: BeachesIcon,
+  Sun: BeachesIcon,
+  FamilyFriendly: FamilyFriendlyIcon,
+  Users: FamilyFriendlyIcon,
+  WeekendIdeas: WeekendIdeasIcon,
+  CalendarDays: WeekendIdeasIcon,
+  Sparkles: HiddenGemsIcon,
+  Leaf: NatureEscapesIcon,
+  Utensils: CulinaryLegendsIcon,
+  Tent: CampingIcon,
+  Sunset: SunsetIcon,
+  camping: CampingIcon,
+  sunset: SunsetIcon,
 };
 
 interface CategoryLinksProps {
   selectedCategory: string | null;
   onSelectCategory: (categoryId: string | null) => void;
   dark?: boolean;
-  onViewAll?: (categoryId: string) => void;
 }
 
-export default function CategoryLinks({ selectedCategory, onSelectCategory, dark = false, onViewAll }: CategoryLinksProps) {
-  const { t, locale } = useLocale();
+export default function CategoryLinks({ selectedCategory, onSelectCategory, dark = false }: CategoryLinksProps) {
+  const { t } = useLocale();
   const [categories, setCategories] = useState<Category[]>([]);
   const [showMore, setShowMore] = useState(false);
 
@@ -71,24 +70,22 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
         });
         setCategories(translated);
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, [t]);
 
   const pillCls = (selected: boolean) =>
-    `flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-2xl border transition-all duration-200 cursor-pointer ${
-      selected
-        ? 'bg-gold-500 border-gold-500'
-        : dark
-          ? 'bg-[#1C1A17] border-[#2E2A24] hover:bg-[#252219] hover:border-[#3a3629]'
-          : 'bg-stone-100/80 border-stone-200/60 hover:bg-stone-200/60'
+    `flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-2xl border transition-all duration-200 cursor-pointer ${selected
+      ? 'bg-gold-500 border-gold-500'
+      : dark
+        ? 'bg-[#1C1A17] border-[#2E2A24] hover:bg-[#252219] hover:border-[#3a3629]'
+        : 'bg-stone-100/80 border-stone-200/60 hover:bg-stone-200/60'
     }`;
 
   const iconCls = (selected: boolean) =>
     `h-7 w-7 ${selected ? 'text-royal-950' : dark ? 'text-gold-400' : 'text-gold-600'}`;
 
   const labelCls = (selected: boolean) =>
-    `text-[10px] font-bold text-center leading-tight px-0.5 ${
-      selected ? 'text-royal-950' : dark ? 'text-white/70' : 'text-stone-700'
+    `text-[10px] font-bold text-center leading-tight px-0.5 ${selected ? 'text-royal-950' : dark ? 'text-white/70' : 'text-stone-700'
     }`;
 
   const rawCats = [
@@ -105,7 +102,7 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
   // Mobile: 4 primary + "Lainnya" button, rest in expanded drawer
   const PRIMARY_COUNT = 4;
   const primaryCats = allCats.slice(0, PRIMARY_COUNT);
-  const moreCats    = allCats.slice(PRIMARY_COUNT);
+  const moreCats = allCats.slice(PRIMARY_COUNT);
 
   return (
     <div id="category-links-section" className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -184,19 +181,6 @@ export default function CategoryLinks({ selectedCategory, onSelectCategory, dark
           );
         })}
       </div>
-
-      {selectedCategory && onViewAll && (
-        <div className="text-center pt-3 pb-1">
-          <button
-            onClick={() => onViewAll(selectedCategory)}
-            className="text-xs font-semibold text-gold-600 hover:text-gold-700 underline underline-offset-2 transition-colors"
-          >
-            {locale === 'en'
-              ? `View all ${t(`category.${selectedCategory.replace('-', '_')}`) || selectedCategory}`
-              : `Lihat semua ${t(`category.${selectedCategory.replace('-', '_')}`) || selectedCategory}`}
-          </button>
-        </div>
-      )}
 
     </div>
   );

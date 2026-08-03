@@ -13,6 +13,7 @@ import SearchBar from '@/components/SearchBar';
 import { Destination } from '@/types';
 import { destinations as destinationApi, ai } from '@/lib/api';
 import { toSlug } from '@/lib/slug';
+import { localizeCategoryPath } from '@/lib/category-slugs';
 import Image from 'next/image';
 import {
   Search, ArrowLeft, ChevronLeft, ChevronRight,
@@ -264,22 +265,28 @@ function FilterChips({
   );
 }
 
-function DestinationsPageInner() {
+type DestinationsPageClientProps = {
+  initialCategory?: string | null;
+};
+
+function DestinationsPageInner({ initialCategory = null }: DestinationsPageClientProps) {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   const [allDestinations, setAllDestinations]     = useState<Destination[]>([]);
   const [isLoading, setIsLoading]                 = useState(true);
-  const [selectedCategory, setSelectedCategory]   = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory]   = useState<string | null>(initialCategory);
   const [searchQuery, setSearchQuery]             = useState('');
   const [savedDestinations, setSavedDestinations] = useState<Destination[]>([]);
   const savedIdsRef = useRef<Set<string>>(new Set());
   const [hydrated, setHydrated]                   = useState(false);
   const [page, setPage]                           = useState(1);
   const [totalPages, setTotalPages]               = useState(1);
+  const [totalCount, setTotalCount]               = useState<number | null>(null);
   const [loadingMore, setLoadingMore]             = useState(false);
   const hasLoadedOnce = useRef(false);
   const resultsRef = useRef<HTMLDivElement | null>(null);
+  const stickyFilterRef = useRef<HTMLDivElement | null>(null);
 
   const [trendingItems, setTrendingItems]   = useState<TrendingItem[]>([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
@@ -295,6 +302,15 @@ function DestinationsPageInner() {
 
   const clearFilters = () =>
     setActiveFilters({ minRating: null, free: false, openNow: false, familyFriendly: false, petFriendly: false, outdoor: false });
+
+  const handleSelectCategory = (cat: string | null) => {
+    setSelectedCategory(cat);
+    // scroll so the hero section top is visible, category pills just below header
+    if (stickyFilterRef.current) {
+      const top = stickyFilterRef.current.getBoundingClientRect().top + window.scrollY - 120;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     try {
@@ -370,12 +386,17 @@ function DestinationsPageInner() {
    useEffect(() => {
     async function loadInitial() {
       setIsLoading(true);
+      setTotalCount(null);
       try {
         if (selectedCategory === 'hidden-gem') {
           const response = await destinationApi.getAll({ limit: 100 });
           const data = (response as any).data || (response as any);
           const mapped = Array.isArray(data) ? data.map(mapApiToDestination) : [];
-          const filtered = mapped.filter(d => (d.badge || '').toLowerCase() === 'hidden_gem');
+          const filtered = mapped.filter(d => {
+            const badges = Array.isArray(d.badges) ? d.badges : [];
+            return (d.badge || '').toLowerCase() === 'hidden_gem'
+              || badges.some((badge: unknown) => String(badge).toLowerCase() === 'hidden_gem');
+          });
           setAllDestinations(filtered);
           setPage(1); setTotalPages(1);
         } else if (selectedCategory) {
@@ -388,7 +409,11 @@ function DestinationsPageInner() {
           const data = (response as any).data || (response as any);
           setAllDestinations(Array.isArray(data) ? data.map(mapApiToDestination) : []);
           const meta = (response as any).meta;
-          if (meta) { setPage(meta.page ?? 1); setTotalPages(meta.total_pages ?? 1); }
+          if (meta) {
+            setPage(meta.page ?? 1);
+            setTotalPages(meta.total_pages ?? 1);
+            setTotalCount(meta.total_count ?? meta.total ?? null);
+          }
           else { setPage(1); setTotalPages(1); }
         }
       } catch (e) { console.error('Failed to fetch destinations:', e); }
@@ -445,7 +470,7 @@ function DestinationsPageInner() {
       />
 
       <main className="flex-1">
-        <section className="relative bg-royal-950 pt-20 pb-0 overflow-hidden">
+        <section className="relative bg-royal-950 pt-10 pb-0 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(214,161,71,0.08)_0%,_transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(214,161,71,0.05)_0%,_transparent_60%)]" />
 
@@ -463,16 +488,18 @@ function DestinationsPageInner() {
                 <div className="flex items-center gap-2 mb-3">
                   <MapPin className="h-4 w-4 text-gold-400" />
                   <span className="text-xs font-semibold uppercase tracking-widest text-gold-400">
-                    {t('destinations_page.all_destinations')}
+                    {selectedCategory
+                      ? t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory.toUpperCase()
+                      : t('destinations_page.all_destinations')}
                   </span>
                 </div>
                 <h1 className="font-manrope text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.05]">
                   {t('destinations_page.heading')}
                 </h1>
                 <p className="mt-3 text-sm sm:text-base text-white/50 font-light max-w-lg">
-                  {t('destinations_page.subtitle_prefix', { count: allDestinations.length || '90+' })}
+                  {t('destinations_page.subtitle_prefix', { count: (selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+' })}
                   {!t('destinations_page.subtitle_prefix') &&
-                    `Temukan ${allDestinations.length || '90+'} destinasi terkurasi di seluruh Yogyakarta.`}
+                    `Temukan ${(selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+'} destinasi pilihan di seluruh Yogyakarta.`}
                 </p>
               </div>
             </div>
@@ -516,14 +543,13 @@ function DestinationsPageInner() {
             <div className="border-t border-white/8 mt-2 relative z-40">
               <CategoryLinks
                 selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
+                onSelectCategory={handleSelectCategory}
                 dark
-                onViewAll={(cat) => router.push(`/destinations/${cat}`)}
               />
             </div>
         </section>
 
-        <div className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 shadow-sm">
+        <div ref={stickyFilterRef} className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 shadow-sm">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center gap-3">
               <button className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-stone-300 text-stone-700 hover:border-gold-400/60 hover:text-stone-900 transition-all shrink-0 bg-white">
@@ -640,10 +666,10 @@ function DestinationsPageInner() {
   );
 }
 
-export default function DestinationsPageClient() {
+export default function DestinationsPageClient({ initialCategory = null }: DestinationsPageClientProps) {
   return (
     <AuthProvider>
-      <DestinationsPageInner />
+      <DestinationsPageInner initialCategory={initialCategory} />
     </AuthProvider>
   );
 }

@@ -806,7 +806,7 @@
     "back_to_explore": "Back to Explore",
     "all_destinations": "ALL DESTINATIONS",
     "heading": "Explore Every Corner",
-    "subtitle_prefix": "Discover",
+    "subtitle_prefix": "Discover {count} curated destinations across Yogyakarta.",
     "subtitle": "curated destinations across Yogyakarta",
     "search_placeholder": "Search destinations...",
     "showing_all": "Showing all {count} destinations",

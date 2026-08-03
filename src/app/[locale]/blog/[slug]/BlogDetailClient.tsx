@@ -232,7 +232,7 @@ export default function BlogDetailClient({
               <p className="text-sm text-stone-600 mb-4">
                 {locale === 'en'
                   ? 'Discover more secret destinations curated by Jogjagem.'
-                  : 'Temukan lebih banyak destinasi tersembunyi yang terkurasi oleh Jogjagem.'}
+                  : 'Temukan lebih banyak destinasi tersembunyi pilihan Jogjagem.'}
               </p>
               <Link
                 href={`/${locale}/destinations/hidden-gem`}
