@@ -471,8 +471,21 @@ function DestinationsPageInner({ initialCategory = null }: DestinationsPageClien
 
       <main className="flex-1">
         <section className="relative bg-royal-950 pt-10 pb-0 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(214,161,71,0.08)_0%,_transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(214,161,71,0.05)_0%,_transparent_60%)]" />
+          {/* Background image: Merapi */}
+          <div className="absolute inset-0">
+            <Image
+              src="/merapi.jpg"
+              alt="Gunung Merapi"
+              fill
+              sizes="100vw"
+              className="object-cover object-center opacity-40"
+              priority
+            />
+            {/* gradient: dark left → transparent right */}
+            <div className="absolute inset-0 bg-gradient-to-r from-royal-950 via-royal-950/70 to-transparent" />
+            {/* subtle bottom fade so content blends into page */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-royal-950" />
+          </div>
 
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <button
