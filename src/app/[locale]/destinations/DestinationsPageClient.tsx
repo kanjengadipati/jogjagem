@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { useRouter } from '@/i18n/navigation';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -514,6 +515,27 @@ function DestinationsPageInner({ initialCategory = null }: DestinationsPageClien
                   {!t('destinations_page.subtitle_prefix') &&
                     `Temukan ${(selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+'} destinasi pilihan di seluruh Yogyakarta.`}
                 </p>
+                {/* SEO: visible anchor links to key category pages — crawlable by Google */}
+                {!selectedCategory && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {[
+                      { href: `/${locale}/destinations/hidden-gem`, label: locale === 'en' ? 'Hidden Gems' : 'Hidden Gem' },
+                      { href: `/${locale}/destinations/nature`, label: locale === 'en' ? 'Nature' : 'Wisata Alam' },
+                      { href: `/${locale}/destinations/culinary`, label: locale === 'en' ? 'Culinary' : 'Kuliner' },
+                      { href: `/${locale}/destinations/heritage`, label: locale === 'en' ? 'Heritage' : 'Sejarah & Budaya' },
+                      { href: `/${locale}/destinations/adventure`, label: locale === 'en' ? 'Adventure' : 'Petualangan' },
+                      { href: `/${locale}/destinations/beach`, label: locale === 'en' ? 'Beaches' : 'Pantai' },
+                    ].map(({ href, label }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/50 hover:border-gold-400/50 hover:text-gold-400 transition-all"
+                      >
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

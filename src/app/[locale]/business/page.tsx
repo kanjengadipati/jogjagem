@@ -155,6 +155,10 @@ export default function BusinessPage() {
   });
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  type SubmitStep = 'idle' | 'checking-name' | 'checking-email' | 'saving' | 'done';
+  const [submitStep, setSubmitStep] = useState<SubmitStep>('idle');
+  const [emailWarning, setEmailWarning] = useState<string | null>(null);
+
   useEffect(() => {
     if (action === 'register' || placement) {
       setShowCreateForm(true);
@@ -199,6 +203,36 @@ export default function BusinessPage() {
     return /^(\+62|62|0)[8][1-9][0-9]{6,11}$/.test(cleanPhone);
   };
 
+  const validateEmail = (email: string): boolean => {
+    const trimmed = email.trim();
+    if (!trimmed) return true; // opsional, kosong = valid
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  };
+
+  const findSimilarBusinessName = (name: string): string | null => {
+    const normalized = name.trim().toLowerCase();
+    const match = myBusinesses.find((b) =>
+      b.name?.trim().toLowerCase() === normalized
+    );
+    return match ? match.name : null;
+  };
+
+  const checkEmailDomainValid = async (email: string): Promise<boolean> => {
+    const domain = email.split('@')[1];
+    if (!domain) return false;
+    try {
+      const res = await fetch(
+        `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`,
+        { signal: AbortSignal.timeout(2500) }
+      );
+      if (!res.ok) return true; // gagal cek → fail-open
+      const data = await res.json();
+      return Array.isArray(data.Answer) && data.Answer.length > 0;
+    } catch {
+      return true; // timeout/network error → fail-open, jangan blokir user
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -209,14 +243,46 @@ export default function BusinessPage() {
       setMessage({ type: 'error', text: 'Nomor telepon / WhatsApp tidak valid (Contoh: 081234567890 atau +6281234567890).' });
       return;
     }
+    if (formData.email.trim() && !validateEmail(formData.email)) {
+      setMessage({ type: 'error', text: 'Format email tidak valid.' });
+      return;
+    }
+
     setSubmitting(true);
+    setSubmitStep('checking-name');
     setMessage(null);
+    setEmailWarning(null);
+
+    // Step 1: cek nama duplikat (client-side, instan)
+    const similar = findSimilarBusinessName(formData.name);
+    if (similar) {
+      setMessage({
+        type: 'error',
+        text: `Anda sudah punya bisnis dengan nama serupa: "${similar}". Gunakan nama lain atau kelola bisnis yang sudah ada.`,
+      });
+      setSubmitting(false);
+      setSubmitStep('idle');
+      return;
+    }
+
+    // Step 2: cek domain email (real DNS-over-HTTPS call)
+    setSubmitStep('checking-email');
+    if (formData.email.trim()) {
+      const validDomain = await checkEmailDomainValid(formData.email.trim());
+      if (!validDomain) {
+        setEmailWarning('Domain email sepertinya tidak valid/tidak menerima surel. Anda tetap bisa lanjut mendaftar.');
+      }
+    }
+
+    // Step 3: simpan ke server
+    setSubmitStep('saving');
     try {
       const res = await businesses.create(formData);
       const createdBiz = (res as any)?.data || res;
       const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
       const bizId = createdBiz?.external_id || createdBiz?.id || '';
 
+      setSubmitStep('done');
       setMessage({
         type: 'success',
         text: 'Bisnis berhasil didaftarkan & terverifikasi! Mengalihkan ke Business Portal...',
@@ -232,6 +298,7 @@ export default function BusinessPage() {
       setMessage({ type: 'error', text: err?.message || 'Gagal memproses pendaftaran bisnis.' });
     } finally {
       setSubmitting(false);
+      setSubmitStep('idle');
     }
   };
 
@@ -335,6 +402,11 @@ export default function BusinessPage() {
                 <span>{message.text}</span>
               </div>
             )}
+            {emailWarning && (
+              <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+                ⚠️ {emailWarning}
+              </div>
+            )}
 
             {showCreateForm ? (
               <form onSubmit={handleSubmit} className="space-y-4 bg-white p-5 rounded-2xl border border-stone-200 shadow-xs">
@@ -390,6 +462,16 @@ export default function BusinessPage() {
                   </div>
                 </div>
                 <div>
+                  <label className="block text-xs font-semibold text-stone-700 mb-1">Email Bisnis</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    placeholder="kontak@bisnisanda.com"
+                  />
+                </div>
+                <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1">Deskripsi Singkat</label>
                   <textarea
                     rows={2}
@@ -412,7 +494,15 @@ export default function BusinessPage() {
                     disabled={submitting}
                     className="px-5 py-2.5 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-stone-950 rounded-xl transition-colors disabled:opacity-50 shadow-sm flex items-center gap-1.5"
                   >
-                    {submitting ? 'Menyimpan...' : (placementName ? 'Daftarkan Usaha & Lanjut Pasang Iklan →' : 'Daftarkan Bisnis')}
+                    {submitting
+                      ? ({
+                          'checking-name':  'Memeriksa nama bisnis...',
+                          'checking-email': 'Memvalidasi kontak...',
+                          'saving':         'Menyimpan profil bisnis...',
+                          'done':           'Berhasil!',
+                          'idle':           'Menyimpan...',
+                        } as const)[submitStep]
+                      : (placementName ? 'Daftarkan Usaha & Lanjut Pasang Iklan →' : 'Daftarkan Bisnis')}
                   </button>
                 </div>
               </form>

@@ -9,6 +9,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const SITE_NAME = 'Jogjagem';
 
 const CATEGORY_LABELS: Record<string, { id: string; en: string }> = {
+  'hidden-gem': { id: 'Hidden Gem', en: 'Hidden Gems' },
   nature: { id: 'Wisata Alam', en: 'Nature Destinations' },
   culinary: { id: 'Kuliner Legendaris', en: 'Culinary Legends' },
   heritage: { id: 'Sejarah & Budaya', en: 'Heritage & Culture' },

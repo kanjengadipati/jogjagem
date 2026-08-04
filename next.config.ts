@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
         destination: 'https://www.jogjagem.com/:path*',
         permanent: true,
       },
+      {
+        source: '/hidden-gem-jogja',
+        destination: '/destinations/hidden-gem',
+        permanent: true,
+      },
+      {
+        source: '/en/hidden-gem-jogja',
+        destination: '/en/destinations/hidden-gem',
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
