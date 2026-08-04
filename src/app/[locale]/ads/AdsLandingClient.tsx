@@ -316,22 +316,70 @@ export default function AdsLandingClient() {
               badgeVariant="accent"
               icon={<Layout className="w-4 h-4 text-blue-600" />}
               title="Homepage Hero Banner"
-              description="Banner paling utama di halaman terdepan Jogjagem. Dilihat pertama kali oleh jutaan wisatawan yang sedang mencari ide petualangan di Jogja."
-              formatLabel="1600×500 — 16:5"
+              description="2 slot iklan di satu section: pick card (50:50 coin-flip) + carousel trending (posisi ke-3 & ke-8 dari 10, auto-geser). Dilihat pertama kali oleh wisatawan yang sedang mencari ide petualangan di Jogja."
+              formatLabel="Hero section — pick card + trending carousel"
               onSelect={() => { window.location.href = getSlotUrl('homepage_hero'); }}
               preview={
                 <PreviewFrame>
-                  <div className="h-[60px] bg-blue-500 flex items-center justify-center">
-                    <span className="text-[10px] text-white font-semibold tracking-wide">✦ Iklanmu di sini</span>
-                  </div>
-                  <div className="p-2 space-y-1.5">
-                    <div className="h-1.5 w-3/5 bg-gray-200 rounded" />
-                    <div className="h-1.5 w-2/5 bg-gray-200 rounded" />
-                    <div className="flex gap-1.5 mt-1">
-                      <div className="h-8 w-1/3 bg-gray-100 rounded" />
-                      <div className="h-8 w-1/3 bg-gray-100 rounded" />
-                      <div className="h-8 w-1/3 bg-gray-100 rounded" />
+                  {/* Hero section dark block */}
+                  <div className="bg-[#16140f] px-3 pt-3 pb-2.5 relative">
+                    {/* Text placeholder lines */}
+                    <div className="pr-[72px] space-y-1.5 mb-3">
+                      <div className="h-1.5 w-[55%] bg-white/20 rounded-full" />
+                      <div className="h-1.5 w-[72%] bg-white/20 rounded-full" />
+                      <div className="h-1.5 w-[80%] bg-white/15 rounded-full" />
                     </div>
+
+                    {/* AI Pick card — top right, sponsored */}
+                    <div className="absolute top-3 right-3 w-[62px] bg-white rounded-lg overflow-hidden shadow-md">
+                      <div className="h-8 bg-gray-200" />
+                      <div className="px-1.5 py-1 flex items-center gap-1">
+                        <Megaphone className="w-2.5 h-2.5 text-amber-500 shrink-0" />
+                        <span className="text-[7px] font-bold text-stone-600">disponsori</span>
+                      </div>
+                    </div>
+
+                    {/* Trending label */}
+                    <div className="flex items-center gap-1 mb-1.5">
+                      <svg className="w-2.5 h-2.5 text-red-400" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.66 11.2c-.23-.3-.51-.56-.77-.82-.67-.6-1.43-1.03-2.07-1.66C13.33 7.26 13 4.85 13.95 3c-.95.23-1.78.75-2.49 1.32C8.24 6.1 7.1 9.33 8.05 12.41c.05.16.1.33.14.49-.41-.36-.64-.9-.68-1.43-.06-.83.12-1.66.22-2.48C6.6 10.09 6 11.32 6 12.55c-.01 3.05 2.3 5.65 5.3 6.15.69.11 1.39.11 2.06-.03C16.96 18 19 15.8 19 13.1c0-1.43-.45-2.85-1.34-3.9z"/>
+                      </svg>
+                      <span className="text-[8px] text-white/50 font-medium">sedang trending</span>
+                    </div>
+
+                    {/* Trending carousel: 8 cards, #3 and #8 highlighted */}
+                    <div className="flex gap-1 pb-1.5 overflow-hidden">
+                      {Array.from({ length: 8 }).map((_, i) => {
+                        const pos = i + 1;
+                        const isAd = pos === 3 || pos === 8;
+                        return (
+                          <div
+                            key={i}
+                            className={`shrink-0 rounded relative flex flex-col justify-end ${
+                              isAd
+                                ? 'border border-amber-400 bg-[#2a2510]'
+                                : 'bg-[#252219]'
+                            }`}
+                            style={{ width: 28, height: 38 }}
+                          >
+                            {isAd && (
+                              <span
+                                className="absolute -top-0.5 -left-0.5 text-[6px] font-extrabold bg-amber-400 text-stone-900 rounded-sm px-0.5 leading-tight"
+                              >
+                                #{pos}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Caption below the preview */}
+                  <div className="px-2 py-1.5 bg-gray-50 border-t border-gray-100">
+                    <p className="text-[9px] text-stone-400 leading-snug">
+                      2 slot iklan di satu section: pick card (50:50 coin-flip) + carousel trending (posisi ke-3 &amp; ke-8 dari 10, auto-geser)
+                    </p>
                   </div>
                 </PreviewFrame>
               }
@@ -369,28 +417,48 @@ export default function AdsLandingClient() {
               badgeVariant="pro"
               icon={<Sparkles className="w-4 h-4 text-purple-600" />}
               title="Listing Top Priority"
-              description="Menempatkan bisnis Anda di urutan teratas hasil pencarian & katalog rekomendasi sesuai kategori — tanpa elemen visual baru."
-              formatLabel="Native card — posisi #1"
+              description="Bisnis Anda menempati posisi #5 dan #10 di grid Destinasi Populer — kolom pertama tiap baris (landscape), section terpisah di luar hero, dilihat oleh wisatawan yang sedang aktif menelusuri destinasi."
+              formatLabel="Grid 4 col — posisi #5 & #10, landscape (col span 2)"
               onSelect={() => { window.location.href = getSlotUrl('listing_top'); }}
               preview={
                 <PreviewFrame>
-                  <div className="p-2 space-y-1.5">
-                    <div className="h-7 bg-purple-500 rounded flex items-center gap-2 px-2">
-                      <div className="w-4 h-4 bg-white/40 rounded shrink-0" />
-                      <span className="text-[8px] text-white font-semibold">Bisnismu · posisi #1</span>
-                      <span className="ml-auto text-[7px] bg-white/20 text-white px-1 rounded">AD</span>
+                  <div className="p-2 bg-gray-50">
+                    <p className="text-[8px] text-stone-400 mb-1.5 font-medium">
+                      Destinasi populer — grid (section terpisah, di luar hero)
+                    </p>
+
+                    {/* Row 1: 4 portrait cards */}
+                    <div className="grid grid-cols-4 gap-1 mb-1">
+                      {[0,1,2,3].map(i => (
+                        <div key={i} className="rounded bg-gray-200" style={{ height: 48 }} />
+                      ))}
                     </div>
-                    <div className="h-6 flex items-center gap-2 px-1">
-                      <div className="w-4 h-4 bg-gray-200 rounded shrink-0" />
-                      <div className="h-1.5 w-1/2 bg-gray-200 rounded" />
+
+                    {/* Row 2: portrait ad (col 1) + 3 portrait */}
+                    <div className="grid grid-cols-4 gap-1 mb-1">
+                      <div className="rounded border border-amber-400 bg-amber-50 relative" style={{ height: 48 }}>
+                        <span className="absolute top-1 left-1 text-[6px] font-extrabold bg-amber-400 text-stone-900 rounded px-0.5 py-0.5 leading-none">AD</span>
+                      </div>
+                      {[0,1,2].map(i => (
+                        <div key={i} className="rounded bg-gray-200" style={{ height: 48 }} />
+                      ))}
                     </div>
-                    <div className="h-6 flex items-center gap-2 px-1">
-                      <div className="w-4 h-4 bg-gray-200 rounded shrink-0" />
-                      <div className="h-1.5 w-2/5 bg-gray-200 rounded" />
+
+                    {/* Row 3: 4 portrait cards */}
+                    <div className="grid grid-cols-4 gap-1 mb-1">
+                      {[0,1,2,3].map(i => (
+                        <div key={i} className="rounded bg-gray-200" style={{ height: 48 }} />
+                      ))}
                     </div>
-                    <div className="h-6 flex items-center gap-2 px-1">
-                      <div className="w-4 h-4 bg-gray-200 rounded shrink-0" />
-                      <div className="h-1.5 w-3/5 bg-gray-200 rounded" />
+
+                    {/* Row 4: portrait ad (col 1) + 3 portrait */}
+                    <div className="grid grid-cols-4 gap-1">
+                      <div className="rounded border border-amber-400 bg-amber-50 relative" style={{ height: 48 }}>
+                        <span className="absolute top-1 left-1 text-[6px] font-extrabold bg-amber-400 text-stone-900 rounded px-0.5 py-0.5 leading-none">AD</span>
+                      </div>
+                      {[0,1,2].map(i => (
+                        <div key={i} className="rounded bg-gray-200" style={{ height: 48 }} />
+                      ))}
                     </div>
                   </div>
                 </PreviewFrame>
