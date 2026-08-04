@@ -183,7 +183,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
 
     Promise.all([
       ai.trending(),
-      ads.getBanner('homepage_hero_tranding').catch(() => null),
+      ads.getBanner('homepage_hero_trending').catch(() => null),
     ]).then(([trendingRes, nativeRes]) => {
       if (cancelled) return;
 

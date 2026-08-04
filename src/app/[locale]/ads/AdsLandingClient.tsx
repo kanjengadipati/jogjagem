@@ -338,14 +338,14 @@ export default function AdsLandingClient() {
 
             {/* ── 2. Homepage Hero Trending ── */}
             <SlotCard
-              featured={placement === 'homepage_hero_tranding'}
+              featured={placement === 'homepage_hero_trending'}
               badge="Auto-Geser"
               badgeVariant="warning"
               icon={<TrendingUp className="w-4 h-4 text-amber-600" />}
               title="Homepage Hero Trending"
               description="Card sponsor di posisi ke-3 & ke-8 carousel 'Sedang Trending' (10 item, auto-geser). Menyatu natural di antara destinasi yang sedang ramai dicari wisatawan."
               formatLabel="Carousel — posisi #3 & #8"
-              onSelect={() => { window.location.href = getSlotUrl('homepage_hero_tranding'); }}
+              onSelect={() => { window.location.href = getSlotUrl('homepage_hero_trending'); }}
               preview={
                 <PreviewFrame>
                   <div className="bg-[#16140f] px-3 pt-3 pb-2.5">
