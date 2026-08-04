@@ -25,10 +25,13 @@ interface EventData {
   badges?: string[];
 }
 
-async function fetchEvent(id: string): Promise<EventData | null> {
+async function fetchEvent(id: string, locale: string): Promise<EventData | null> {
   try {
     const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
-    const res = await fetch(`${API_BASE}/events/${id}`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE}/events/${id}`, {
+      headers: { 'Accept-Language': locale === 'en' ? 'en' : 'id' },
+      next: { revalidate: 3600 },
+    });
     if (!res.ok) return null;
     const body = await res.json();
     return body?.data || null;
@@ -53,7 +56,7 @@ function resolveOgImage(imageUrl: string | null | undefined): string {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id, locale } = await params;
-  const event = await fetchEvent(id);
+  const event = await fetchEvent(id, locale);
 
   if (!event) {
     return {
@@ -107,7 +110,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function EventDetailPage({ params }: PageProps) {
   const { id, locale } = await params;
-  const event = await fetchEvent(id);
+  const event = await fetchEvent(id, locale);
 
   return (
     <>
