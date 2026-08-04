@@ -43,7 +43,7 @@ export default function HouseAd({ placement, variant = 'wide', className = '', e
   const subline   = (isEn && content.subline_en)   || content.subline;
   const ctaLabel  = (isEn && content.cta_label_en) || content.cta_label;
 
-  const aspect = variant === 'wide' ? 'aspect-[16/5] sm:aspect-[21/5]' : 'aspect-[3/4]';
+  const aspect = variant === 'wide' ? 'aspect-[16/5] sm:aspect-[21/5]' : 'h-[160px] sm:h-[360px] md:h-[400px]';
   const hasImage = Boolean(content.image_url);
 
   let href = content.target_url;
@@ -62,7 +62,7 @@ export default function HouseAd({ placement, variant = 'wide', className = '', e
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative flex flex-col justify-center gap-2 w-full ${aspect} overflow-hidden rounded-2xl sm:rounded-3xl bg-stone-100 transition-colors text-left px-5 sm:px-7 ${className}`}
+      className={`relative flex flex-col justify-center gap-2 w-full ${aspect} overflow-hidden rounded-[24px] bg-stone-100 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-xl cursor-pointer border border-stone-200/40 text-left px-5 sm:px-7 ${className}`}
     >
       {hasImage && (
         <>
