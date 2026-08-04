@@ -90,6 +90,7 @@ function SlotCard({ featured, badge, badgeVariant, icon, title, description, for
 export default function AdsLandingClient() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
+  const slotsRef = React.useRef<HTMLElement>(null);
 
   const placement = searchParams.get('placement') || '';
   const type = searchParams.get('type') || searchParams.get('category') || 'destination';
@@ -142,26 +143,22 @@ export default function AdsLandingClient() {
 
   const features = [
     {
-      icon: <Megaphone className="w-5 h-5 text-amber-600" />,
-      bg: 'bg-amber-100',
+      icon: <Megaphone className="w-5 h-5 text-amber-400" />,
       title: 'Promosi Lebih Luas',
       desc: 'Jangkau ribuan wisatawan setiap hari.',
     },
     {
-      icon: <BarChart2 className="w-5 h-5 text-emerald-600" />,
-      bg: 'bg-emerald-100',
+      icon: <BarChart2 className="w-5 h-5 text-emerald-400" />,
       title: 'Data & Insight',
       desc: 'Pantau performa dan pahami audiens Anda.',
     },
     {
-      icon: <BadgeCheck className="w-5 h-5 text-blue-600" />,
-      bg: 'bg-blue-100',
+      icon: <BadgeCheck className="w-5 h-5 text-blue-400" />,
       title: 'Terverifikasi',
       desc: 'Tingkatkan kepercayaan dengan klaim resmi mitra.',
     },
     {
-      icon: <Headphones className="w-5 h-5 text-purple-600" />,
-      bg: 'bg-purple-100',
+      icon: <Headphones className="w-5 h-5 text-purple-400" />,
       title: 'Dukungan Mitra',
       desc: 'Tim kami siap membantu kesuksesan usaha Anda.',
     },
@@ -171,124 +168,135 @@ export default function AdsLandingClient() {
     <div className="min-h-screen bg-[#FAF7F2] text-stone-900 flex flex-col font-sans">
       <Header activeTab="ads" setActiveTab={() => {}} savedCount={0} />
 
-      {/* ─── HERO SECTION ─── Full-bleed tugu, fade-out on text side ── */}
-      <section className="relative overflow-hidden bg-[#FAF7F2]" style={{ minHeight: 560 }}>
+      {/* ─── HERO SECTION — dark, full-bleed Merapi ── */}
+      <section className="relative overflow-hidden bg-[#0f100c]" style={{ minHeight: 580 }}>
 
-        {/* Full-bleed background image */}
+        {/* Background image */}
         <img
-          src="/tugu.png"
-          alt="Tugu Yogyakarta"
-          className="absolute inset-0 w-full h-full object-cover object-center"
-          style={{ objectPosition: '65% center' }}
+          src="/merapi.jpg"
+          alt="Gunung Merapi"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-35"
+          style={{ objectPosition: '60% center' }}
         />
 
-        {/* Gradient overlay: solid cream on left → transparent on right
-            Extra bottom fade to blend into the section below */}
+        {/* Dark gradient: opaque left, fade right, fade bottom */}
         <div
           className="absolute inset-0"
           style={{
             background: `
               linear-gradient(to right,
-                #FAF7F2 0%,
-                #FAF7F2 30%,
-                rgba(250,247,242,0.92) 45%,
-                rgba(250,247,242,0.60) 58%,
-                rgba(250,247,242,0.15) 75%,
+                #0f100c 0%,
+                #0f100c 25%,
+                rgba(15,16,12,0.85) 45%,
+                rgba(15,16,12,0.40) 65%,
                 transparent 100%
               ),
               linear-gradient(to top,
-                #FAF7F2 0%,
-                transparent 18%
+                #0f100c 0%,
+                transparent 20%
               )
             `
           }}
         />
 
-        {/* Content — aligned to same container as Header */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
           {/* Top pill badges */}
           <div className="flex flex-wrap items-center gap-3 mb-8">
             {placement && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 border border-amber-200 text-amber-800 text-xs font-semibold shadow-xs backdrop-blur-sm">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Tertarik dengan slot <strong>{placement}</strong>? Lihat detail format di bawah.</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-semibold backdrop-blur-sm">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Slot <strong>{placement}</strong> — lihat detail di bawah</span>
               </div>
             )}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 border border-stone-200 text-stone-500 text-xs font-semibold shadow-xs backdrop-blur-sm">
-              <Megaphone className="w-3.5 h-3.5 text-stone-400" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 border border-white/15 text-white/50 text-xs font-semibold backdrop-blur-sm">
+              <Megaphone className="w-3.5 h-3.5 text-white/40" />
               <span>Jogjagem Business & Ads Platform</span>
             </div>
           </div>
 
-          {/* Left column content only — image fills the right naturally */}
-          <div className="max-w-xl flex flex-col gap-6 pb-6">
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.75rem] font-extrabold text-stone-900 tracking-tight leading-[1.1]">
-              Jangkau Ribuan Wisatawan & Pengunjung Jogja{' '}
-              <span className="text-[#C2851C] inline-flex items-center gap-2">
-                Setiap Hari
-                <span className="text-[#E5A84B] text-3xl leading-none">✦</span>
+          {/* Headline */}
+          <div className="max-w-2xl flex flex-col gap-6 pb-6">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.75rem] font-extrabold text-white tracking-tight leading-[1.1]">
+              Jangkau Ribuan Wisatawan{' '}
+              <span className="text-amber-400 inline-flex items-center gap-2">
+                Jogja Setiap Hari
+                <span className="text-amber-500 text-3xl leading-none">✦</span>
               </span>
             </h1>
 
-            <p className="text-stone-600 text-base leading-relaxed">
+            <p className="text-white/55 text-base leading-relaxed max-w-lg">
               Tingkatkan visibilitas destinasi, usaha kuliner, hotel, atau toko Anda di platform pariwisata paling interaktif di Yogyakarta.
             </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
+              {/* Primary — amber, paling menonjol */}
               <Link
                 href={primaryCtaUrl}
-                className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-[0.97] text-stone-950 font-extrabold text-sm shadow-[0_4px_24px_rgba(245,158,11,0.35)] transition-all hover:shadow-[0_4px_32px_rgba(245,158,11,0.50)]"
               >
                 {primaryCtaIcon}
                 <span>{primaryCtaText}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
+
+              {/* Scroll-to-slots — ghost amber outline */}
+              <button
+                type="button"
+                onClick={() => slotsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl border border-amber-400/50 text-amber-300 hover:border-amber-400 hover:text-amber-200 hover:bg-amber-400/8 font-semibold text-sm transition-all"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Pasang Iklan Sekarang</span>
+              </button>
+
+              {/* Secondary — muted glass */}
               <Link
                 href={secondaryCtaUrl}
-                className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-white/90 hover:bg-white border border-stone-200 text-stone-700 font-semibold text-sm shadow-xs transition-all backdrop-blur-sm"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white/6 hover:bg-white/10 border border-white/15 text-white/60 hover:text-white/80 font-medium text-sm transition-all backdrop-blur-sm"
               >
-                <Building2 className="w-4 h-4 text-stone-400" />
+                <Building2 className="w-3.5 h-3.5" />
                 <span>{secondaryCtaText}</span>
               </Link>
             </div>
 
             {/* Metrics Bar */}
-            <div className="grid grid-cols-4 divide-x divide-stone-200 bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200 shadow-xs px-2 py-1 max-w-lg">
+            <div className="grid grid-cols-4 divide-x divide-white/10 bg-white/6 backdrop-blur-md rounded-2xl border border-white/10 shadow-xs px-2 py-1 max-w-lg">
               <div className="flex flex-col items-center py-3 px-2 text-center">
-                <Eye className="w-4 h-4 text-amber-500 mb-1.5" />
-                <span className="font-display font-extrabold text-lg text-stone-900 leading-none">100K+</span>
-                <span className="text-[10px] text-stone-400 font-medium mt-0.5">Tayangan / Bulan</span>
+                <Eye className="w-4 h-4 text-amber-400 mb-1.5" />
+                <span className="font-display font-extrabold text-lg text-white leading-none">100K+</span>
+                <span className="text-[10px] text-white/40 font-medium mt-0.5">Tayangan / Bulan</span>
               </div>
               <div className="flex flex-col items-center py-3 px-2 text-center">
-                <MousePointerClick className="w-4 h-4 text-emerald-500 mb-1.5" />
-                <span className="font-display font-extrabold text-lg text-stone-900 leading-none">4.8%</span>
-                <span className="text-[10px] text-stone-400 font-medium mt-0.5">Rata-rata CTR</span>
+                <MousePointerClick className="w-4 h-4 text-emerald-400 mb-1.5" />
+                <span className="font-display font-extrabold text-lg text-white leading-none">4.8%</span>
+                <span className="text-[10px] text-white/40 font-medium mt-0.5">Rata-rata CTR</span>
               </div>
               <div className="flex flex-col items-center py-3 px-2 text-center">
-                <Compass className="w-4 h-4 text-blue-500 mb-1.5" />
-                <span className="font-display font-extrabold text-lg text-stone-900 leading-none">85%</span>
-                <span className="text-[10px] text-stone-400 font-medium mt-0.5">Wisatawan Aktif</span>
+                <Compass className="w-4 h-4 text-blue-400 mb-1.5" />
+                <span className="font-display font-extrabold text-lg text-white leading-none">85%</span>
+                <span className="text-[10px] text-white/40 font-medium mt-0.5">Wisatawan Aktif</span>
               </div>
               <div className="flex flex-col items-center py-3 px-2 text-center">
-                <ShieldCheck className="w-4 h-4 text-purple-500 mb-1.5" />
-                <span className="font-display font-extrabold text-lg text-stone-900 leading-none">Verified</span>
-                <span className="text-[10px] text-stone-400 font-medium mt-0.5">Klaim Resmi Mitra</span>
+                <ShieldCheck className="w-4 h-4 text-purple-400 mb-1.5" />
+                <span className="font-display font-extrabold text-lg text-white leading-none">Verified</span>
+                <span className="text-[10px] text-white/40 font-medium mt-0.5">Klaim Resmi Mitra</span>
               </div>
             </div>
           </div>
 
-          {/* ── Feature strip (full width, below left content) ── */}
+          {/* Feature strip */}
           <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4">
             {features.map((f, i) => (
-              <div key={i} className="flex items-start gap-3 p-4 bg-white/85 backdrop-blur-sm rounded-2xl border border-stone-200/80 shadow-xs">
-                <div className={`${f.bg} rounded-xl w-9 h-9 flex items-center justify-center shrink-0`}>
+              <div key={i} className="flex items-start gap-3 p-4 bg-white/6 backdrop-blur-sm rounded-2xl border border-white/10">
+                <div className="bg-white/10 rounded-xl w-9 h-9 flex items-center justify-center shrink-0">
                   {f.icon}
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-stone-800">{f.title}</div>
-                  <div className="text-[11px] text-stone-400 leading-snug mt-0.5">{f.desc}</div>
+                  <div className="text-xs font-bold text-white/90">{f.title}</div>
+                  <div className="text-[11px] text-white/40 leading-snug mt-0.5">{f.desc}</div>
                 </div>
               </div>
             ))}
@@ -297,7 +305,7 @@ export default function AdsLandingClient() {
       </section>
 
       {/* ─── PLACEMENT SHOWCASE ─────────────────────────────────────────── */}
-      <section className="py-16 bg-white border-t border-stone-200/80">
+      <section ref={slotsRef} className="py-16 bg-[#FAF7F2] border-t border-stone-200/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <h2 className="font-display text-2xl sm:text-4xl font-extrabold text-stone-900">
@@ -505,47 +513,47 @@ export default function AdsLandingClient() {
       </section>
 
       {/* ─── WHY JOGJAGEM ───────────────────────────────────────────────── */}
-      <section className="py-14">
+      <section className="py-14 bg-[#FAF7F2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { title: 'Target Audiens Tepat', desc: 'Pengunjung platform kami adalah wisatawan yang secara aktif sedang menyusun rencana perjalanan ke Yogyakarta.' },
-            { title: 'Analitik Real-Time', desc: 'Pantau performa iklan Anda melalui Business Portal dengan statistik tayangan dan klik yang transparan.' },
-            { title: 'Klaim Lisensi Resmi Mitra', desc: 'Dapatkan badge verifikasi resmi dan kelola penuh informasi bisnis Anda tanpa perantara.' },
-          ].map((c, i) => (
-            <div key={i} className="p-6 rounded-3xl bg-white border border-stone-200 shadow-xs space-y-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-              <h4 className="font-bold text-sm text-stone-800">{c.title}</h4>
-              <p className="text-xs text-stone-500 leading-relaxed">{c.desc}</p>
-            </div>
-          ))}
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { title: 'Target Audiens Tepat', desc: 'Pengunjung platform kami adalah wisatawan yang secara aktif sedang menyusun rencana perjalanan ke Yogyakarta.' },
+              { title: 'Analitik Real-Time', desc: 'Pantau performa iklan Anda melalui Business Portal dengan statistik tayangan dan klik yang transparan.' },
+              { title: 'Klaim Lisensi Resmi Mitra', desc: 'Dapatkan badge verifikasi resmi dan kelola penuh informasi bisnis Anda tanpa perantara.' },
+            ].map((c, i) => (
+              <div key={i} className="p-6 rounded-3xl bg-white border border-stone-200 shadow-xs space-y-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                <h4 className="font-bold text-sm text-stone-800">{c.title}</h4>
+                <p className="text-xs text-stone-500 leading-relaxed">{c.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ─── BOTTOM CTA ─────────────────────────────────────────────────── */}
-      <section className="pb-16">
+      <section className="pb-16 bg-[#FAF7F2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-10 rounded-3xl bg-stone-900 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
-          <div className="space-y-1.5 text-center md:text-left">
-            <h3 className="font-display text-2xl font-extrabold tracking-tight">
-              Siap Memulai Promosi Bisnis Anda?
-            </h3>
-            <p className="text-stone-400 text-sm max-w-md">
-              Klaim kepemilikan tempat usaha Anda atau daftarkan bisnis baru dalam hitungan menit.
-            </p>
+          <div className="p-10 rounded-3xl bg-stone-900 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
+            <div className="space-y-1.5 text-center md:text-left">
+              <h3 className="font-display text-2xl font-extrabold tracking-tight">
+                Siap Memulai Promosi Bisnis Anda?
+              </h3>
+              <p className="text-stone-400 text-sm max-w-md">
+                Klaim kepemilikan tempat usaha Anda atau daftarkan bisnis baru dalam hitungan menit.
+              </p>
+            </div>
+            <Link
+              href={primaryCtaUrl}
+              className="shrink-0 px-8 py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm shadow-md transition-all"
+            >
+              {primaryCtaText} →
+            </Link>
           </div>
-          <Link
-            href={primaryCtaUrl}
-            className="shrink-0 px-8 py-4 rounded-2xl bg-amber-500 hover:bg-amber-600 text-stone-950 font-extrabold text-sm shadow-md transition-all"
-          >
-            {primaryCtaText} →
-          </Link>
-        </div>
         </div>
       </section>
 
-      <footer className="mt-auto py-8 border-t border-stone-200 text-center text-xs text-stone-400">
+      <footer className="mt-auto py-8 bg-[#0a0b08] border-t border-white/8 text-center text-xs text-white/30">
         © {new Date().getFullYear()} Jogjagem Business & Ads Platform. All rights reserved.
       </footer>
     </div>

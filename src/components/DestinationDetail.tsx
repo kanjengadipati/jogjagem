@@ -126,7 +126,7 @@ export default function DestinationDetail({
   // Leaflet refs for detail map — use shared hook
   const { mapRef: detailMapContainerRef, mapInstance: detailMapInstance, leafletRef: detailLeafletRef, markerGroup: detailMarkerGroup } = useLeafletMap({
     center: [destination.latitude, destination.longitude],
-    zoom: 14,
+    zoom: 15,
     scrollWheelZoom: false,
     zoomControl: true,
   });
@@ -179,6 +179,11 @@ export default function DestinationDetail({
 
     markers.clearLayers();
 
+    // Ensure zoom level is correct (hook only applies zoom on mount)
+    map.setZoom(15);
+    // Re-center on destination
+    map.setView([destination.latitude, destination.longitude], 15);
+
     // Fit bounds if user is also in Yogyakarta
     const inYogya = (lat: number, lng: number) => lat >= -8.2 && lat <= -7.5 && lng >= 110.0 && lng <= 110.6;
     if (coords && inYogya(coords.lat, coords.lng) && inYogya(destination.latitude, destination.longitude)) {
@@ -208,21 +213,40 @@ export default function DestinationDetail({
 
       // 2. Partners
       if (selectedMapFilter === 'all' || selectedMapFilter === 'partner') {
-        enrichedPartners.forEach(partner => {
+        // Spiderfy: geser marker yang terlalu dekat satu sama lain secara radial
+        const CLUSTER_RADIUS = 0.0003; // ~33m — threshold tumpuk
+        const placedPositions: { lat: number; lng: number }[] = [];
+
+        const getSpiderfyOffset = (lat: number, lng: number, idx: number): [number, number] => {
+          // Cek apakah terlalu dekat dengan marker yang sudah ditempatkan
+          const tooClose = placedPositions.some(
+            (p) => Math.abs(p.lat - lat) < CLUSTER_RADIUS && Math.abs(p.lng - lng) < CLUSTER_RADIUS
+          );
+          if (!tooClose) return [lat, lng];
+          // Geser secara radial: distribusi sudut berdasarkan urutan
+          const angle = (idx * 60) * (Math.PI / 180); // 60° per marker
+          const r = CLUSTER_RADIUS * 1.8;
+          return [lat + r * Math.cos(angle), lng + r * Math.sin(angle)];
+        };
+
+        enrichedPartners.forEach((partner, idx) => {
           if (!partner.coordinates?.lat || !partner.coordinates?.lng) return;
+
+          const [adjLat, adjLng] = getSpiderfyOffset(partner.coordinates.lat, partner.coordinates.lng, idx);
+          placedPositions.push({ lat: adjLat, lng: adjLng });
 
           const isSelected = selectedMapPartner?.id === partner.id;
           const partnerIcon = L.divIcon({
             className: 'custom-detail-partner-marker',
             html: `
               <div class="flex h-8 w-8 items-center justify-center rounded-full border shadow-md transition-all ${
-                isSelected 
-                  ? 'bg-gold-500 text-white border-white scale-110 z-20 font-bold' 
+                isSelected
+                  ? 'bg-gold-500 text-white border-white scale-110 z-20 font-bold'
                   : 'bg-white text-royal-950 border-gold-200 hover:scale-105 z-10'
               }">
                 ${partner.category === 'hotel' ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hotel"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/><path d="M12 5v2"/><path d="M10 7h4"/><path d="M12 2v1"/></svg>' :
                   partner.category === 'restaurant' || partner.category === 'cafe' ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-utensils"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>' :
-                  partner.category === 'guide' ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' : 
+                  partner.category === 'guide' ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' :
                   '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-bag"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0Z"/></svg>'
                 }
               </div>
@@ -231,10 +255,8 @@ export default function DestinationDetail({
             iconAnchor: [16, 16]
           });
 
-          const marker = L.marker([partner.coordinates.lat, partner.coordinates.lng], { icon: partnerIcon });
-          marker.on('click', () => {
-            setSelectedMapPartner(partner);
-          });
+          const marker = L.marker([adjLat, adjLng], { icon: partnerIcon });
+          marker.on('click', () => { setSelectedMapPartner(partner); });
           marker.addTo(markers);
         });
       }
@@ -245,13 +267,14 @@ export default function DestinationDetail({
           className: 'custom-detail-pk-marker',
           html: `
             <div class="p-1 bg-gray-600 text-white rounded-md text-[8px] font-bold border border-white flex items-center space-x-0.5 shadow-md">
-              <span>{t('destination_detail.map_secure_parking')}</span>
+              <span>${t('destination_detail.map_secure_parking')}</span>
             </div>
           `,
           iconSize: [90, 20],
           iconAnchor: [45, 10]
         });
-        L.marker([destination.latitude + 0.003, destination.longitude + 0.005], { icon: pkIcon }).addTo(markers);
+        // Offset: NE ~120m
+        L.marker([destination.latitude + 0.0011, destination.longitude + 0.0014], { icon: pkIcon }).addTo(markers);
       }
 
       // 4. Render Toilet
@@ -260,13 +283,14 @@ export default function DestinationDetail({
           className: 'custom-detail-toilet-marker',
           html: `
             <div class="p-1 bg-teal-600 text-white rounded-md text-[8px] font-bold border border-white flex items-center space-x-0.5 shadow-md">
-              <span>{t('destination_detail.map_eco_toilets')}</span>
+              <span>${t('destination_detail.map_eco_toilets')}</span>
             </div>
           `,
           iconSize: [80, 20],
           iconAnchor: [40, 10]
         });
-        L.marker([destination.latitude - 0.004, destination.longitude - 0.003], { icon: toiletIcon }).addTo(markers);
+        // Offset: SW ~130m
+        L.marker([destination.latitude - 0.0012, destination.longitude - 0.0010], { icon: toiletIcon }).addTo(markers);
       }
 
       // 5. Render Emergency
@@ -275,13 +299,14 @@ export default function DestinationDetail({
           className: 'custom-detail-emergency-marker',
           html: `
             <div class="p-1 bg-red-600 text-white rounded-md text-[8px] font-bold border border-white flex items-center space-x-0.5 shadow-md">
-              <span>{t('destination_detail.map_emergency_care')}</span>
+              <span>${t('destination_detail.map_emergency_care')}</span>
             </div>
           `,
           iconSize: [100, 20],
           iconAnchor: [50, 10]
         });
-        L.marker([destination.latitude + 0.002, destination.longitude - 0.003], { icon: emergencyIcon }).addTo(markers);
+        // Offset: SE ~140m
+        L.marker([destination.latitude - 0.0008, destination.longitude + 0.0016], { icon: emergencyIcon }).addTo(markers);
       }
   }, [destination.id, destination.category, destination.latitude, destination.longitude, enrichedPartners, selectedMapFilter, selectedMapPartner, coords]);
 
