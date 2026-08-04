@@ -160,14 +160,14 @@ export default function App() {
               return String(dest.badge || '').toLowerCase() === 'hidden_gem'
                 || badges.some((badge: unknown) => String(badge).toLowerCase() === 'hidden_gem');
             });
-            setAllDestinations(hiddenGems);
+            setAllDestinations(hiddenGems.slice(0, 15));
             setDestPage(1);
             setDestTotalPages(1);
           }
         } else if (selectedCategory) {
           const res = await destinations.getByCategory(selectedCategory);
           if (res.status === 'success' && res.data) {
-            setAllDestinations((res.data as any[]).map(mapRaw) as Destination[]);
+            setAllDestinations((res.data as any[]).map(mapRaw).slice(0, 15) as Destination[]);
             setDestPage(1);
             setDestTotalPages(1);
           }
