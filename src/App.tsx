@@ -599,7 +599,7 @@ export default function App() {
                   />
 
                   <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <AdBanner placement="homepage_hero" category={selectedCategory ?? undefined} />
+                    <AdBanner placement="homepage_category_banner" category={selectedCategory ?? undefined} />
                   </div>
 
                   {/* Destinations Showcase Grids */}

@@ -4,13 +4,14 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import React from 'react';
 import {
-  Megaphone, Eye, MousePointerClick, ShieldCheck,
+  Megaphone,
   ArrowRight, Layout, Sparkles, CheckCircle2,
-  Building2, MapPin, Store, Compass, ChevronRight,
-  BarChart2, BadgeCheck, Headphones,
+  Building2, MapPin, Store, ChevronRight,
+  BarChart2, BadgeCheck, Headphones, TrendingUp, Layers,
 } from 'lucide-react';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
+import { PLACEMENT_NAMES } from '@/lib/adPlacements';
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -109,7 +110,8 @@ export default function AdsLandingClient() {
 
   const getSlotUrl = (slotId: string) => {
     if (listingId) {
-      return `${claimUrl}&placement=${encodeURIComponent(slotId)}`;
+      const slotClaimQuery = `type=${encodeURIComponent(type)}&listingId=${encodeURIComponent(listingId)}${name ? `&name=${encodeURIComponent(name)}` : ''}`;
+      return `/business/claim?${slotClaimQuery}&placement=${encodeURIComponent(slotId)}`;
     }
     if (user) {
       return `${businessDashboardUrl}?placement=${encodeURIComponent(slotId)}`;
@@ -207,7 +209,7 @@ export default function AdsLandingClient() {
             {placement && (
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-semibold backdrop-blur-sm">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>Slot <strong>{placement}</strong> — lihat detail di bawah</span>
+                <span>Slot <strong>{PLACEMENT_NAMES[placement] || placement}</strong> — lihat detail di bawah</span>
               </div>
             )}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 border border-white/15 text-white/50 text-xs font-semibold backdrop-blur-sm">
@@ -261,30 +263,6 @@ export default function AdsLandingClient() {
                 <span>{secondaryCtaText}</span>
               </Link>
             </div>
-
-            {/* Metrics Bar */}
-            <div className="grid grid-cols-4 divide-x divide-white/10 bg-white/6 backdrop-blur-md rounded-2xl border border-white/10 shadow-xs px-2 py-1 max-w-lg">
-              <div className="flex flex-col items-center py-3 px-2 text-center">
-                <Eye className="w-4 h-4 text-amber-400 mb-1.5" />
-                <span className="font-display font-extrabold text-lg text-white leading-none">100K+</span>
-                <span className="text-[10px] text-white/40 font-medium mt-0.5">Tayangan / Bulan</span>
-              </div>
-              <div className="flex flex-col items-center py-3 px-2 text-center">
-                <MousePointerClick className="w-4 h-4 text-emerald-400 mb-1.5" />
-                <span className="font-display font-extrabold text-lg text-white leading-none">4.8%</span>
-                <span className="text-[10px] text-white/40 font-medium mt-0.5">Rata-rata CTR</span>
-              </div>
-              <div className="flex flex-col items-center py-3 px-2 text-center">
-                <Compass className="w-4 h-4 text-blue-400 mb-1.5" />
-                <span className="font-display font-extrabold text-lg text-white leading-none">85%</span>
-                <span className="text-[10px] text-white/40 font-medium mt-0.5">Wisatawan Aktif</span>
-              </div>
-              <div className="flex flex-col items-center py-3 px-2 text-center">
-                <ShieldCheck className="w-4 h-4 text-purple-400 mb-1.5" />
-                <span className="font-display font-extrabold text-lg text-white leading-none">Verified</span>
-                <span className="text-[10px] text-white/40 font-medium mt-0.5">Klaim Resmi Mitra</span>
-              </div>
-            </div>
           </div>
 
           {/* Feature strip */}
@@ -317,16 +295,16 @@ export default function AdsLandingClient() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* ── 1. Homepage Hero ── */}
+            {/* ── 1. Homepage Hero AIPick Card ── */}
             <SlotCard
-              featured={placement === 'homepage_hero' || !placement}
+              featured={placement === 'homepage_hero_aicard' || !placement}
               badge="Impression Tertinggi"
               badgeVariant="accent"
               icon={<Layout className="w-4 h-4 text-blue-600" />}
-              title="Homepage Hero Banner"
-              description="2 slot iklan di satu section: pick card (50:50 coin-flip) + carousel trending (posisi ke-3 & ke-8 dari 10, auto-geser). Dilihat pertama kali oleh wisatawan yang sedang mencari ide petualangan di Jogja."
-              formatLabel="Hero section — pick card + trending carousel"
-              onSelect={() => { window.location.href = getSlotUrl('homepage_hero'); }}
+              title="Homepage Hero AIPick Card"
+              description="Card sponsor yang menempati slot 'Jogjagem's Pick' di hero. Setiap load halaman diundi 50:50 (coin-flip) — saat terpilih, iklanmu menggantikan rekomendasi AI organik di posisi paling pertama dilihat wisatawan."
+              formatLabel="Portrait card — 2:3 (~210px)"
+              onSelect={() => { window.location.href = getSlotUrl('homepage_hero_aicard'); }}
               preview={
                 <PreviewFrame>
                   {/* Hero section dark block */}
@@ -346,7 +324,31 @@ export default function AdsLandingClient() {
                         <span className="text-[7px] font-bold text-stone-600">disponsori</span>
                       </div>
                     </div>
+                  </div>
 
+                  {/* Caption below the preview */}
+                  <div className="px-2 py-1.5 bg-gray-50 border-t border-gray-100">
+                    <p className="text-[9px] text-stone-400 leading-snug">
+                      50:50 coin-flip — iklanmu menggantikan 'Jogjagem's Pick' saat terpilih
+                    </p>
+                  </div>
+                </PreviewFrame>
+              }
+            />
+
+            {/* ── 2. Homepage Hero Trending ── */}
+            <SlotCard
+              featured={placement === 'homepage_hero_tranding'}
+              badge="Auto-Geser"
+              badgeVariant="warning"
+              icon={<TrendingUp className="w-4 h-4 text-amber-600" />}
+              title="Homepage Hero Trending"
+              description="Card sponsor di posisi ke-3 & ke-8 carousel 'Sedang Trending' (10 item, auto-geser). Menyatu natural di antara destinasi yang sedang ramai dicari wisatawan."
+              formatLabel="Carousel — posisi #3 & #8"
+              onSelect={() => { window.location.href = getSlotUrl('homepage_hero_tranding'); }}
+              preview={
+                <PreviewFrame>
+                  <div className="bg-[#16140f] px-3 pt-3 pb-2.5">
                     {/* Trending label */}
                     <div className="flex items-center gap-1 mb-1.5">
                       <svg className="w-2.5 h-2.5 text-red-400" viewBox="0 0 24 24" fill="currentColor">
@@ -386,14 +388,47 @@ export default function AdsLandingClient() {
                   {/* Caption below the preview */}
                   <div className="px-2 py-1.5 bg-gray-50 border-t border-gray-100">
                     <p className="text-[9px] text-stone-400 leading-snug">
-                      2 slot iklan di satu section: pick card (50:50 coin-flip) + carousel trending (posisi ke-3 &amp; ke-8 dari 10, auto-geser)
+                      Posisi ke-3 &amp; ke-8 dari 10 item, auto-geser
                     </p>
                   </div>
                 </PreviewFrame>
               }
             />
 
-            {/* ── 2. Destination Detail ── */}
+            {/* ── 3. Homepage Category Banner ── */}
+            <SlotCard
+              featured={placement === 'homepage_category_banner'}
+              badge="Full-Width"
+              badgeVariant="success"
+              icon={<Layers className="w-4 h-4 text-emerald-600" />}
+              title="Homepage Category Banner"
+              description="Banner full-width tepat di bawah filter kategori halaman utama. Menjangkau wisatawan yang sudah memilih kategori dan siap menelusuri destinasi spesifik."
+              formatLabel="16:5 — 1600×500px"
+              onSelect={() => { window.location.href = getSlotUrl('homepage_category_banner'); }}
+              preview={
+                <PreviewFrame>
+                  <div className="p-2 space-y-1.5">
+                    {/* Category filter chips */}
+                    <div className="flex gap-1">
+                      <div className="h-2.5 w-10 bg-gray-200 rounded-full" />
+                      <div className="h-2.5 w-8 bg-amber-300 rounded-full" />
+                      <div className="h-2.5 w-10 bg-gray-200 rounded-full" />
+                      <div className="h-2.5 w-9 bg-gray-200 rounded-full" />
+                    </div>
+                    <div className="h-9 bg-emerald-500 rounded-lg flex items-center justify-center">
+                      <span className="text-[8px] text-white font-semibold">✦ Iklanmu di sini</span>
+                    </div>
+                  </div>
+                  <div className="px-2 py-1.5 bg-gray-50 border-t border-gray-100">
+                    <p className="text-[9px] text-stone-400 leading-snug">
+                      Full-width banner di bawah filter kategori
+                    </p>
+                  </div>
+                </PreviewFrame>
+              }
+            />
+
+            {/* ── 4. Destination Detail ── */}
             <SlotCard
               featured={placement === 'destination_detail'}
               badge="Targeting Spesifik"
@@ -418,7 +453,7 @@ export default function AdsLandingClient() {
               }
             />
 
-            {/* ── 3. Listing Top Priority ── */}
+            {/* ── 5. Listing Top Priority ── */}
             <SlotCard
               featured={placement === 'listing_top'}
               badge="Konversi Tinggi"
@@ -473,7 +508,7 @@ export default function AdsLandingClient() {
               }
             />
 
-            {/* ── 4. Native In-Feed ── */}
+            {/* ── 6. Native In-Feed ── */}
             <SlotCard
               featured={placement === 'listing_native'}
               badge="Seamless Experience"
@@ -519,7 +554,7 @@ export default function AdsLandingClient() {
             {[
               { title: 'Target Audiens Tepat', desc: 'Pengunjung platform kami adalah wisatawan yang secara aktif sedang menyusun rencana perjalanan ke Yogyakarta.' },
               { title: 'Analitik Real-Time', desc: 'Pantau performa iklan Anda melalui Business Portal dengan statistik tayangan dan klik yang transparan.' },
-              { title: 'Klaim Lisensi Resmi Mitra', desc: 'Dapatkan badge verifikasi resmi dan kelola penuh informasi bisnis Anda tanpa perantara.' },
+              { title: 'Verifikasi Resmi Mitra', desc: 'Dapatkan badge verifikasi resmi dan kelola penuh informasi bisnis Anda tanpa perantara.' },
             ].map((c, i) => (
               <div key={i} className="p-6 rounded-3xl bg-white border border-stone-200 shadow-xs space-y-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-500" />

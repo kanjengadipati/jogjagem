@@ -82,7 +82,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
   };
   const [isRecommendationDismissed, setIsRecommendationDismissed] = useState(false);
   // 50:50 share of voice between "Jogjagem's Pick" (organic AI recommendation) and a
-  // paid homepage_hero campaign. Each page load flips a coin; if it lands on sponsored
+  // paid homepage_hero_aicard campaign. Each page load flips a coin; if it lands on sponsored
   // AND a campaign is live, the sponsored card renders instead of the organic pick in
   // the same card slot.
   const [sponsoredCampaign, setSponsoredCampaign] = useState<BeAdCampaign | null>(null);
@@ -104,7 +104,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
 
   useEffect(() => {
     let cancelled = false;
-    ads.getBanner('homepage_hero').then((res) => {
+    ads.getBanner('homepage_hero_aicard').then((res) => {
       if (cancelled) return;
       const campaign = res.status === 'success' ? res.data ?? null : null;
       if (heroCoinFlipRef.current === null) {
@@ -183,7 +183,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
 
     Promise.all([
       ai.trending(),
-      ads.getBanner('listing_native').catch(() => null),
+      ads.getBanner('homepage_hero_tranding').catch(() => null),
     ]).then(([trendingRes, nativeRes]) => {
       if (cancelled) return;
 

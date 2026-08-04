@@ -23,16 +23,10 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
+import { PLACEMENT_NAMES } from '@/lib/adPlacements';
 
 const CATEGORIES = ['Kuliner', 'Hotel & Penginapan', 'Wisata & Destinasi', 'Oleh-oleh', 'Jasa', 'Lainnya'];
 const REGIONS = ['Kota Yogyakarta', 'Sleman', 'Bantul', 'Kulon Progo', 'Gunungkidul', 'Near Yogyakarta'] as const;
-
-const PLACEMENT_NAMES: Record<string, string> = {
-  homepage_hero: 'Homepage Hero Banner',
-  destination_detail: 'Destination Detail Sponsorship',
-  listing_top: 'Listing Top Priority',
-  listing_native: 'Native In-Feed Ad',
-};
 
 function BusinessLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

@@ -117,6 +117,11 @@ function ClaimFormContent() {
     : rawType;
   const listingId   = searchParams.get('listingId') || '';
   const listingName = searchParams.get('name') || '';
+  const placement   = searchParams.get('placement') || '';
+
+  const goToBusinessDashboard = () => {
+    router.push(placement ? `/business?placement=${encodeURIComponent(placement)}` : '/business');
+  };
 
   const [manualListingId, setManualListingId]   = useState('');
   const [selectedListingId, setSelectedListingId] = useState('');
@@ -258,7 +263,7 @@ function ClaimFormContent() {
 
       {/* Back button */}
       <button
-        onClick={() => router.push('/business')}
+        onClick={goToBusinessDashboard}
         className="absolute top-3 left-3 sm:top-5 sm:left-5 z-20 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-black/55 backdrop-blur-md border border-white/25 text-white text-xs font-semibold hover:bg-black/75 hover:border-white/40 transition-all shadow-lg"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
@@ -445,7 +450,7 @@ function ClaimFormContent() {
                 {resultMessage?.type === 'success' && (
                   <button
                     type="button"
-                    onClick={() => router.push('/business')}
+                    onClick={goToBusinessDashboard}
                     className="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition-colors"
                   >
                     {t('business_claim.return_to_biz')}

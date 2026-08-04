@@ -20,7 +20,7 @@ export interface AIPickCardProps {
   className?: string;
   sizes?: string;
   /**
-   * When set, renders this card as the sponsored `homepage_hero` variant instead of
+   * When set, renders this card as the sponsored `homepage_hero_aicard` variant instead of
    * the organic AI pick — same outer shell/dimensions, different content, badge, and
    * click target. See Hero.tsx's 50:50 coin-flip logic for how this gets populated.
    */
@@ -91,7 +91,7 @@ export const AIPickCard: React.FC<AIPickCardProps> = ({
   const { t, locale } = useLocale();
 
   // Sponsored branch: same card shell/dimensions as the organic pick below, but
-  // content, badge, and click target come from the live homepage_hero AdCampaign
+  // content, badge, and click target come from the live homepage_hero_aicard AdCampaign
   // instead of a Destination. Kept as a separate early return rather than threading
   // conditionals through every `dest.*` reference below.
   if (sponsored) {
