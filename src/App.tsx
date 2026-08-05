@@ -959,9 +959,16 @@ export default function App() {
                         <button
                           onClick={loadNextPageEvents}
                           disabled={loadingMoreEvents}
-                          className="px-6 py-2.5 bg-royal-950 text-white rounded-full text-xs font-semibold hover:bg-royal-800 transition-all cursor-pointer"
+                          className="px-6 py-2 bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-600 hover:to-amber-700 disabled:opacity-50 text-white rounded-full font-semibold text-xs transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2 cursor-pointer"
                         >
-                          {loadingMoreEvents ? "Loading..." : "Load More"}
+                          {loadingMoreEvents ? (
+                            <>
+                              <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent"></span>
+                              <span>{t('common.loading')}</span>
+                            </>
+                          ) : (
+                            <span>{t('common.load_more')}</span>
+                          )}
                         </button>
                       </div>
                     )}
