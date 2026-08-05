@@ -526,9 +526,10 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null }:
                   {selectedRegion ? selectedRegion : t('destinations_page.heading')}
                 </h1>
                 <p className="mt-3 text-sm sm:text-base text-white/50 font-light max-w-lg">
-                  {t('destinations_page.subtitle_prefix', { count: (selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+' })}
-                  {!t('destinations_page.subtitle_prefix') &&
-                    `Temukan ${(selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+'} destinasi pilihan${selectedRegion ? ` di ${selectedRegion}` : ' di seluruh Yogyakarta'}.`}
+                  {t('destinations_page.subtitle_prefix', {
+                    count: (selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+',
+                    region: selectedRegion || t('destinations_page.all_yogyakarta')
+                  })}
                 </p>
                 {/* SEO links — only show when no filter active */}
                 {!selectedCategory && !selectedRegion && (
