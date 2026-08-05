@@ -477,6 +477,39 @@ export default function App() {
   };
   const eventCarouselItems = buildEventCarousel();
 
+  const loadNextPageEvents = async () => {
+    if (loadingMoreEvents || eventPage >= eventTotalPages) return;
+    setLoadingMoreEvents(true);
+    try {
+      const nextPage = eventPage + 1;
+      const res = await events.getAll({ limit: 15, page: nextPage });
+      if (res.status === 'success' && res.data) {
+        const newEvents = (res.data as any[]).map(raw => ({
+          id: raw.id || raw.ExternalID || '',
+          name: raw.title || raw.Name || '',
+          date: raw.start_date ? `${raw.start_date} - ${raw.end_date || ''}` : (raw.date || ''),
+          location: raw.location || '',
+          image: raw.image_url || raw.image || '',
+          description: raw.description || '',
+          highlights: Array.isArray(raw.highlights) ? raw.highlights : [],
+          category: raw.category || '',
+          latitude: raw.latitude ?? raw.Latitude ?? undefined,
+          longitude: raw.longitude ?? raw.Longitude ?? undefined,
+          destinationId: raw.destination_id || raw.DestinationID || '',
+          startDate: raw.start_date || raw.StartDate || undefined,
+          endDate: raw.end_date || raw.EndDate || undefined,
+          imageUrl: raw.image_url || raw.ImageURL || undefined,
+        }));
+        setAllEvents(prev => [...prev, ...newEvents]);
+        setEventPage(nextPage);
+      }
+    } catch (err) {
+      console.error('Failed to load more events:', err);
+    } finally {
+      setLoadingMoreEvents(false);
+    }
+  };
+
   // ── IntersectionObserver impression ref factory ─────────────────────────────
   const makeImpressionRef = (campaignId: string) => (el: HTMLDivElement | null) => {
     if (!el) return;
@@ -921,6 +954,17 @@ export default function App() {
                         );
                       })}
                     </div>
+                    {eventPage < eventTotalPages && (
+                      <div className="mt-8 flex justify-center">
+                        <button
+                          onClick={loadNextPageEvents}
+                          disabled={loadingMoreEvents}
+                          className="px-6 py-2.5 bg-royal-950 text-white rounded-full text-xs font-semibold hover:bg-royal-800 transition-all cursor-pointer"
+                        >
+                          {loadingMoreEvents ? "Loading..." : "Load More"}
+                        </button>
+                      </div>
+                    )}
                   </section>
 
                   {/* Editorial Literary Quote (Anti-AI-Slop humbleness and high craft) */}
