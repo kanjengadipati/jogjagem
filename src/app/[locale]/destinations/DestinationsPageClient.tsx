@@ -392,42 +392,33 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null }:
       setTotalCount(null);
       console.log("loadInitial called. Region:", selectedRegion, "Category:", selectedCategory);
       try {
+        // Fetch semua data untuk pemfilteran sisi klien
+        const response = await destinationApi.getAll({ limit: 500 });
+        const data = (response as any).data || (response as any);
+        let filtered = Array.isArray(data) ? data.map(mapApiToDestination) : [];
+
+        // 1. Filter berdasarkan Region
         if (selectedRegion) {
-          // Load all destinations and filter by subRegion via backend
-          const response = await destinationApi.getAll({ limit: 500, sub_region: selectedRegion });
-          const data = (response as any).data || (response as any);
-          const mapped = Array.isArray(data) ? data.map(mapApiToDestination) : [];
-          console.log("API response length:", mapped.length);
-          setAllDestinations(mapped);
-          setPage(1); setTotalPages(1);
-        } else if (selectedCategory === 'hidden-gem') {
-          const response = await destinationApi.getAll({ limit: 100 });
-          const data = (response as any).data || (response as any);
-          const mapped = Array.isArray(data) ? data.map(mapApiToDestination) : [];
-          const filtered = mapped.filter(d => {
+          filtered = filtered.filter(d =>
+            d.subRegion?.toLowerCase().includes(selectedRegion.toLowerCase())
+          );
+        }
+
+        // 2. Filter berdasarkan Kategori atau Badge
+        if (selectedCategory === 'hidden-gem') {
+          filtered = filtered.filter(d => {
             const badges = Array.isArray(d.badges) ? d.badges : [];
             return (d.badge || '').toLowerCase() === 'hidden_gem'
               || badges.some((badge: unknown) => String(badge).toLowerCase() === 'hidden_gem');
           });
-          setAllDestinations(filtered);
-          setPage(1); setTotalPages(1);
         } else if (selectedCategory) {
-          const response = await destinationApi.getByCategory(selectedCategory);
-          const data = (response as any).data || (response as any);
-          setAllDestinations(Array.isArray(data) ? data.map(mapApiToDestination) : []);
-          setPage(1); setTotalPages(1);
-        } else {
-          const response = await destinationApi.getAll({ limit: 15, page: 1 });
-          const data = (response as any).data || (response as any);
-          setAllDestinations(Array.isArray(data) ? data.map(mapApiToDestination) : []);
-          const meta = (response as any).meta;
-          if (meta) {
-            setPage(meta.page ?? 1);
-            setTotalPages(meta.total_pages ?? 1);
-            setTotalCount(meta.total_count ?? meta.total ?? null);
-          }
-          else { setPage(1); setTotalPages(1); }
+          filtered = filtered.filter(d => 
+            d.category?.toLowerCase() === selectedCategory.toLowerCase()
+          );
         }
+
+        setAllDestinations(filtered);
+        setPage(1); setTotalPages(1);
       } catch (e) { console.error('Failed to fetch destinations:', e); }
       finally {
         hasLoadedOnce.current = true;
