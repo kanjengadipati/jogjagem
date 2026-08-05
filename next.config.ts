@@ -23,6 +23,7 @@ const nextConfig: NextConfig = {
         destination: '/en/destinations/hidden-gem',
         permanent: true,
       },
+      { source: '/:locale/partner', destination: '/:locale/business', permanent: true },
     ];
   },
   async rewrites() {

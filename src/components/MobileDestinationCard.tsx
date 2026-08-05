@@ -145,8 +145,9 @@ export default memo(function MobileDestinationCard({
 
   const apiBadge = destination.badge;
   const localBadge = getBadge(destination);
-  const badgeLabel = apiBadge 
-    ? t(`badges.${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
+  const normalizeKey = (raw: string) => raw.toLowerCase().replace(/[\s-]/g, '_');
+  const badgeLabel = apiBadge
+    ? (t(`badges.${normalizeKey(apiBadge)}`) || apiBadge.replace(/_/g, ' '))
     : localBadge.label;
 
   const badgeKey = (apiBadge || localBadge.label)
@@ -186,9 +187,9 @@ export default memo(function MobileDestinationCard({
     .filter((b: string) => b !== apiBadge)
     .slice(0, 2)
     .map((b: string) => {
-      const key = b.toLowerCase().replace(/-/g, '_').replace(/ /g, '_');
+      const key = normalizeKey(b);
       return {
-        label: t(`badges.${b.toLowerCase().replace(/ /g, '_')}`),
+        label: t(`badges.${key}`) || b.replace(/_/g, ' '),
         style: BADGE_STYLES[key] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white',
       };
     });

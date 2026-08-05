@@ -47,6 +47,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     },
     ...categoryPages,
+    // Location pages (one per DIY kabupaten/kota + near-yogyakarta)
+    ...([
+      'kota-yogyakarta', 'sleman', 'bantul', 'kulon-progo', 'gunungkidul', 'near-yogyakarta',
+    ].map((region) => ({
+      url: `${SITE_URL}/location/${region}`,
+      lastModified: NOW,
+      changeFrequency: 'weekly' as const,
+      priority: 0.80,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/location/${region}`,
+          en: `${SITE_URL}/en/location/${region}`,
+        },
+      },
+    }))),
     {
       url: `${SITE_URL}/business`,
       lastModified: NOW,

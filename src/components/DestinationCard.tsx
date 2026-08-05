@@ -49,8 +49,9 @@ export default React.memo(function DestinationCard({
   };
 
   const apiBadge = destination.badge;
-  const rawBadgeText = apiBadge 
-    ? t(`badges.${apiBadge.toLowerCase().replace(/ /g, '_')}`) 
+  const normalizeKey = (raw: string) => raw.toLowerCase().replace(/[\s-]/g, '_');
+  const rawBadgeText = apiBadge
+    ? (t(`badges.${normalizeKey(apiBadge)}`) || apiBadge.replace(/_/g, ' '))
     : (BADGE_MAP[destination.id] || destination.category.replace('-', ' '));
 
   const badgeText = rawBadgeText.toUpperCase();
@@ -91,9 +92,10 @@ export default React.memo(function DestinationCard({
     .filter((b: string) => b !== apiBadge)
     .slice(0, 2)
     .map((b: string) => {
-      const key = b.toLowerCase().replace(/-/g, '_').replace(/ /g, '_');
+      const key = normalizeKey(b);
+      const translated = t(`badges.${key}`) || b.replace(/_/g, ' ');
       return {
-        label: t(`badges.${b.toLowerCase().replace(/ /g, '_')}`).toUpperCase(),
+        label: translated.toUpperCase(),
         style: BADGE_STYLES[key] || 'bg-black/40 backdrop-blur-md border border-white/10 text-white',
       };
     });
