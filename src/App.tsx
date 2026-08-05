@@ -172,7 +172,7 @@ export default function App() {
             setDestTotalPages(1);
           }
         } else {
-          const res = await destinations.getAll({ limit: 15, page: 1 });
+          const res = await destinations.getAll({ limit: 17, page: 1 });
           if (res.status === 'success' && res.data) {
             setAllDestinations((res.data as any[]).map(mapRaw) as Destination[]);
             const meta = (res as any).meta;
@@ -291,7 +291,7 @@ export default function App() {
     setLoadingMore(true);
     try {
       const nextPage = destPage + 1;
-      const res = await destinations.getAll({ limit: 15, page: nextPage });
+      const res = await destinations.getAll({ limit: 17, page: nextPage });
       if (res.status === 'success' && res.data) {
         const mapped = (res.data as any[]).map(raw => ({
           ...raw,
