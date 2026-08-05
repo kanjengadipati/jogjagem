@@ -268,15 +268,17 @@ function FilterChips({
 
 type DestinationsPageClientProps = {
   initialCategory?: string | null;
+  initialRegion?: string | null;  // e.g. "Sleman", "Bantul" — filters by subRegion
 };
 
-function DestinationsPageInner({ initialCategory = null }: DestinationsPageClientProps) {
+function DestinationsPageInner({ initialCategory = null, initialRegion = null }: DestinationsPageClientProps) {
   const router = useRouter();
   const { t, locale } = useLocale();
 
   const [allDestinations, setAllDestinations]     = useState<Destination[]>([]);
   const [isLoading, setIsLoading]                 = useState(true);
   const [selectedCategory, setSelectedCategory]   = useState<string | null>(initialCategory);
+  const [selectedRegion, setSelectedRegion]       = useState<string | null>(initialRegion);
   const [searchQuery, setSearchQuery]             = useState('');
   const [savedDestinations, setSavedDestinations] = useState<Destination[]>([]);
   const savedIdsRef = useRef<Set<string>>(new Set());
@@ -389,7 +391,18 @@ function DestinationsPageInner({ initialCategory = null }: DestinationsPageClien
       setIsLoading(true);
       setTotalCount(null);
       try {
-        if (selectedCategory === 'hidden-gem') {
+        if (selectedRegion) {
+          // Load all destinations and filter client-side by subRegion
+          const response = await destinationApi.getAll({ limit: 100 });
+          const data = (response as any).data || (response as any);
+          const mapped = Array.isArray(data) ? data.map(mapApiToDestination) : [];
+          const filtered = mapped.filter(d =>
+            d.subRegion?.toLowerCase() === selectedRegion.toLowerCase() ||
+            d.subRegion?.toLowerCase().includes(selectedRegion.toLowerCase())
+          );
+          setAllDestinations(filtered);
+          setPage(1); setTotalPages(1);
+        } else if (selectedCategory === 'hidden-gem') {
           const response = await destinationApi.getAll({ limit: 100 });
           const data = (response as any).data || (response as any);
           const mapped = Array.isArray(data) ? data.map(mapApiToDestination) : [];
@@ -424,7 +437,7 @@ function DestinationsPageInner({ initialCategory = null }: DestinationsPageClien
       }
     }
     loadInitial();
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedRegion]);
 
   const handleTrendingNavigate = (item: TrendingItem) => {
     if (item.type === 'destination') router.push(`/destinations/${item.id}`);
@@ -502,21 +515,23 @@ function DestinationsPageInner({ initialCategory = null }: DestinationsPageClien
                 <div className="flex items-center gap-2 mb-3">
                   <MapPin className="h-4 w-4 text-gold-400" />
                   <span className="text-xs font-semibold uppercase tracking-widest text-gold-400">
-                    {selectedCategory
+                    {selectedRegion
+                      ? (locale === 'en' ? 'Region' : 'Wilayah')
+                      : selectedCategory
                       ? t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory.toUpperCase()
                       : t('destinations_page.all_destinations')}
                   </span>
                 </div>
                 <h1 className="font-manrope text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.05]">
-                  {t('destinations_page.heading')}
+                  {selectedRegion ? selectedRegion : t('destinations_page.heading')}
                 </h1>
                 <p className="mt-3 text-sm sm:text-base text-white/50 font-light max-w-lg">
-                  {t('destinations_page.subtitle_prefix', { count: (selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+' })}
+                  {t('destinations_page.subtitle_prefix', { count: (selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+' })}
                   {!t('destinations_page.subtitle_prefix') &&
-                    `Temukan ${(selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+'} destinasi pilihan di seluruh Yogyakarta.`}
+                    `Temukan ${(selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+'} destinasi pilihan${selectedRegion ? ` di ${selectedRegion}` : ' di seluruh Yogyakarta'}.`}
                 </p>
-                {/* SEO: visible anchor links to key category pages — crawlable by Google */}
-                {!selectedCategory && (
+                {/* SEO links — only show when no filter active */}
+                {!selectedCategory && !selectedRegion && (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {[
                       { href: `/${locale}/destinations/hidden-gem`, label: locale === 'en' ? 'Hidden Gems' : 'Hidden Gem' },
@@ -701,10 +716,10 @@ function DestinationsPageInner({ initialCategory = null }: DestinationsPageClien
   );
 }
 
-export default function DestinationsPageClient({ initialCategory = null }: DestinationsPageClientProps) {
+export default function DestinationsPageClient({ initialCategory = null, initialRegion = null }: DestinationsPageClientProps) {
   return (
     <AuthProvider>
-      <DestinationsPageInner initialCategory={initialCategory} />
+      <DestinationsPageInner initialCategory={initialCategory} initialRegion={initialRegion} />
     </AuthProvider>
   );
 }
