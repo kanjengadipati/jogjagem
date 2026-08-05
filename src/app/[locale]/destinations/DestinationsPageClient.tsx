@@ -393,7 +393,7 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null }:
       try {
         if (selectedRegion) {
           // Load all destinations and filter client-side by subRegion
-          const response = await destinationApi.getAll({ limit: 100 });
+          const response = await destinationApi.getAll({ limit: 500 });
           const data = (response as any).data || (response as any);
           const mapped = Array.isArray(data) ? data.map(mapApiToDestination) : [];
           const filtered = mapped.filter(d =>
