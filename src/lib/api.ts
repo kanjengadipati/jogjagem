@@ -389,11 +389,13 @@ interface AIQueryResponse {
 }
 
 export const destinations = {
-  async getAll(params?: { limit?: number; page?: number }) {
-    const qs = params
-      ? `?limit=${params.limit ?? 15}&page=${params.page ?? 1}`
-      : '?limit=15&page=1';
-    return request(`/destinations${qs}`);
+  async getAll(params?: { limit?: number; page?: number; sub_region?: string }) {
+    const qs = new URLSearchParams();
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.sub_region) qs.set('sub_region', params.sub_region);
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request(`/destinations${suffix}`);
   },
 
   async getById(id: string) {

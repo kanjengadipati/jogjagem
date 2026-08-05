@@ -390,17 +390,15 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null }:
     async function loadInitial() {
       setIsLoading(true);
       setTotalCount(null);
+      console.log("loadInitial called. Region:", selectedRegion, "Category:", selectedCategory);
       try {
         if (selectedRegion) {
-          // Load all destinations and filter client-side by subRegion
-          const response = await destinationApi.getAll({ limit: 500 });
+          // Load all destinations and filter by subRegion via backend
+          const response = await destinationApi.getAll({ limit: 500, sub_region: selectedRegion });
           const data = (response as any).data || (response as any);
           const mapped = Array.isArray(data) ? data.map(mapApiToDestination) : [];
-          const filtered = mapped.filter(d =>
-            d.subRegion?.toLowerCase() === selectedRegion.toLowerCase() ||
-            d.subRegion?.toLowerCase().includes(selectedRegion.toLowerCase())
-          );
-          setAllDestinations(filtered);
+          console.log("API response length:", mapped.length);
+          setAllDestinations(mapped);
           setPage(1); setTotalPages(1);
         } else if (selectedCategory === 'hidden-gem') {
           const response = await destinationApi.getAll({ limit: 100 });
