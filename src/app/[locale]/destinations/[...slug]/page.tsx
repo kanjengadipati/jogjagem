@@ -4,6 +4,7 @@ import DestinationsPageClient from '../DestinationsPageClient';
 import { TouristDestinationJsonLd, BreadcrumbJsonLd, FAQJsonLd } from '@/components/JsonLd';
 import { toSlug } from '@/lib/slug';
 import { categoryToSlug, slugToCategory } from '@/lib/category-slugs';
+import { fetchAllDestinations, fetchDestinationBySlug } from '@/lib/server-destinations';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const SITE_NAME = 'Jogjagem';
@@ -28,39 +29,12 @@ function getCategoryLabel(slug: string, locale: string) {
   return locale === 'en' ? category.en : category.id;
 }
 
-async function fetchDestinationBySlug(slugStr: string) {
-  try {
-    const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
-    const res = await fetch(`${API_BASE}/destinations?limit=100`, { next: { revalidate: 3600 } });
-    if (!res.ok) return null;
-    const body = await res.json();
-    const list = body?.data || body || [];
-    if (!Array.isArray(list)) return null;
-    return (
-      list.find((d: any) => {
-        const name = d.name || d.Name || '';
-        return toSlug(name) === slugStr || (d.id || d.ExternalID) === slugStr;
-      }) || null
-    );
-  } catch {
-    return null;
-  }
-}
-
 export async function generateStaticParams() {
   try {
-    const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
-    const res = await fetch(`${API_BASE}/destinations?limit=100`, { next: { revalidate: 3600 } });
-    if (!res.ok) return [];
-    const body = await res.json();
-    const list = body?.data || body || [];
-    if (!Array.isArray(list)) return [];
-
+    const list = await fetchAllDestinations();
     const params: { locale: string; slug: string[] }[] = [];
-    list.forEach((d: any) => {
-      const name = d.name || d.Name || '';
-      const id = d.id || d.ExternalID || '';
-      const slug = toSlug(name) || id;
+    list.forEach((d) => {
+      const slug = toSlug(d.name) || d.id;
       if (slug) {
         params.push({ locale: 'id', slug: [slug] });
         params.push({ locale: 'en', slug: [slug] });
@@ -122,31 +96,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const name = dest.name || dest.Name || '';
-  const tagline = dest.tagline || dest.Tagline || '';
-  const description = dest.description || dest.Description || tagline || `Panduan wisata lengkap ${name} di Yogyakarta.`;
-  const category = dest.category || dest.Category || '';
-  const location = dest.location || dest.Location || '';
-  const images = dest.images || dest.Images || [];
+  const name = dest.name || '';
+  const tagline = dest.tagline || '';
+  const description = dest.description || tagline || `Panduan wisata lengkap ${name} di Yogyakarta.`;
+  const category = dest.category || '';
+  const location = dest.location || '';
+  const images = dest.images || [];
   const firstImage = images[0];
   const defaultOgImage = typeof firstImage === 'string' ? firstImage : firstImage?.url || '/og-default.png';
-  const rating = dest.rating || dest.Rating || 0;
-  const reviewCount = dest.review_count || dest.ReviewCount || 0;
-  const latitude = dest.latitude || dest.Latitude || 0;
-  const longitude = dest.longitude || dest.Longitude || 0;
+  const rating = dest.rating || 0;
+  const reviewCount = dest.reviewCount || 0;
+  const latitude = dest.latitude || 0;
+  const longitude = dest.longitude || 0;
 
   const pageUrl = locale === 'en' ? `${SITE_URL}/en/destinations/${slugStr}` : `${SITE_URL}/destinations/${slugStr}`;
 
-  const seoTitle = locale === 'en'
-    ? (dest.seo_title_en || dest.SeoTitleEn || dest.seo_title || dest.SeoTitle || '')
-    : (dest.seo_title || dest.SeoTitle || '');
-  const seoKeywords = locale === 'en'
-    ? (dest.seo_keywords_en || dest.SeoKeywordsEn || dest.seo_keywords || dest.SeoKeywords || '')
-    : (dest.seo_keywords || dest.SeoKeywords || '');
-  const seoDescription = locale === 'en'
-    ? (dest.seo_description_en || dest.SeoDescriptionEn || dest.seo_description || dest.SeoDescription || '')
-    : (dest.seo_description || dest.SeoDescription || '');
-  const ogImageUrl = dest.og_image_url || dest.OgImageUrl || '';
+  const seoTitle = locale === 'en' ? (dest.seoTitleEn || dest.seoTitle || '') : (dest.seoTitle || '');
+  const seoKeywords = locale === 'en' ? (dest.seoKeywordsEn || dest.seoKeywords || '') : (dest.seoKeywords || '');
+  const seoDescription = locale === 'en' ? (dest.seoDescriptionEn || dest.seoDescription || '') : (dest.seoDescription || '');
+  const ogImageUrl = dest.ogImageUrl || '';
 
   const title = seoTitle || (locale === 'en' ? `${name} — Yogyakarta Tourism` : `${name} — Wisata Yogyakarta`);
   const metaDescription = seoDescription || (description.length > 160 ? description.slice(0, 157) + '...' : description);
@@ -199,24 +167,25 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   const slugStr = slug.join('/');
   const categoryId = slug.length === 1 ? slugToCategory(slugStr) : null;
   if (categoryId && CATEGORY_LABELS[categoryId]) {
-    return <DestinationsPageClient initialCategory={categoryId} />;
+    const initialDestinations = await fetchAllDestinations();
+    return <DestinationsPageClient initialCategory={categoryId} initialDestinations={initialDestinations} />;
   }
 
   const dest = await fetchDestinationBySlug(slugStr);
 
-  const name = dest?.name || dest?.Name || '';
-  const tagline = dest?.tagline || dest?.Tagline || '';
-  const description = dest?.description || dest?.Description || tagline || '';
-  const category = dest?.category || dest?.Category || '';
-  const images = dest?.images || dest?.Images || [];
+  const name = dest?.name || '';
+  const tagline = dest?.tagline || '';
+  const description = dest?.description || tagline || '';
+  const category = dest?.category || '';
+  const images = dest?.images || [];
   const firstImage = images[0];
   const image = typeof firstImage === 'string' ? firstImage : firstImage?.url || undefined;
-  const latitude = dest?.latitude || dest?.Latitude || 0;
-  const longitude = dest?.longitude || dest?.Longitude || 0;
-  const rating = dest?.rating || dest?.Rating || 0;
-  const reviewCount = dest?.review_count || dest?.ReviewCount || 0;
-  const location = dest?.location || dest?.Location || '';
-  const faqs = dest?.faqs || dest?.Faqs || dest?.FAQs || [];
+  const latitude = dest?.latitude || 0;
+  const longitude = dest?.longitude || 0;
+  const rating = dest?.rating || 0;
+  const reviewCount = dest?.reviewCount || 0;
+  const location = dest?.location || '';
+  const faqs = dest?.faqs || [];
 
   return (
     <>

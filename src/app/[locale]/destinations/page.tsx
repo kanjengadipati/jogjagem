@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import DestinationsPageClient from './DestinationsPageClient';
+import { fetchAllDestinations } from '@/lib/server-destinations';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
@@ -32,6 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default function DestinationsPage() {
-  return <DestinationsPageClient />;
+export default async function DestinationsPage() {
+  const initialDestinations = await fetchAllDestinations();
+  return <DestinationsPageClient initialDestinations={initialDestinations} />;
 }

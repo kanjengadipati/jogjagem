@@ -12,6 +12,7 @@ import CategoryLinks from '@/components/CategoryLinks';
 import AdBanner from '@/components/AdBanner';
 import SearchBar from '@/components/SearchBar';
 import { Destination } from '@/types';
+import { mapApiToDestination } from '@/lib/destination-mapper';
 import { destinations as destinationApi, ai } from '@/lib/api';
 import { toSlug } from '@/lib/slug';
 import { localizeCategoryPath } from '@/lib/category-slugs';
@@ -61,37 +62,6 @@ const BADGE_COLOR: Record<string, string> = {
   'Night Spot':     'bg-indigo-600',
   "Photographer's Pick": 'bg-fuchsia-600',
 };
-
-function mapApiToDestination(raw: Record<string, unknown>): Destination {
-  return {
-    id: (raw.id || raw.ExternalID || '') as string,
-    name: (raw.name || raw.Name || '') as string,
-    tagline: (raw.tagline || raw.Tagline || '') as string,
-    category: (raw.category || raw.Category || '') as string,
-    location: (raw.location || raw.Location || '') as string,
-    subRegion: (raw.sub_region || raw.SubRegion || raw.subRegion || '') as string,
-    images: (raw.images || raw.Images || []) as Destination['images'],
-    rating: (raw.rating || raw.Rating || 0) as number,
-    reviewCount: (raw.review_count || raw.ReviewCount || raw.reviewCount || 0) as number,
-    description: (raw.description || raw.Description || '') as string,
-    story: (raw.story || raw.Story || '') as string,
-    ticketPrice: (raw.ticket_price || raw.TicketPrice || raw.ticketPrice || '') as string,
-    openingHours: (raw.opening_hours || raw.OpeningHours || raw.openingHours || '') as string,
-    facilities: (raw.facilities || raw.Facilities || []) as string[],
-    travelTips: (raw.travel_tips || raw.TravelTips || raw.travelTips || []) as string[],
-    bestTime: (raw.best_time || raw.BestTime || raw.bestTime || '') as string,
-    weather: (raw.weather || raw.Weather || { temp: '', condition: '', status: '' }) as Destination['weather'],
-    latitude: (raw.latitude || raw.Latitude || 0) as number,
-    longitude: (raw.longitude || raw.Longitude || 0) as number,
-    reviews: (raw.reviews || raw.Reviews || []) as Destination['reviews'],
-    partners: (raw.partners || raw.Partners || []) as Destination['partners'],
-    faqs: (raw.faqs || raw.Faqs || raw.FAQs || []) as Destination['faqs'],
-    googleMapsUrl: (raw.google_maps_url || raw.GoogleMapsURL || raw.googleMapsUrl || '') as string,
-    googleReviewCount: (raw.google_review_count || raw.GoogleReviewCount || raw.googleReviewCount || 0) as number,
-    badge: (raw.badge || raw.Badge || '') as string,
-    badges: (raw.badges || raw.Badges || []) as string[],
-  };
-}
 
 function TrendingCarousel({
   items, destinations, isLoading, onNavigate,
@@ -266,17 +236,52 @@ function FilterChips({
   );
 }
 
+function filterDestinations(
+  full: Destination[],
+  selectedCategory: string | null,
+  selectedRegion: string | null
+): Destination[] {
+  let filtered = full;
+
+  if (selectedRegion) {
+    filtered = filtered.filter(d =>
+      d.subRegion?.toLowerCase().includes(selectedRegion.toLowerCase())
+    );
+  }
+
+  if (selectedCategory === 'hidden-gem') {
+    filtered = filtered.filter(d => {
+      const badges = Array.isArray(d.badges) ? d.badges : [];
+      return (d.badge || '').toLowerCase() === 'hidden_gem'
+        || badges.some((badge: unknown) => String(badge).toLowerCase() === 'hidden_gem');
+    });
+  } else if (selectedCategory) {
+    filtered = filtered.filter(d =>
+      d.category?.toLowerCase() === selectedCategory.toLowerCase()
+    );
+  }
+
+  return filtered;
+}
+
 type DestinationsPageClientProps = {
   initialCategory?: string | null;
   initialRegion?: string | null;  // e.g. "Sleman", "Bantul" — filters by subRegion
+  initialDestinations?: Destination[];
 };
 
-function DestinationsPageInner({ initialCategory = null, initialRegion = null }: DestinationsPageClientProps) {
+function DestinationsPageInner({ initialCategory = null, initialRegion = null, initialDestinations }: DestinationsPageClientProps) {
   const router = useRouter();
   const { t, locale } = useLocale();
 
-  const [allDestinations, setAllDestinations]     = useState<Destination[]>([]);
-  const [isLoading, setIsLoading]                 = useState(true);
+  const hasInitialData = Boolean(initialDestinations && initialDestinations.length > 0);
+
+  const [allDestinations, setAllDestinations]     = useState<Destination[]>(() =>
+    hasInitialData
+      ? filterDestinations(initialDestinations!, initialCategory, initialRegion)
+      : []
+  );
+  const [isLoading, setIsLoading]                 = useState(!hasInitialData);
   const [selectedCategory, setSelectedCategory]   = useState<string | null>(initialCategory);
   const [selectedRegion, setSelectedRegion]       = useState<string | null>(initialRegion);
   const [searchQuery, setSearchQuery]             = useState('');
@@ -387,46 +392,43 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null }:
   }, [selectedCategory, page, totalPages, loadingMore]);
 
    useEffect(() => {
+    if (hasInitialData) {
+      if (!hasLoadedOnce.current) {
+        // Server-rendered list is already seeded (and filtered) — skip the
+        // client fetch on first mount to avoid a skeleton flash + double fetch.
+        hasLoadedOnce.current = true;
+        return;
+      }
+      // Filter changes after mount: apply them against the full server list.
+      setAllDestinations(filterDestinations(initialDestinations!, selectedCategory, selectedRegion));
+      setPage(1);
+      setTotalPages(1);
+      return;
+    }
+
+    let cancelled = false;
     async function loadInitial() {
       setIsLoading(true);
       setTotalCount(null);
-      console.log("loadInitial called. Region:", selectedRegion, "Category:", selectedCategory);
       try {
         // Fetch semua data untuk pemfilteran sisi klien
         const response = await destinationApi.getAll({ limit: 500 });
         const data = (response as any).data || (response as any);
-        let filtered = Array.isArray(data) ? data.map(mapApiToDestination) : [];
-
-        // 1. Filter berdasarkan Region
-        if (selectedRegion) {
-          filtered = filtered.filter(d =>
-            d.subRegion?.toLowerCase().includes(selectedRegion.toLowerCase())
-          );
-        }
-
-        // 2. Filter berdasarkan Kategori atau Badge
-        if (selectedCategory === 'hidden-gem') {
-          filtered = filtered.filter(d => {
-            const badges = Array.isArray(d.badges) ? d.badges : [];
-            return (d.badge || '').toLowerCase() === 'hidden_gem'
-              || badges.some((badge: unknown) => String(badge).toLowerCase() === 'hidden_gem');
-          });
-        } else if (selectedCategory) {
-          filtered = filtered.filter(d => 
-            d.category?.toLowerCase() === selectedCategory.toLowerCase()
-          );
-        }
-
-        setAllDestinations(filtered);
+        const full = Array.isArray(data) ? data.map(mapApiToDestination) : [];
+        if (cancelled) return;
+        setAllDestinations(filterDestinations(full, selectedCategory, selectedRegion));
         setPage(1); setTotalPages(1);
       } catch (e) { console.error('Failed to fetch destinations:', e); }
       finally {
-        hasLoadedOnce.current = true;
-        setIsLoading(false);
+        if (!cancelled) {
+          hasLoadedOnce.current = true;
+          setIsLoading(false);
+        }
       }
     }
     loadInitial();
-  }, [selectedCategory, selectedRegion]);
+    return () => { cancelled = true; };
+  }, [selectedCategory, selectedRegion, initialDestinations]);
 
   const handleTrendingNavigate = (item: TrendingItem) => {
     if (item.type === 'destination') router.push(`/destinations/${item.id}`);
@@ -706,10 +708,14 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null }:
   );
 }
 
-export default function DestinationsPageClient({ initialCategory = null, initialRegion = null }: DestinationsPageClientProps) {
+export default function DestinationsPageClient({ initialCategory = null, initialRegion = null, initialDestinations }: DestinationsPageClientProps) {
   return (
     <AuthProvider>
-      <DestinationsPageInner initialCategory={initialCategory} initialRegion={initialRegion} />
+      <DestinationsPageInner
+        initialCategory={initialCategory}
+        initialRegion={initialRegion}
+        initialDestinations={initialDestinations}
+      />
     </AuthProvider>
   );
 }

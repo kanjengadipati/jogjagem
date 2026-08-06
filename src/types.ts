@@ -69,6 +69,7 @@ export interface Destination {
   seoDescription?: string;
   seoDescriptionEn?: string;
   ogImageUrl?: string;
+  updatedAt?: string;
   badge?: string;
   badges?: string[];  videoUrl?: string;
   businessId?: string | number | null;

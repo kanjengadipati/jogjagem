@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import BlogDetailClient from './BlogDetailClient';
@@ -7,11 +8,11 @@ import type { Article } from '@/types';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
-async function fetchArticle(slug: string, locale: string): Promise<Article | null> {
+const fetchArticle = cache(async (slug: string, locale: string): Promise<Article | null> => {
   try {
     const res = await fetch(`${API_BASE}/articles/slug/${slug}`, {
       headers: { 'Accept-Language': locale },
-      cache: 'no-store',
+      next: { revalidate: 3600 },
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -19,7 +20,7 @@ async function fetchArticle(slug: string, locale: string): Promise<Article | nul
   } catch {
     return null;
   }
-}
+});
 
 export async function generateMetadata({
   params,

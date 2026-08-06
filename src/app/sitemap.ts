@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next';
 import { toSlug } from '@/lib/slug';
 import { CATEGORY_IDS, categoryToSlug } from '@/lib/category-slugs';
+import { fetchAllDestinations } from '@/lib/server-destinations';
+import { fetchAllEvents, fetchAllPublishedArticles } from '@/lib/server-listings';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 
 const NOW = new Date().toISOString();
 
@@ -161,88 +162,76 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [destRes, eventRes, articleRes] = await Promise.all([
-      fetch(`${API_BASE}/destinations`, { next: { revalidate: 3600 } }),
-      fetch(`${API_BASE}/events`, { next: { revalidate: 3600 } }),
-      fetch(`${API_BASE}/articles?status=published`, { next: { revalidate: 3600 } }),
+    const [destinations, events, articles] = await Promise.all([
+      fetchAllDestinations(),
+      fetchAllEvents(),
+      fetchAllPublishedArticles(),
     ]);
 
-    if (destRes.ok) {
-      const body = await destRes.json();
-      const list = body?.data || body || [];
-      if (Array.isArray(list)) {
-        const destinationPages: MetadataRoute.Sitemap = list.map((d: any) => {
-          const name = d.name || d.Name || '';
-          const id = d.id || d.ExternalID || '';
-          const slug = toSlug(name) || id;
-          const updated = d.updated_at || d.UpdatedAt || d.updatedAt || NOW;
-          return {
-            url: `${SITE_URL}/destinations/${slug}`,
-            lastModified: updated,
-            changeFrequency: 'weekly' as const,
-            priority: 0.8,
-            alternates: {
-              languages: {
-                id: `${SITE_URL}/destinations/${slug}`,
-                en: `${SITE_URL}/en/destinations/${slug}`,
-              },
+    if (destinations.length > 0) {
+      const destinationPages: MetadataRoute.Sitemap = destinations.map((d) => {
+        const slug = toSlug(d.name) || d.id;
+        const updated = d.updatedAt || NOW;
+        return {
+          url: `${SITE_URL}/destinations/${slug}`,
+          lastModified: updated,
+          changeFrequency: 'weekly' as const,
+          priority: 0.8,
+          alternates: {
+            languages: {
+              id: `${SITE_URL}/destinations/${slug}`,
+              en: `${SITE_URL}/en/destinations/${slug}`,
             },
-          };
-        });
-        staticPages.push(...destinationPages);
-      }
+          },
+        };
+      });
+      staticPages.push(...destinationPages);
     }
 
-    if (eventRes.ok) {
-      const body = await eventRes.json();
-      const list = body?.data || body || [];
-      if (Array.isArray(list)) {
-        const eventPages: MetadataRoute.Sitemap = list.map((e: any) => {
-          const id = e.id || e.Id || '';
-          const updated = e.updated_at || e.UpdatedAt || e.updatedAt || NOW;
-          return {
-            url: `${SITE_URL}/events/${id}`,
-            lastModified: updated,
-            changeFrequency: 'weekly' as const,
-            priority: 0.6,
-            alternates: {
-              languages: {
-                id: `${SITE_URL}/events/${id}`,
-                en: `${SITE_URL}/en/events/${id}`,
-              },
+    if (events.length > 0) {
+      const eventPages: MetadataRoute.Sitemap = events.map((e) => {
+        const id = (e.id || e.Id || '') as string;
+        const updated = (e.updated_at || e.UpdatedAt || e.updatedAt || NOW) as string;
+        return {
+          url: `${SITE_URL}/events/${id}`,
+          lastModified: updated,
+          changeFrequency: 'weekly' as const,
+          priority: 0.6,
+          alternates: {
+            languages: {
+              id: `${SITE_URL}/events/${id}`,
+              en: `${SITE_URL}/en/events/${id}`,
             },
-          };
-        });
-        staticPages.push(...eventPages);
-      }
+          },
+        };
+      });
+      staticPages.push(...eventPages);
     }
 
-    if (articleRes.ok) {
-      const body = await articleRes.json();
-      const list = body?.data || body || [];
-      if (Array.isArray(list)) {
-        const articlePages: MetadataRoute.Sitemap = list.map((a: any) => {
-          const slug = a.slug || a.Slug || '';
-          const updated = a.updated_at || a.UpdatedAt || a.updatedAt || NOW;
-          if (!slug) return null;
-          return {
-            url: `${SITE_URL}/blog/${slug}`,
-            lastModified: updated,
-            changeFrequency: 'weekly' as const,
-            priority: 0.6,
-            alternates: {
-              languages: {
-                id: `${SITE_URL}/blog/${slug}`,
-                en: `${SITE_URL}/en/blog/${slug}`,
-              },
+    if (articles.length > 0) {
+      const articlePages: MetadataRoute.Sitemap = articles.map((a) => {
+        const slug = (a.slug || a.Slug || '') as string;
+        const updated = (a.updated_at || a.UpdatedAt || a.updatedAt || NOW) as string;
+        if (!slug) return null;
+        return {
+          url: `${SITE_URL}/blog/${slug}`,
+          lastModified: updated,
+          changeFrequency: 'weekly' as const,
+          priority: 0.6,
+          alternates: {
+            languages: {
+              id: `${SITE_URL}/blog/${slug}`,
+              en: `${SITE_URL}/en/blog/${slug}`,
             },
-          };
-        }).filter(Boolean) as MetadataRoute.Sitemap;
-        staticPages.push(...articlePages);
-      }
+          },
+        };
+      }).filter(Boolean) as MetadataRoute.Sitemap;
+      staticPages.push(...articlePages);
     }
-  } catch {
-    // If API is unreachable, return only static pages
+  } catch (err) {
+    // If the API is unreachable, return only static pages. Log so the drop
+    // from the sitemap is visible in the platform's server logs.
+    console.error('[sitemap] API unavailable, serving static URLs only:', err);
   }
 
   return staticPages;

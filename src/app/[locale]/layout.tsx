@@ -161,7 +161,7 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        <WebsiteJsonLd />
+        <WebsiteJsonLd locale={locale as 'id' | 'en'} />
         {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL && (
           <script
             defer

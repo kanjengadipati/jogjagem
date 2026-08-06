@@ -14,14 +14,14 @@ export default function JsonLd({ data }: JsonLdProps) {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const SITE_NAME = 'Jogjagem';
 
-export function WebsiteJsonLd() {
+export function WebsiteJsonLd({ locale = 'id' }: { locale?: 'id' | 'en' }) {
   const data = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: SITE_NAME,
     url: SITE_URL,
     description: 'Jelajahi Yogyakarta dengan rekomendasi AI. Panduan wisata lengkap 100+ destinasi.',
-    inLanguage: 'id',
+    inLanguage: locale,
     potentialAction: {
       '@type': 'SearchAction',
       target: {

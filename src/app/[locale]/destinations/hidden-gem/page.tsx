@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import DestinationsPageClient from '../DestinationsPageClient';
+import { fetchAllDestinations } from '@/lib/server-destinations';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
@@ -42,6 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default function HiddenGemPage() {
-  return <DestinationsPageClient initialCategory="hidden-gem" />;
+export default async function HiddenGemPage() {
+  const initialDestinations = await fetchAllDestinations();
+  return <DestinationsPageClient initialCategory="hidden-gem" initialDestinations={initialDestinations} />;
 }
