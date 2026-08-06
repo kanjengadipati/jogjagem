@@ -84,7 +84,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const dest = await fetchDestinationBySlug(slugStr);
+  const dest = await fetchDestinationBySlug(slugStr, locale);
 
   if (!dest) {
     return {
@@ -163,15 +163,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function DestinationDetailPage({ params }: PageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const slugStr = slug.join('/');
   const categoryId = slug.length === 1 ? slugToCategory(slugStr) : null;
   if (categoryId && CATEGORY_LABELS[categoryId]) {
-    const initialDestinations = await fetchAllDestinations();
+    const initialDestinations = await fetchAllDestinations(locale);
     return <DestinationsPageClient initialCategory={categoryId} initialDestinations={initialDestinations} />;
   }
 
-  const dest = await fetchDestinationBySlug(slugStr);
+  const dest = await fetchDestinationBySlug(slugStr, locale);
 
   const name = dest?.name || '';
   const tagline = dest?.tagline || '';

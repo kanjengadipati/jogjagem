@@ -33,7 +33,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default async function DestinationsPage() {
-  const initialDestinations = await fetchAllDestinations();
+export default async function DestinationsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const initialDestinations = await fetchAllDestinations(locale);
   return <DestinationsPageClient initialDestinations={initialDestinations} />;
 }

@@ -43,7 +43,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export default async function HiddenGemPage() {
-  const initialDestinations = await fetchAllDestinations();
+export default async function HiddenGemPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const initialDestinations = await fetchAllDestinations(locale);
   return <DestinationsPageClient initialCategory="hidden-gem" initialDestinations={initialDestinations} />;
 }

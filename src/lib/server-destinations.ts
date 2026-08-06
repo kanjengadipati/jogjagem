@@ -12,13 +12,14 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
  * `meta.total_pages` returned by the API and maps results to the app's
  * `Destination` shape. Server-side only (relies on Next.js fetch cache).
  */
-export async function fetchAllDestinations(): Promise<Destination[]> {
+export async function fetchAllDestinations(locale: string = 'id'): Promise<Destination[]> {
   const all: Destination[] = [];
   let page = 1;
 
   try {
     for (let guard = 0; guard < 100; guard += 1) {
       const res = await fetch(`${API_BASE}/destinations?limit=100&page=${page}`, {
+        headers: { 'Accept-Language': locale },
         next: { revalidate: 3600 },
       });
       if (!res.ok) break;
@@ -44,11 +45,12 @@ export async function fetchAllDestinations(): Promise<Destination[]> {
  * Pages are walked in order and the search stops as soon as a match is found,
  * so destinations early in the list resolve with a single request.
  */
-export async function fetchDestinationBySlug(slugOrId: string): Promise<Destination | null> {
+export async function fetchDestinationBySlug(slugOrId: string, locale: string = 'id'): Promise<Destination | null> {
   let page = 1;
 
   for (let guard = 0; guard < 100; guard += 1) {
     const res = await fetch(`${API_BASE}/destinations?limit=100&page=${page}`, {
+      headers: { 'Accept-Language': locale },
       next: { revalidate: 3600 },
     });
     if (!res.ok) return null;

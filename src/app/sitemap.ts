@@ -36,6 +36,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     },
     {
+      url: `${SITE_URL}/wisata-jogja`,
+      lastModified: NOW,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/wisata-jogja`,
+          en: `${SITE_URL}/en/wisata-jogja`,
+        },
+      },
+    },
+    {
       url: `${SITE_URL}/destinations`,
       lastModified: NOW,
       changeFrequency: 'daily',
