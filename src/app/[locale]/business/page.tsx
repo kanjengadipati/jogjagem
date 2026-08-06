@@ -111,6 +111,14 @@ export default function BusinessPage() {
   const searchParams = useSearchParams();
   const action = searchParams.get('action');
   const placement = searchParams.get('placement');
+
+  // Prefill params — passed from admin portal "Pasang Iklan" button
+  const bizName        = searchParams.get('biz_name')        ?? '';
+  const bizCategory    = searchParams.get('biz_category')    ?? '';
+  const bizPhone       = searchParams.get('biz_phone')       ?? '';
+  const bizEmail       = searchParams.get('biz_email')       ?? '';
+  const bizWebsite     = searchParams.get('biz_website')     ?? '';
+  const bizDescription = searchParams.get('biz_description') ?? '';
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [myBusinesses, setMyBusinesses] = useState<BeBusiness[]>([]);
@@ -120,14 +128,14 @@ export default function BusinessPage() {
   const [showCreateForm, setShowCreateForm] = useState(action === 'register' || Boolean(placement));
 
   const [formData, setFormData] = useState({
-    name: '',
-    category: CATEGORIES[0],
-    description: '',
-    phone: '',
-    address: '',
-    regions: [] as string[],
-    email: '',
-    website: ''
+    name:        bizName,
+    category:    bizCategory || CATEGORIES[0],
+    description: bizDescription,
+    phone:       bizPhone,
+    address:     '',
+    regions:     [] as string[],
+    email:       bizEmail,
+    website:     bizWebsite,
   });
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -495,16 +503,6 @@ export default function BusinessPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_email')}</label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    placeholder={t('business_page.field_email_placeholder')}
-                  />
-                </div>
-                <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_description')}</label>
                   <textarea
                     rows={1}
@@ -514,15 +512,27 @@ export default function BusinessPage() {
                     placeholder={t('business_page.field_description_placeholder')}
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_website')}</label>
-                  <input
-                    type="url"
-                    value={formData.website}
-                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    placeholder={t('business_page.field_website_placeholder')}
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_email')}</label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      placeholder={t('business_page.field_email_placeholder')}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_website')}</label>
+                    <input
+                      type="url"
+                      value={formData.website}
+                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                      className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      placeholder={t('business_page.field_website_placeholder')}
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center justify-between pt-2">
                   <button
