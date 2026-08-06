@@ -111,14 +111,6 @@ export default function BusinessPage() {
   const searchParams = useSearchParams();
   const action = searchParams.get('action');
   const placement = searchParams.get('placement');
-
-  // Prefill params — passed from admin portal "Pasang Iklan" button
-  const bizName        = searchParams.get('biz_name')        ?? '';
-  const bizCategory    = searchParams.get('biz_category')    ?? '';
-  const bizPhone       = searchParams.get('biz_phone')       ?? '';
-  const bizEmail       = searchParams.get('biz_email')       ?? '';
-  const bizWebsite     = searchParams.get('biz_website')     ?? '';
-  const bizDescription = searchParams.get('biz_description') ?? '';
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [myBusinesses, setMyBusinesses] = useState<BeBusiness[]>([]);
@@ -128,14 +120,14 @@ export default function BusinessPage() {
   const [showCreateForm, setShowCreateForm] = useState(action === 'register' || Boolean(placement));
 
   const [formData, setFormData] = useState({
-    name:        bizName,
-    category:    bizCategory || CATEGORIES[0],
-    description: bizDescription,
-    phone:       bizPhone,
-    address:     '',
-    regions:     [] as string[],
-    email:       bizEmail,
-    website:     bizWebsite,
+    name: '',
+    category: CATEGORIES[0],
+    description: '',
+    phone: '',
+    address: '',
+    regions: [] as string[],
+    email: '',
+    website: ''
   });
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
