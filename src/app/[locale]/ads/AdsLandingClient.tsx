@@ -8,6 +8,7 @@ import {
   ArrowRight, Layout, Sparkles, CheckCircle2,
   Building2, MapPin, Store, ChevronRight,
   BarChart2, BadgeCheck, Headphones, TrendingUp, Layers,
+  BedDouble, UtensilsCrossed, Activity, ShoppingBag, Car, Compass,
 } from 'lucide-react';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,6 +37,33 @@ function PreviewFrame({ children }: { children: React.ReactNode }) {
       </div>
       {children}
     </div>
+  );
+}
+
+function EcosystemRailPreview({ highlightLabel }: { highlightLabel: string }) {
+  return (
+    <PreviewFrame>
+      <div className="p-2 space-y-1.5">
+        <div className="flex items-center gap-1.5">
+          <div className="h-1.5 w-20 bg-gray-200 rounded-full" />
+          <div className="h-1.5 w-8 bg-gray-100 rounded-full" />
+        </div>
+        <div className="flex gap-1.5">
+          <div className="rounded bg-gray-200" style={{ width: 52, height: 64 }} />
+          <div className="rounded border-[1.5px] border-amber-400 bg-amber-50 p-0.5" style={{ width: 52, height: 64 }}>
+            <div className="rounded-sm bg-amber-400 flex items-center justify-center" style={{ height: 40 }}>
+              <Megaphone className="w-3 h-3 text-white" />
+            </div>
+            <p className="text-[5.5px] font-bold text-amber-700 text-center leading-tight mt-0.5">DISPONSORI</p>
+          </div>
+          <div className="rounded bg-gray-200" style={{ width: 52, height: 64 }} />
+          <div className="rounded bg-gray-200" style={{ width: 52, height: 64 }} />
+        </div>
+      </div>
+      <div className="px-2 py-1.5 bg-gray-50 border-t border-gray-100">
+        <p className="text-[9px] text-stone-400 leading-snug">{highlightLabel}</p>
+      </div>
+    </PreviewFrame>
   );
 }
 
@@ -542,6 +570,88 @@ export default function AdsLandingClient() {
                   </div>
                 </PreviewFrame>
               }
+            />
+
+            {/* ── 7–12. Rekomendasi Kebutuhan Traveler (Rel Sponsor) ── */}
+            <div className="md:col-span-2 mt-8 pt-2 border-t-2 border-dashed border-stone-200">
+              <h3 className="font-display text-xl font-extrabold text-stone-900">
+                Rel Rekomendasi Kebutuhan Traveler
+              </h3>
+              <p className="mt-1 text-xs text-stone-500 max-w-2xl">
+                Kartu sponsor di rail rekomendasi (Menginap / Kuliner / Vibe &amp; Aktivitas / Belanja / Transport / Guide Lokal) pada halaman detail destinasi. Slot memakai data listing yang sudah Anda klaim — pilih listing saat checkout, jangkau wisatawan yang sedang merencanakan kunjungan di destinasi target.
+              </p>
+            </div>
+
+            <SlotCard
+              featured={placement === 'ecosystem_stay'}
+              badge="Berbasis Listing"
+              badgeVariant="pro"
+              icon={<BedDouble className="w-4 h-4 text-purple-600" />}
+              title="Rel Rekomendasi — Menginap"
+              description="Kartu sponsor naik ke urutan teratas rail 'Menginap' di halaman destinasi. Memakai foto & data hotel milik bisnis Anda; bisa diarahkan ke destinasi spesifik."
+              formatLabel="Native card — data hotel"
+              onSelect={() => { window.location.href = getSlotUrl('ecosystem_stay'); }}
+              preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Menginap' — pakai foto hotel Anda" />}
+            />
+
+            <SlotCard
+              featured={placement === 'ecosystem_eat'}
+              badge="Berbasis Listing"
+              badgeVariant="pro"
+              icon={<UtensilsCrossed className="w-4 h-4 text-purple-600" />}
+              title="Rel Rekomendasi — Kuliner"
+              description="Kartu sponsor di rail 'Kuliner' halaman destinasi, memakai data restoran/kafe milik bisnis Anda. Menarik wisatawan yang mencari tempat makan."
+              formatLabel="Native card — data restoran"
+              onSelect={() => { window.location.href = getSlotUrl('ecosystem_eat'); }}
+              preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Kuliner' — pakai foto restoran Anda" />}
+            />
+
+            <SlotCard
+              featured={placement === 'ecosystem_experience'}
+              badge="Berbasis Listing"
+              badgeVariant="pro"
+              icon={<Activity className="w-4 h-4 text-purple-600" />}
+              title="Rel Rekomendasi — Vibe & Aktivitas"
+              description="Kartu sponsor di rail 'Vibe & Aktivitas' halaman destinasi, memakai data rental/agen milik bisnis Anda. Jangkau traveler yang mencari pengalaman."
+              formatLabel="Native card — data rental"
+              onSelect={() => { window.location.href = getSlotUrl('ecosystem_experience'); }}
+              preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Vibe & Aktivitas'" />}
+            />
+
+            <SlotCard
+              featured={placement === 'ecosystem_shop'}
+              badge="Berbasis Listing"
+              badgeVariant="pro"
+              icon={<ShoppingBag className="w-4 h-4 text-purple-600" />}
+              title="Rel Rekomendasi — Belanja"
+              description="Kartu sponsor di rail 'Belanja' halaman destinasi, memakai data souvenir shop milik bisnis Anda. Ideal untuk toko oleh-oleh & kerajinan."
+              formatLabel="Native card — data souvenir"
+              onSelect={() => { window.location.href = getSlotUrl('ecosystem_shop'); }}
+              preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Belanja'" />}
+            />
+
+            <SlotCard
+              featured={placement === 'ecosystem_move'}
+              badge="Berbasis Listing"
+              badgeVariant="pro"
+              icon={<Car className="w-4 h-4 text-purple-600" />}
+              title="Rel Rekomendasi — Transport"
+              description="Kartu sponsor di rail 'Transport' halaman destinasi, memakai data rental/transport milik bisnis Anda. Jangkau wisatawan yang butuh mobilitas."
+              formatLabel="Native card — data rental"
+              onSelect={() => { window.location.href = getSlotUrl('ecosystem_move'); }}
+              preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Transport'" />}
+            />
+
+            <SlotCard
+              featured={placement === 'ecosystem_guide'}
+              badge="Berbasis Listing"
+              badgeVariant="pro"
+              icon={<Compass className="w-4 h-4 text-purple-600" />}
+              title="Rel Rekomendasi — Guide Lokal"
+              description="Kartu sponsor di rail 'Guide Lokal' halaman destinasi, memakai data guide milik bisnis Anda dengan foto profil & tarif harian."
+              formatLabel="Native card — data guide"
+              onSelect={() => { window.location.href = getSlotUrl('ecosystem_guide'); }}
+              preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Guide Lokal'" />}
             />
           </div>
         </div>

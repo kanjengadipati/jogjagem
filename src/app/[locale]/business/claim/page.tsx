@@ -14,6 +14,7 @@ import AuthModal from '@/components/AuthModal';
 import { useLocale } from '@/contexts/LocaleContext';
 
 const CATEGORIES = ['Kuliner', 'Hotel & Penginapan', 'Wisata & Destinasi', 'Oleh-oleh', 'Jasa', 'Lainnya'];
+const REGIONS = ['Kota Yogyakarta', 'Sleman', 'Bantul', 'Kulon Progo', 'Gunungkidul', 'Near Yogyakarta'] as const;
 
 function friendlyClaimError(raw: string): string {
   const s = (raw || '').toLowerCase();
@@ -172,6 +173,8 @@ function ClaimFormContent() {
       : 'Wisata & Destinasi',
     phone: '',
     description: '',
+    address: '',
+    regions: [] as string[],
   });
 
   useEffect(() => {
@@ -216,6 +219,16 @@ function ClaimFormContent() {
           setSubmitting(false);
           return;
         }
+        if (!newBizData.address.trim()) {
+          setResultMessage({ type: 'error', text: 'Alamat usaha/kantor wajib diisi.' });
+          setSubmitting(false);
+          return;
+        }
+        if (newBizData.regions.length === 0) {
+          setResultMessage({ type: 'error', text: 'Pilih minimal 1 wilayah layanan.' });
+          setSubmitting(false);
+          return;
+        }
         if (newBizData.phone.trim() && !validatePhone(newBizData.phone)) {
           setResultMessage({ type: 'error', text: 'Nomor telepon tidak valid.' });
           setSubmitting(false);
@@ -248,6 +261,9 @@ function ClaimFormContent() {
         type: 'success',
         text: 'Klaim kepemilikan berhasil dikirim! Tim Jogjagem akan meninjau klaim Anda dalam 1×24 jam.',
       });
+      setTimeout(() => {
+        goToBusinessDashboard();
+      }, 1500);
     } catch (err) {
       setResultMessage({ type: 'error', text: friendlyClaimError(err instanceof Error ? err.message : '') });
     } finally {
@@ -395,7 +411,7 @@ function ClaimFormContent() {
                       <span>{t('business_claim.register_new')}</span>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_claim.biz_name')} *</label>
+                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_claim.biz_name')}</label>
                       <input
                         type="text"
                         required
@@ -430,6 +446,49 @@ function ClaimFormContent() {
                           className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white font-mono disabled:bg-stone-100"
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_page.field_address')}</label>
+                      <textarea
+                        rows={2}
+                        required
+                        disabled={resultMessage?.type === 'success' || submitting}
+                        value={newBizData.address}
+                        onChange={(e) => setNewBizData({ ...newBizData, address: e.target.value })}
+                        placeholder={t('business_page.field_address_placeholder')}
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white resize-none disabled:bg-stone-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_page.field_regions')}</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {REGIONS.map((region) => {
+                          const checked = newBizData.regions.includes(region);
+                          return (
+                            <button
+                              key={region}
+                              type="button"
+                              disabled={resultMessage?.type === 'success' || submitting}
+                              onClick={() =>
+                                setNewBizData({
+                                  ...newBizData,
+                                  regions: checked
+                                    ? newBizData.regions.filter((r) => r !== region)
+                                    : [...newBizData.regions, region],
+                                })
+                              }
+                              className={`px-2.5 py-1 text-[11px] rounded-full border transition-all disabled:opacity-50 ${
+                                checked
+                                  ? 'bg-amber-500 border-amber-500 text-white font-bold'
+                                  : 'bg-white border-stone-300 text-stone-600 hover:border-amber-400'
+                              }`}
+                            >
+                              {region}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-stone-400 mt-1">{t('business_page.field_regions_hint')}</p>
                     </div>
                   </div>
                 )}

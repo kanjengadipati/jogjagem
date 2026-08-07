@@ -13,8 +13,8 @@ import {
   MapPinned, Sunrise, Sunset, Flame, ChevronDown, Sparkle, Pencil, X, Navigation, BookOpen, Briefcase
 } from 'lucide-react';
 import { Destination, EcosystemPartner, Review } from '@/types';
-import { events as eventsApi, reviews as reviewsApi, partners as partnersApi } from '@/lib/api';
-import type { BePartner } from '@/lib/api';
+import { events as eventsApi, reviews as reviewsApi, ads as adsApi } from '@/lib/api';
+import type { BeEcosystemCard } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { inferTravelerIntent, orderCardsByIntent, IntentProfile } from '@/lib/travelerIntent';
 import { fetchLiveWeather, LiveWeather } from '@/lib/weather';
@@ -57,7 +57,7 @@ export default function DestinationDetail({
   const [selectedMapFilter, setSelectedMapFilter] = useState<'all' | 'partner' | 'parking' | 'hotel' | 'resto' | 'guide' | 'toilet' | 'hospital'>('all');
   const [selectedMapPartner, setSelectedMapPartner] = useState<EcosystemPartner | null>(destination.partners[0] || null);
 
-  const mapBePartner = (p: BePartner): EcosystemPartner => ({
+  const mapBePartner = (p: BeEcosystemCard): EcosystemPartner => ({
     id: p.id,
     name: p.name,
     category: (['hotel','restaurant','cafe','guide','souvenir','rental','agent','transport'].includes((p.category || '').toLowerCase())
@@ -73,28 +73,29 @@ export default function DestinationDetail({
     coordinates: { lat: p.latitude || 0, lng: p.longitude || 0 },
     isSponsored: p.is_sponsored,
     sponsorTier: p.sponsor_tier,
+    businessId: p.business_id || null,
   });
 
   // Enrich ecosystem partners from BE and merge active sponsored partners.
+  // Sponsored cards are served exclusively from the ads campaign system
+  // (ecosystem_* placements) via /ads/ecosystem.
   const [enrichedPartners, setEnrichedPartners] = useState<EcosystemPartner[]>(destination.partners);
   useEffect(() => {
     let cancelled = false;
 
     async function loadPartners() {
       const base = destination.partners;
-      const [allRes, sponsoredRes] = await Promise.all([
-        base.length > 0 ? Promise.resolve(null) : partnersApi.getAll(),
-        partnersApi.getSponsored({ destinationId: destination.id, category: destination.category }),
-      ]);
+      const ecosystemRes = await adsApi.getEcosystem({ destinationId: destination.id }).catch(() => null);
 
       if (cancelled) return;
 
-      const mappedBase = base.length > 0
-        ? base
-        : (allRes?.status === 'success' && Array.isArray(allRes.data) ? (allRes.data as BePartner[]).map(mapBePartner) : []);
-      const sponsored = sponsoredRes.status === 'success' && Array.isArray(sponsoredRes.data)
-        ? (sponsoredRes.data as BePartner[]).map(mapBePartner)
-        : [];
+      const mappedBase = base;
+
+      // Empty result from /ads/ecosystem is a valid "no sponsors".
+      let sponsored: EcosystemPartner[] = [];
+      if (ecosystemRes?.status === 'success' && Array.isArray(ecosystemRes.data)) {
+        sponsored = (ecosystemRes.data as BeEcosystemCard[]).map(mapBePartner);
+      }
 
       const merged = new globalThis.Map<string, EcosystemPartner>();
       mappedBase.forEach((partner) => merged.set(partner.id, partner));
@@ -690,7 +691,7 @@ export default function DestinationDetail({
     activeEcosystemPartners.forEach((partner) => {
       if (partner.isSponsored && !trackedSponsoredPartnersRef.current.has(partner.id)) {
         trackedSponsoredPartnersRef.current.add(partner.id);
-        partnersApi.trackImpression(partner.id);
+        adsApi.trackImpression(partner.id);
       }
     });
   }, [activeEcosystemPartners]);
@@ -1421,7 +1422,7 @@ export default function DestinationDetail({
             ecosystemPausedUntilRef={ecosystemPausedUntilRef}
             activeEcosystemPartners={activeEcosystemPartners}
             onSelectPartner={(partner) => {
-              if (partner.isSponsored) partnersApi.trackClick(partner.id);
+              if (partner.isSponsored) adsApi.trackClick(partner.id);
               setSelectedPartner(partner);
             }}
             travelerIntent={travelerIntent}

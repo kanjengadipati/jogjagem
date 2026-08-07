@@ -626,60 +626,38 @@ export const trips = {
   },
 };
 
-export const partners = {
-  async getAll() {
-    return request<BePartner[]>('/partners');
-  },
-
-  async search(query: string) {
-    return request<BePartner[]>(`/partners/search?q=${encodeURIComponent(query)}`);
-  },
-
-  async getSponsored(params?: { destinationId?: string; category?: string }) {
-    const qs = new URLSearchParams();
-    if (params?.destinationId) qs.set('destination_id', params.destinationId);
-    if (params?.category) qs.set('category', params.category);
-    const suffix = qs.toString() ? `?${qs.toString()}` : '';
-    return request<BePartner[]>(`/partners/sponsored${suffix}`);
-  },
-
-  async getMine() {
-    return request<BePartner[]>('/partners/me');
-  },
-
-  async submitForReview(id: string) {
-    return request<BePartner>(`/partners/me/${id}/submit-for-review`, { method: 'POST' });
-  },
-
-  async update(id: string, payload: Partial<BePartner>) {
-    return request<BePartner>(`/partners/me/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-    });
-  },
-
-  trackImpression(externalId: string) {
-    void request(`/partners/${encodeURIComponent(externalId)}/track/impression`, { method: 'POST' });
-  },
-
-  trackClick(externalId: string) {
-    void request(`/partners/${encodeURIComponent(externalId)}/track/click`, { method: 'POST' });
-  },
-};
-
-export const partnerApplications = {
-  apply: (data: { business_name: string; category: string; location?: string; locations?: string[]; phone?: string; email?: string }) =>
-    request<BePartnerApplication>('/partner-applications/apply', { method: 'POST', body: JSON.stringify(data) }),
-  getMine: () => request<BePartnerApplication[]>('/partner-applications/me'),
-};
-
 export const businesses = {
   getMine: () => request<BeBusiness[]>('/businesses/me'),
   getMineByID: (id: string) => request<BeBusiness>(`/businesses/me/${encodeURIComponent(id)}`),
-  create: (data: { name: string; description?: string; category: string; phone?: string; email?: string; website?: string }) =>
+  create: (data: { name: string; description?: string; category: string; phone: string; address: string; regions: string[]; email?: string; website?: string }) =>
     request<BeBusiness>('/businesses', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<BeBusiness>) =>
     request<BeBusiness>(`/businesses/me/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }),
+};
+
+export interface BusinessInvitePreview {
+  email: string;
+  role: string;
+  status: string;
+  expires_at: string;
+  business_external_id: string;
+  business_name: string;
+  invited_by_name?: string;
+}
+
+export interface BusinessInviteAcceptResult {
+  business_external_id: string;
+  business_name: string;
+  role: string;
+}
+
+export const businessInvites = {
+  preview: (token: string) =>
+    request<BusinessInvitePreview>(`/businesses/invites/${encodeURIComponent(token)}`),
+  accept: (token: string) =>
+    request<BusinessInviteAcceptResult>(`/businesses/invites/${encodeURIComponent(token)}/accept`, {
+      method: 'POST',
+    }),
 };
 
 export const listingClaims = {
@@ -721,8 +699,8 @@ export interface BeListingClaim {
   submitted_at: string;
 }
 
-// BE partner shape (snake_case from the API)
-interface BePartner {
+// Ecosystem card shape served by GET /ads/ecosystem (snake_case from the API).
+interface BeEcosystemCard {
   id: string;
   name: string;
   description?: string;
@@ -739,25 +717,12 @@ interface BePartner {
   longitude?: number;
   is_sponsored?: boolean;
   sponsor_tier?: number;
+  business_id?: string;
   status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended';
   /** Status pembayaran sponsorship dari Midtrans (paid | pending | expired | failed) */
   sponsor_payment_status?: string;
   /** Tanggal berakhir sponsorship (ISO 8601) */
   sponsor_end_at?: string;
-}
-
-interface BePartnerApplication {
-  id: string;
-  business_name: string;
-  category: string;
-  location?: string;
-  locations?: string[];
-  phone?: string;
-  email?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  rejection_reason?: string;
-  converted_partner_external_id?: string;
-  created_at: string;
 }
 
 interface BeAdCampaign {
@@ -797,6 +762,16 @@ export const ads = {
     return request<BeHouseAd | null>(`/ads/house?${qs.toString()}`);
   },
 
+  /** Sponsored cards for the destination detail ecosystem rails ("Rekomendasi
+   * Kebutuhan Traveler"). Resolved from paid campaigns on ecosystem_* placements
+   * and enriched with the promoted listing's data — same shape as BeEcosystemCard. */
+  async getEcosystem(params?: { destinationId?: string }) {
+    const qs = new URLSearchParams();
+    if (params?.destinationId) qs.set('destination_id', params.destinationId);
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return request<BeEcosystemCard[]>(`/ads/ecosystem${suffix}`);
+  },
+
   trackImpression(externalId: string) {
     void request(`/ads/campaigns/${encodeURIComponent(externalId)}/track/impression`, { method: 'POST' });
   },
@@ -828,7 +803,7 @@ export const articles = {
   },
 };
 
-export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BePartner, BePartnerApplication, BeAdCampaign, BeHouseAd };
+export type { User, ProfileResponse, AuthResponse, APIResponse, BeReview, BeEcosystemCard, BeAdCampaign, BeHouseAd };
 
 export interface TripDayPayload {
   dayNumber: number;

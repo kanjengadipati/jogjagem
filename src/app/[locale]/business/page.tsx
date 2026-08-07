@@ -454,6 +454,17 @@ export default function BusinessPage() {
                   </div>
                 </div>
                 <div>
+                  <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_address')}</label>
+                  <textarea
+                    rows={2}
+                    required
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                    placeholder={t('business_page.field_address_placeholder')}
+                  />
+                </div>
+                <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_regions')}</label>
                   <div className="flex flex-wrap gap-2">
                     {REGIONS.map((region) => {
@@ -482,17 +493,6 @@ export default function BusinessPage() {
                     })}
                   </div>
                   <p className="text-[10px] text-stone-400 mt-1">{t('business_page.field_regions_hint')}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_address')}</label>
-                  <textarea
-                    rows={1}
-                    required
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
-                    placeholder={t('business_page.field_address_placeholder')}
-                  />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_description')}</label>
@@ -552,7 +552,7 @@ export default function BusinessPage() {
                 </div>
               </form>
             ) : (
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              <div className="space-y-3 overflow-y-auto pr-1">
                 {loading ? (
                   <div className="text-center py-10 text-xs text-stone-400">{t('business_page.loading')}</div>
                 ) : myBusinesses.length === 0 ? (
@@ -632,34 +632,52 @@ export default function BusinessPage() {
                 {myClaims.length > 0 && (
                   <div className="pt-4 border-t border-stone-200 space-y-2">
                     <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
-                      <FileCheck className="w-3.5 h-3.5 text-gold-600" />
+                      <FileCheck className="w-3.5 h-3.5 text-amber-600" />
                       <span>{t('business_page.claims_title')}</span>
                     </h3>
                     <div className="space-y-2">
-                      {myClaims.map((claim) => (
-                        <div key={claim.id} className="p-3 bg-gold-50/50 border border-gold-200/60 rounded-xl flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-bold text-stone-900 capitalize">{claim.listing_type}</span>
-                            <span className="text-stone-500 font-mono ml-1 text-[11px]">({claim.listing_external_id})</span>
-                            <p className="text-[10px] text-stone-400 mt-0.5">
-                              {t('business_page.claim_submitted')} {claim.submitted_at
-                                ? new Date(claim.submitted_at).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID')
-                                : t('business_page.claim_just_now')}
-                            </p>
+                      {myClaims.map((claim) => {
+                        const listingLabel: Record<string, string> = {
+                          destination: 'Wisata & Destinasi',
+                          restaurant:  'Kuliner',
+                          hotel:       'Hotel & Penginapan',
+                          souvenir:    'Oleh-oleh',
+                          rental:      'Jasa / Rental',
+                          guide:       'Guide Lokal',
+                        };
+                        // Turn "kopi-ampirono" → "Kopi Ampirono"
+                        const listingName = claim.listing_external_id
+                          .replace(/-/g, ' ')
+                          .replace(/\b\w/g, (c) => c.toUpperCase());
+                        return (
+                          <div key={claim.id} className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl flex items-center justify-between gap-3">
+                            <div className="space-y-0.5 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-sm text-stone-900 truncate">{listingName}</span>
+                              </div>
+                              <p className="text-xs text-stone-500">
+                                {listingLabel[claim.listing_type] ?? claim.listing_type}
+                              </p>
+                              <p className="text-[10px] text-stone-400 mt-0.5">
+                                {t('business_page.claim_submitted')} {claim.submitted_at
+                                  ? new Date(claim.submitted_at).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+                                  : t('business_page.claim_just_now')}
+                              </p>
+                            </div>
+                            <span className={`shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              claim.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                              claim.status === 'rejected' ? 'bg-rose-100 text-rose-800 border border-rose-300' :
+                              'bg-amber-100 text-amber-800 border border-amber-300'
+                            }`}>
+                              {claim.status === 'approved'
+                                ? t('business_page.claim_status_approved')
+                                : claim.status === 'rejected'
+                                ? t('business_page.claim_status_rejected')
+                                : t('business_page.claim_status_pending')}
+                            </span>
                           </div>
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            claim.status === 'approved' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                            claim.status === 'rejected' ? 'bg-rose-100 text-rose-800 border border-rose-300' :
-                            'bg-amber-100 text-amber-800 border border-amber-300'
-                          }`}>
-                            {claim.status === 'approved'
-                              ? t('business_page.claim_status_approved')
-                              : claim.status === 'rejected'
-                              ? t('business_page.claim_status_rejected')
-                              : t('business_page.claim_status_pending')}
-                          </span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
