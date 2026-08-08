@@ -729,6 +729,7 @@ export default function MobileDiscoverView({
         })()}
 
         {/* ── Popular destinations ── */}
+        <AdBanner placement="homepage_category_banner" category={selectedCategory ?? undefined} className="px-4" />
         {(() => {
           type MobileGridItem =
             | { kind: 'organic'; dest: Destination }
