@@ -7,8 +7,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { businesses, listingClaims, BeBusiness, SearchResult } from '@/lib/api';
 import Image from 'next/image';
 import {
-  Briefcase, CheckCircle2, Shield, AlertCircle, ArrowLeft,
+  Briefcase, CheckCircle2, Shield, AlertCircle, Check,
   Building2, Search, Loader2, Megaphone, BarChart2,
+  UserCheck, Upload, X, ImageIcon,
 } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -28,7 +29,7 @@ function friendlyClaimError(raw: string): string {
   if (s.includes('invalid listing type') || s.includes('unsupported listing'))
     return 'Jenis listing tidak didukung untuk klaim kepemilikan.';
   if (s.includes('not found') || s.includes('tidak ditemukan'))
-    return 'Listing tidak ditemukan. Periksa kembali ID listing yang dimasukkan.';
+    return 'Listing tidak ditemukan. Periksa kembali nama usaha yang dicari.';
   if (s.includes('permission') || s.includes('unauthorized') || s.includes('unauthenticated'))
     return 'Sesi Anda telah berakhir. Silakan login kembali.';
   if (s.includes('validation') || s.includes('required'))
@@ -192,7 +193,7 @@ function ClaimFormContent() {
   const [showResults, setShowResults]           = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const targetListingId = listingId || selectedListingId || manualListingId;
+  const targetListingId = listingId || selectedListingId;
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -203,7 +204,6 @@ function ClaimFormContent() {
   }, []);
 
   useEffect(() => {
-    setSelectedListingId('');
     const search = async () => {
       if (manualListingId.length < 3) { setSearchResults([]); return; }
       setSearching(true);
@@ -230,6 +230,13 @@ function ClaimFormContent() {
   const [categoryWarning, setCategoryWarning]   = useState<string | null>(null);
   const [ackMismatch, setAckMismatch]           = useState(false);
   const [emailWarning, setEmailWarning]         = useState<string | null>(null);
+  const [claimRole, setClaimRole]               = useState<'owner' | 'representative'>('owner');
+  const [ackOwnership, setAckOwnership]         = useState(false);
+  const [proofUrl, setProofUrl]                 = useState('');
+  const [uploadingProof, setUploadingProof]     = useState(false);
+  const [proofError, setProofError]             = useState('');
+  const [selectedListingType, setSelectedListingType] = useState('');
+  const proofInputRef = useRef<HTMLInputElement>(null);
 
   const [newBizData, setNewBizData] = useState({
     name: '',
@@ -270,6 +277,43 @@ function ClaimFormContent() {
     }
   };
 
+  const handleProofFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setProofError(t('business_claim.proof_error_type'));
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setProofError(t('business_claim.proof_error_size'));
+      return;
+    }
+    setProofError('');
+    setUploadingProof(true);
+    try {
+      const sigRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder: 'explore-jogja/claims' }),
+      });
+      const sig = await sigRes.json() as {
+        signature: string; timestamp: number; api_key: string; cloud_name: string; folder: string; upload_url: string;
+      };
+      const form = new FormData();
+      form.append('file', file);
+      form.append('signature', sig.signature);
+      form.append('timestamp', String(sig.timestamp));
+      form.append('api_key', sig.api_key);
+      form.append('folder', sig.folder);
+      const uploadRes = await fetch(sig.upload_url, { method: 'POST', body: form });
+      if (!uploadRes.ok) throw new Error('Upload failed');
+      const data = await uploadRes.json() as { secure_url: string };
+      setProofUrl(data.secure_url);
+    } catch {
+      setProofError('Upload failed');
+    } finally {
+      setUploadingProof(false);
+    }
+  };
+
   const handleClaim = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isAuthenticated) { setShowAuthModal(true); return; }
@@ -283,6 +327,10 @@ function ClaimFormContent() {
       const isNewBiz = selectedBusiness === 'new';
 
       // ── 0) Validasi field dasar (bentuknya sama seperti registrasi) ──
+      if (!ackOwnership) {
+        setResultMessage({ type: 'error', text: t('business_claim.err_ownership') });
+        return;
+      }
       if (isNewBiz) {
         if (!newBizData.name.trim()) {
           setResultMessage({ type: 'error', text: 'Nama bisnis wajib diisi.' });
@@ -353,7 +401,7 @@ function ClaimFormContent() {
       if (!ackMismatch) {
         setCheckStep('checking-category');
         await delay(800);
-        const warning = categoryMismatchWarning(bizCategory, listingType);
+        const warning = categoryMismatchWarning(bizCategory, selectedListingType || listingType);
         if (warning) {
           setCategoryWarning(warning);
           setCheckStep('idle');
@@ -378,17 +426,17 @@ function ClaimFormContent() {
 
       if (!targetBusinessExternalId) throw new Error('Gagal mendapatkan identitas bisnis. Silakan refresh dan coba lagi.');
       if (!targetListingId.trim()) {
-        setResultMessage({ type: 'error', text: 'Silakan isi ID / Nama listing yang hendak diklaim.' });
+        setResultMessage({ type: 'error', text: t('business_claim.error_no_id') });
         setSubmitting(false);
         setCheckStep('idle');
         return;
-      }
-
-      const [claimRes] = await Promise.all([
+      }      const [claimRes] = await Promise.all([
         listingClaims.submit({
           business_external_id: targetBusinessExternalId,
-          listing_type: listingType,
+          listing_type: selectedListingType || listingType,
           listing_external_id: targetListingId,
+          role: claimRole,
+          evidence_url: proofUrl,
         }),
         delay(700),
       ]);
@@ -436,14 +484,25 @@ function ClaimFormContent() {
               <Shield className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div className="w-full">
                 <span className="font-bold text-[11px] text-amber-700 uppercase tracking-wider block">
-                  {t('business_claim.target_listing')}
+                  {t('business_claim.target_listing')} <span className="text-rose-500">*</span>
                 </span>
-                {listingName || listingId ? (
+                {listingName || listingId || selectedListingId ? (
                   <>
-                    <span className="font-bold text-stone-900 text-sm block mt-0.5">{listingName || listingId}</span>
-                    <span className="text-[11px] text-stone-500 block mt-0.5">
-                      {t('business_claim.category')} <span className="capitalize font-medium">{listingType}</span>
+                    <span className="font-bold text-stone-900 text-sm block mt-0.5">
+                      {listingName || manualListingId || listingId}
                     </span>
+                    <span className="text-[11px] text-stone-500 block mt-0.5">
+                      {t('business_claim.category')} <span className="capitalize font-medium">{selectedListingType || listingType}</span>
+                    </span>
+                    {!listingId && (
+                      <button
+                        type="button"
+                        onClick={() => { setSelectedListingId(''); setSelectedListingType(''); setManualListingId(''); }}
+                        className="mt-2 text-[10px] font-bold text-amber-700 hover:text-amber-900 underline"
+                      >
+                        {t('business_claim.change_destination')}
+                      </button>
+                    )}
                   </>
                 ) : (
                   <div className="mt-1.5 space-y-1.5 relative" ref={searchRef}>
@@ -465,7 +524,7 @@ function ClaimFormContent() {
                           <li
                             key={`${r.listing_type}:${r.id}`}
                             className="px-3 py-2 text-xs hover:bg-stone-50 cursor-pointer border-b last:border-0 border-stone-100"
-                            onClick={() => { setManualListingId(r.name); setSelectedListingId(r.id); setShowResults(false); }}
+                            onClick={() => { setManualListingId(r.name); setSelectedListingId(r.id); setSelectedListingType(r.listing_type); setShowResults(false); }}
                           >
                             <div className="font-semibold text-stone-900">{r.name}</div>
                             <div className="text-[10px] text-stone-400 capitalize">{r.listing_type}</div>
@@ -473,17 +532,40 @@ function ClaimFormContent() {
                         ))}
                       </ul>
                     )}
+                    {!listingId && !selectedListingId && (
+                      <p className="text-[10px] text-amber-700 font-medium">{t('business_claim.search_required_hint')}</p>
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
             {/* Form card */}
-            <div className="bg-white p-4 md:p-5 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+            <div className="bg-white p-4 md:p-5 rounded-2xl border border-stone-200 shadow-sm flex-1 flex flex-col justify-center gap-4">
               {/* Header */}
               <div>
                 <h2 className="text-xl font-bold text-stone-900">{t('business_claim.title')}</h2>
                 <p className="text-xs text-stone-500 mt-0.5">{t('business_claim.subtitle')}</p>
+              </div>
+
+              {/* Step indicator */}
+              <div className="flex items-center">
+                <span className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold">
+                  <Check className="w-3 h-3" />
+                  {t('business_claim.step_target')}
+                </span>
+                <span className="flex-1 h-px bg-stone-200 mx-1.5" />
+                <span className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-amber-500 text-amber-700 text-[10px] font-bold">
+                  <span className="w-3.5 h-3.5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[9px]">2</span>
+                  {t('business_claim.step_owner')}
+                </span>
+                <span className="flex-1 h-px bg-stone-200 mx-1.5" />
+                <span className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold ${resultMessage?.type === 'success' ? 'bg-amber-500 text-white' : 'text-stone-400'}`}>
+                  <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${resultMessage?.type === 'success' ? 'bg-white/25 text-white' : 'bg-stone-200 text-stone-500'}`}>
+                    {resultMessage?.type === 'success' ? <Check className="w-2.5 h-2.5" /> : '3'}
+                  </span>
+                  {t('business_claim.step_submit')}
+                </span>
               </div>
 
               {/* Result message */}
@@ -542,6 +624,32 @@ function ClaimFormContent() {
                     </select>
                   </div>
                 )}
+
+                {/* Claimant role */}
+                <div>
+                  <span className="block text-xs font-semibold text-stone-700 mb-1">{t('business_claim.role_label')}</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { v: 'owner', label: t('business_claim.role_owner'), Icon: UserCheck },
+                      { v: 'representative', label: t('business_claim.role_rep'), Icon: Building2 },
+                    ] as const).map(({ v, label, Icon }) => (
+                      <button
+                        key={v}
+                        type="button"
+                        disabled={resultMessage?.type === 'success' || submitting}
+                        onClick={() => setClaimRole(v)}
+                        className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border transition disabled:opacity-50 ${
+                          claimRole === v
+                            ? 'bg-amber-500 border-amber-500 text-white shadow-sm'
+                            : 'bg-white border-stone-300 text-stone-600 hover:border-amber-400'
+                        }`}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Inline new business form */}
                 {(myBusinesses.length === 0 || selectedBusiness === 'new') && (
@@ -665,6 +773,64 @@ function ClaimFormContent() {
                   </div>
                 )}
 
+                {/* Optional evidence upload */}
+                <div>
+                  <span className="block text-xs font-semibold text-stone-700 mb-1">
+                    {t('business_claim.proof_label')}
+                  </span>
+                  {proofUrl ? (
+                    <div className="flex items-center gap-2 p-2.5 bg-stone-50 border border-stone-200 rounded-xl">
+                      <ImageIcon className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span className="text-xs text-stone-700 flex-1 truncate">{proofUrl}</span>
+                      <button
+                        type="button"
+                        disabled={submitting || checkStep !== 'idle'}
+                        onClick={() => { setProofUrl(''); if (proofInputRef.current) proofInputRef.current.value = ''; }}
+                        className="p-1 text-stone-400 hover:text-rose-600 transition disabled:opacity-50"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <button
+                        type="button"
+                        disabled={uploadingProof || submitting || checkStep !== 'idle'}
+                        onClick={() => proofInputRef.current?.click()}
+                        className="w-full py-2.5 border border-dashed border-stone-300 hover:border-amber-500 rounded-xl text-xs font-semibold text-stone-600 hover:text-amber-700 flex items-center justify-center gap-2 transition disabled:opacity-50"
+                      >
+                        {uploadingProof ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        {uploadingProof ? t('business_claim.proof_uploading') : t('business_claim.proof_upload_btn')}
+                      </button>
+                      <p className="text-[10px] text-stone-400 mt-1.5 leading-relaxed">{t('business_claim.proof_hint')}</p>
+                      <input
+                        ref={proofInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleProofFile(file);
+                          if (proofInputRef.current) proofInputRef.current.value = '';
+                        }}
+                      />
+                    </div>
+                  )}
+                  {proofError && <p className="text-[10px] text-rose-600 mt-1">{proofError}</p>}
+                </div>
+
+                {/* Ownership statement */}
+                <label className="flex items-start gap-2.5 text-xs text-stone-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={ackOwnership}
+                    onChange={(e) => setAckOwnership(e.target.checked)}
+                    disabled={resultMessage?.type === 'success' || submitting}
+                    className="accent-amber-600 mt-0.5"
+                  />
+                  <span className="leading-relaxed">{t('business_claim.ownership_statement')}</span>
+                </label>
+
                 {/* Submit */}
                 <div className="flex items-center justify-between pt-1 gap-3">
                   <button
@@ -677,7 +843,7 @@ function ClaimFormContent() {
                   </button>
                   <button
                     type="submit"
-                    disabled={resultMessage?.type === 'success' || submitting || checkStep !== 'idle'}
+                    disabled={resultMessage?.type === 'success' || submitting || checkStep !== 'idle' || !targetListingId.trim()}
                     className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-xl transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
                   >
                     {submitting || checkStep !== 'idle'

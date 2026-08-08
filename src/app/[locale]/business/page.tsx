@@ -343,7 +343,25 @@ function extractDataArray<T>(res: any): T[] {
       <VisualPanel />
       
       {/* Right panel — cream bg, scrollable internally */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#FAF6EF]">
+      <div className="relative flex-1 flex flex-col overflow-hidden bg-[#FAF6EF]">
+        {isAuthenticated && !showCreateForm && (
+          <div className="absolute top-8 right-8 z-20 flex items-center gap-2">
+            <Link
+              href="/business/claim"
+              className="flex items-center gap-1.5 px-4 py-2 bg-white border border-stone-300 hover:border-amber-500 text-stone-700 hover:text-amber-700 text-xs font-bold rounded-full transition-colors shadow-sm"
+            >
+              <FileCheck className="w-3.5 h-3.5" />
+              <span>{t('business_page.claim_business_btn')}</span>
+            </Link>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-full transition-colors shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t('business_page.add_business_btn')}</span>
+            </button>
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto px-6 py-5 md:px-8 md:py-6 flex flex-col justify-center">
         {!isAuthenticated ? (
           <div className="text-center space-y-5 py-6">
@@ -409,8 +427,7 @@ function extractDataArray<T>(res: any): T[] {
             )}
 
             {!showCreateForm && (
-            <div className="space-y-2">
-              <div>
+            <div>
                 <h2 className="text-xl font-bold text-stone-900">
                   {placementName ? t('business_page.ad_register_title') : t('business_page.my_businesses_title')}
                 </h2>
@@ -419,23 +436,6 @@ function extractDataArray<T>(res: any): T[] {
                     ? t('business_page.ad_register_subtitle', { name: placementName })
                     : t('business_page.my_businesses_subtitle')}
                 </p>
-              </div>
-              <div className="flex items-center gap-2 justify-end">
-                <Link
-                  href="/business/claim"
-                  className="flex items-center gap-1.5 px-4 py-2 bg-white border border-stone-300 hover:border-amber-500 text-stone-700 hover:text-amber-700 text-xs font-bold rounded-full transition-colors shadow-sm"
-                >
-                  <FileCheck className="w-3.5 h-3.5" />
-                  <span>{t('business_page.claim_business_btn')}</span>
-                </Link>
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-full transition-colors shadow-sm"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>{t('business_page.add_business_btn')}</span>
-                </button>
-              </div>
             </div>
             )}
 
