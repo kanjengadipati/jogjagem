@@ -2,7 +2,7 @@ import type { Destination } from '@/types';
 import { mapApiToDestination } from '@/lib/destination-mapper';
 import { toSlug } from '@/lib/slug';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+const API_BASE = process.env.API_BASE || process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 
 /**
  * Fetch every destination via paginated requests.
@@ -42,32 +42,41 @@ export async function fetchAllDestinations(locale: string = 'id'): Promise<Desti
 /**
  * Resolve a single destination by slug (toSlug(name)) or raw id.
  *
- * Pages are walked in order and the search stops as soon as a match is found,
- * so destinations early in the list resolve with a single request.
+ * Returns:
+ *  - Destination object if found
+ *  - null if exhausted all pages and genuinely not found
+ *  - 'fetch_error' if the API was unreachable or returned an error status
+ *
+ * Callers should treat 'fetch_error' as a transient failure (keep indexable)
+ * and null as a confirmed 404 (can noindex).
  */
-export async function fetchDestinationBySlug(slugOrId: string, locale: string = 'id'): Promise<Destination | null> {
+export async function fetchDestinationBySlug(slugOrId: string, locale: string = 'id'): Promise<Destination | null | 'fetch_error'> {
   let page = 1;
 
-  for (let guard = 0; guard < 100; guard += 1) {
-    const res = await fetch(`${API_BASE}/destinations?limit=100&page=${page}`, {
-      headers: { 'Accept-Language': locale },
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    const body = await res.json();
-    const list = body?.data || body || [];
-    if (!Array.isArray(list) || list.length === 0) return null;
+  try {
+    for (let guard = 0; guard < 100; guard += 1) {
+      const res = await fetch(`${API_BASE}/destinations?limit=100&page=${page}`, {
+        headers: { 'Accept-Language': locale },
+        next: { revalidate: 3600 },
+      });
+      if (!res.ok) return 'fetch_error';
+      const body = await res.json();
+      const list = body?.data || body || [];
+      if (!Array.isArray(list) || list.length === 0) return null;
 
-    const match = list.find((d: Record<string, unknown>) => {
-      const name = (d.name || d.Name || '') as string;
-      const id = (d.id || d.ExternalID || '') as string;
-      return toSlug(name) === slugOrId || id === slugOrId;
-    });
-    if (match) return mapApiToDestination(match);
+      const match = list.find((d: Record<string, unknown>) => {
+        const name = (d.name || d.Name || '') as string;
+        const id = (d.id || d.ExternalID || '') as string;
+        return toSlug(name) === slugOrId || id === slugOrId;
+      });
+      if (match) return mapApiToDestination(match);
 
-    const totalPages = body?.meta?.total_pages ?? page;
-    if (page >= totalPages) return null;
-    page += 1;
+      const totalPages = body?.meta?.total_pages ?? page;
+      if (page >= totalPages) return null;
+      page += 1;
+    }
+  } catch {
+    return 'fetch_error';
   }
 
   return null;
