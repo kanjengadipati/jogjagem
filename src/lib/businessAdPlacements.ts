@@ -129,17 +129,72 @@ export const SELLABLE_PLACEMENTS = Object.entries(AD_PLACEMENTS)
   .map(([key]) => key);
 
 /**
+ * Diskon volume per jumlah bulan (fraksi, 0..1) — mirror dari
+ * VolumeDiscounts di jogjagem-api/internal/modules/adcampaign/pricing.go.
+ * 1 bulan (dan durasi di luar tier) tidak dapat diskon.
+ */
+export const VOLUME_DISCOUNTS: Record<number, number> = {
+  3: 0.1,
+  6: 0.2,
+  12: 0.3,
+};
+
+export function volumeDiscountFor(months: number): number {
+  return VOLUME_DISCOUNTS[months] ?? 0;
+}
+
+export interface PlacementPriceInfo {
+  monthlyRate: number;
+  promoLabel?: string;
+  promoActive?: boolean;
+}
+
+/**
+ * Memuat harga live dari backend (termasuk promo aktif) untuk semua placement
+ * yang bisa dijual. Hasilnya berupa map placement → { monthlyRate, promoLabel }.
+ * Gagal diam-diam mengembalikan object kosong agar halaman tetap render dengan
+ * harga statis dari AD_PLACEMENTS.
+ */
+export async function fetchPlacementPricing(): Promise<Record<string, PlacementPriceInfo>> {
+  try {
+    const res = await fetch("/api/ads/pricing");
+    if (!res.ok) return {};
+    const data = await res.json();
+    const placements: Array<{
+      placement: string;
+      monthly_rate?: number;
+      effective_monthly_rate?: number;
+      promo_label?: string;
+      promo_active?: boolean;
+    }> = data?.data?.placements ?? [];
+    const map: Record<string, PlacementPriceInfo> = {};
+    for (const p of placements) {
+      map[p.placement] = {
+        monthlyRate: p.effective_monthly_rate ?? p.monthly_rate ?? 0,
+        promoLabel: p.promo_label,
+        promoActive: p.promo_active,
+      };
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
+/**
  * Harga flat untuk periode kampanye: tarif bulanan × jumlah bulan yang dicakup
- * (bulan pecahan dibulatkan ke atas, minimal 1 bulan). Disarankan MIRIP dengan
- * logika PriceFor() di jogjagem-api/internal/modules/adcampaign/pricing.go —
- * backend tetap sumber kebenaran harga; ini hanya untuk display di form.
+ * (bulan pecahan dibulatkan ke atas, minimal 1 bulan) − diskon volume tier.
+ * Disarankan MIRIP dengan logika PriceFor() di
+ * jogjagem-api/internal/modules/adcampaign/pricing.go — backend tetap sumber
+ * kebenaran harga; ini hanya untuk display di form.
  */
 export function computePrice(
   placement: string,
   start?: string,
-  end?: string
+  end?: string,
+  monthlyRate?: number
 ): number {
-  const monthly = AD_PLACEMENTS[placement]?.price ?? 0;
+  const monthly = monthlyRate ?? AD_PLACEMENTS[placement]?.price ?? 0;
   if (!start || !end) return monthly;
   const startMs = new Date(start).getTime();
   const endMs = new Date(end).getTime();
@@ -149,7 +204,7 @@ export function computePrice(
   const days = Math.floor((endMs - startMs) / 86400000) + 1;
   if (days <= 0) return monthly;
   const months = Math.max(1, Math.ceil(days / 30));
-  return monthly * months;
+  return monthly * months * (1 - volumeDiscountFor(months));
 }
 
 export function formatPrice(amount?: number): string {
