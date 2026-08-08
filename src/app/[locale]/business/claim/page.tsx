@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
 import { useLocale } from '@/contexts/LocaleContext';
+import VerificationStepper from '@/components/business-portal/VerificationStepper';
 
 const CATEGORIES = ['Kuliner', 'Hotel & Penginapan', 'Wisata & Destinasi', 'Oleh-oleh', 'Jasa', 'Lainnya'];
 const REGIONS = ['Kota Yogyakarta', 'Sleman', 'Bantul', 'Kulon Progo', 'Gunungkidul', 'Near Yogyakarta'] as const;
@@ -49,6 +50,66 @@ function validatePhone(phone: string): boolean {
   const digitsOnly = cleanPhone.replace(/\D/g, '');
   if (digitsOnly.length < 9 || digitsOnly.length > 15) return false;
   return /^(\+62|62|0)[8][1-9][0-9]{6,11}$/.test(cleanPhone);
+}
+
+const delay = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+function validateEmail(email: string): boolean {
+  const trimmed = email.trim();
+  if (!trimmed) return true; // opsional, kosong = valid
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
+// Cek keberadaan MX record domain email via DNS-over-HTTPS (fail-open).
+async function checkEmailDomainValid(email: string): Promise<boolean> {
+  const domain = email.split('@')[1];
+  if (!domain) return false;
+  try {
+    const res = await fetch(
+      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`,
+      { signal: AbortSignal.timeout(2500) }
+    );
+    if (!res.ok) return true; // gagal cek → fail-open
+    const data = await res.json();
+    return Array.isArray(data.Answer) && data.Answer.length > 0;
+  } catch {
+    return true; // timeout/network error → fail-open, jangan blokir user
+  }
+}
+
+// ─── Verifikasi kecocokan kategori bisnis vs tipe listing ───────────────────
+
+const LISTING_TYPE_LABELS: Record<string, string> = {
+  destination: 'Wisata & Destinasi',
+  attraction: 'Wisata & Destinasi',
+  hotel: 'Hotel & Penginapan',
+  accommodation: 'Hotel & Penginapan',
+  restaurant: 'Kuliner',
+  culinary: 'Kuliner',
+  souvenir: 'Oleh-oleh',
+  shopping: 'Oleh-oleh',
+  rental: 'Jasa / Rental',
+  guide: 'Guide Lokal',
+  event: 'Event',
+};
+
+const CATEGORY_LISTING_TYPES: Record<string, string[]> = {
+  'Kuliner': ['restaurant', 'culinary'],
+  'Hotel & Penginapan': ['hotel', 'accommodation'],
+  'Wisata & Destinasi': ['destination', 'attraction'],
+  'Oleh-oleh': ['souvenir', 'shopping'],
+  'Jasa': ['rental', 'guide'],
+  'Lainnya': [],
+};
+
+/** Mengembalikan pesan peringatan bila kategori bisnis tidak cocok dengan tipe
+ *  listing yang diklaim, atau null bila cocok / tidak bisa ditentukan. */
+function categoryMismatchWarning(businessCategory: string, listingType: string): string | null {
+  const allowed = CATEGORY_LISTING_TYPES[businessCategory?.trim()];
+  if (!allowed || allowed.length === 0) return null; // 'Lainnya'/kategori tak dikenal → tidak diblokir
+  if (allowed.includes(listingType)) return null;
+  const typeLabel = LISTING_TYPE_LABELS[listingType] ?? listingType;
+  return `Bisnis Anda berkategori "${businessCategory}", sedangkan listing yang diklaim berjenis "${typeLabel}". Pastikan Anda memang pemilik listing tersebut sebelum melanjutkan.`;
 }
 
 // ─── Visual Panel (sama persis dengan business/page.tsx) ───────────────────
@@ -164,6 +225,11 @@ function ClaimFormContent() {
   const [loading, setLoading]               = useState(true);
   const [submitting, setSubmitting]         = useState(false);
   const [resultMessage, setResultMessage]   = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  type ClaimCheckStep = 'idle' | 'checking-name' | 'checking-email' | 'checking-category' | 'saving' | 'done';
+  const [checkStep, setCheckStep]           = useState<ClaimCheckStep>('idle');
+  const [categoryWarning, setCategoryWarning]   = useState<string | null>(null);
+  const [ackMismatch, setAckMismatch]           = useState(false);
+  const [emailWarning, setEmailWarning]         = useState<string | null>(null);
 
   const [newBizData, setNewBizData] = useState({
     name: '',
@@ -174,6 +240,7 @@ function ClaimFormContent() {
     phone: '',
     description: '',
     address: '',
+    email: '',
     regions: [] as string[],
   });
 
@@ -207,34 +274,100 @@ function ClaimFormContent() {
     e.preventDefault();
     if (!isAuthenticated) { setShowAuthModal(true); return; }
 
-    setSubmitting(true);
     setResultMessage(null);
+    setCategoryWarning(null);
+
+    let succeeded = false;
 
     try {
-      let targetBusinessExternalId = '';
+      const isNewBiz = selectedBusiness === 'new';
 
-      if (selectedBusiness === 'new') {
+      // ── 0) Validasi field dasar (bentuknya sama seperti registrasi) ──
+      if (isNewBiz) {
         if (!newBizData.name.trim()) {
           setResultMessage({ type: 'error', text: 'Nama bisnis wajib diisi.' });
-          setSubmitting(false);
           return;
         }
         if (!newBizData.address.trim()) {
           setResultMessage({ type: 'error', text: 'Alamat usaha/kantor wajib diisi.' });
-          setSubmitting(false);
           return;
         }
         if (newBizData.regions.length === 0) {
           setResultMessage({ type: 'error', text: 'Pilih minimal 1 wilayah layanan.' });
-          setSubmitting(false);
           return;
         }
         if (newBizData.phone.trim() && !validatePhone(newBizData.phone)) {
           setResultMessage({ type: 'error', text: 'Nomor telepon tidak valid.' });
-          setSubmitting(false);
           return;
         }
-        const bizRes = await businesses.create(newBizData);
+        if (!validateEmail(newBizData.email)) {
+          setResultMessage({ type: 'error', text: t('business_page.err_email_format') });
+          return;
+        }
+      }
+
+      // ── 1) Cek duplikasi nama bisnis (fail-open, sama seperti registrasi) ──
+      setCheckStep('checking-name');
+      if (isNewBiz && newBizData.name.trim()) {
+        let nameTaken = false;
+        await Promise.all([
+          (async () => {
+            try {
+              const checkRes = await fetch(`/api/businesses/check-name?q=${encodeURIComponent(newBizData.name.trim())}`);
+              if (checkRes.ok) {
+                const checkData = await checkRes.json();
+                const similar: Array<{ name: string }> = checkData?.data ?? [];
+                const exactMatch = similar.find(
+                  (b) => b.name?.trim().toLowerCase() === newBizData.name.trim().toLowerCase()
+                );
+                if (exactMatch) {
+                  nameTaken = true;
+                  setResultMessage({ type: 'error', text: `Nama bisnis "${exactMatch.name}" sudah terdaftar. Gunakan nama lain.` });
+                }
+              }
+            } catch {
+              // fail-open: kalau endpoint tidak bisa dijangkau, lanjut saja
+            }
+          })(),
+          delay(800),
+        ]);
+        if (nameTaken) return;
+      }
+
+      // ── 2) Cek validitas domain email (DNS-over-HTTPS, non-blocking) ──
+      setCheckStep('checking-email');
+      setEmailWarning(null);
+      if (isNewBiz && newBizData.email.trim()) {
+        await Promise.all([
+          checkEmailDomainValid(newBizData.email.trim()).then((validDomain) => {
+            if (!validDomain) setEmailWarning(t('business_page.email_warning'));
+          }),
+          delay(800),
+        ]);
+      }
+
+      // ── 3) Verifikasi kecocokan kategori bisnis vs tipe listing ──
+      const bizCategory = isNewBiz
+        ? newBizData.category
+        : String((selectedBusiness as any)?.category ?? (selectedBusiness as any)?.data?.category ?? '');
+      if (!ackMismatch) {
+        setCheckStep('checking-category');
+        await delay(800);
+        const warning = categoryMismatchWarning(bizCategory, listingType);
+        if (warning) {
+          setCategoryWarning(warning);
+          setCheckStep('idle');
+          return;
+        }
+      }
+
+      // ── 4) Simpan bisnis (bila baru) lalu kirim klaim ──
+      setCheckStep('saving');
+      setSubmitting(true);
+      let targetBusinessExternalId = '';
+
+      if (isNewBiz) {
+        const [bizRes] = await Promise.all([businesses.create(newBizData), delay(700)]);
         if (bizRes.status === 'error') throw new Error(bizRes.message || 'Gagal mendaftarkan bisnis baru.');
         const rawBiz = (bizRes as any)?.data ?? (bizRes as any);
         targetBusinessExternalId = String(rawBiz?.external_id ?? rawBiz?.data?.external_id ?? '');
@@ -247,16 +380,22 @@ function ClaimFormContent() {
       if (!targetListingId.trim()) {
         setResultMessage({ type: 'error', text: 'Silakan isi ID / Nama listing yang hendak diklaim.' });
         setSubmitting(false);
+        setCheckStep('idle');
         return;
       }
 
-      const claimRes = await listingClaims.submit({
-        business_external_id: targetBusinessExternalId,
-        listing_type: listingType,
-        listing_external_id: targetListingId,
-      });
+      const [claimRes] = await Promise.all([
+        listingClaims.submit({
+          business_external_id: targetBusinessExternalId,
+          listing_type: listingType,
+          listing_external_id: targetListingId,
+        }),
+        delay(700),
+      ]);
       if (claimRes.status === 'error') throw new Error(friendlyClaimError(claimRes.message || ''));
 
+      succeeded = true;
+      setCheckStep('done');
       setResultMessage({
         type: 'success',
         text: 'Klaim kepemilikan berhasil dikirim! Tim Jogjagem akan meninjau klaim Anda dalam 1×24 jam.',
@@ -264,10 +403,17 @@ function ClaimFormContent() {
       setTimeout(() => {
         goToBusinessDashboard();
       }, 1500);
+      setTimeout(() => {
+        setSubmitting(false);
+        setCheckStep('idle');
+      }, 1500);
     } catch (err) {
       setResultMessage({ type: 'error', text: friendlyClaimError(err instanceof Error ? err.message : '') });
     } finally {
-      setSubmitting(false);
+      if (!succeeded) {
+        setSubmitting(false);
+        setCheckStep('idle');
+      }
     }
   };
 
@@ -277,15 +423,6 @@ function ClaimFormContent() {
       <Image src="/merapi.png" alt="Gunung Merapi" fill priority className="object-cover object-center" />
       <div className="absolute inset-0 bg-black/45" />
 
-      {/* Back button */}
-      <button
-        onClick={goToBusinessDashboard}
-        className="absolute top-3 left-3 sm:top-5 sm:left-5 z-20 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-black/55 backdrop-blur-md border border-white/25 text-white text-xs font-semibold hover:bg-black/75 hover:border-white/40 transition-all shadow-lg"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        <span>{t('business_page.back_to_home')}</span>
-      </button>
-
       {/* Card */}
       <div className="relative z-10 w-full max-w-[960px] md:h-[calc(100vh-3rem)] rounded-none md:rounded-3xl overflow-hidden shadow-[0_40px_120px_rgba(0,0,0,.65)] flex flex-col md:flex-row">
         <VisualPanel />
@@ -293,12 +430,6 @@ function ClaimFormContent() {
         {/* Right panel */}
         <div className="flex-1 flex flex-col overflow-hidden bg-[#FAF6EF]">
           <div className="flex-1 overflow-y-auto px-6 py-5 md:px-8 md:py-6 flex flex-col justify-center">
-
-            {/* Header */}
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-stone-900">{t('business_claim.title')}</h2>
-              <p className="text-xs text-stone-500 mt-0.5">{t('business_claim.subtitle')}</p>
-            </div>
 
             {/* Target listing info */}
             <div className="p-3.5 bg-amber-50 border border-amber-200/70 rounded-2xl flex items-start gap-3 text-xs text-amber-900 mb-4">
@@ -347,21 +478,28 @@ function ClaimFormContent() {
               </div>
             </div>
 
-            {/* Result message */}
-            {resultMessage && (
-              <div className={`p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 mb-4 ${
-                resultMessage.type === 'success'
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                  : 'bg-rose-50 text-rose-800 border border-rose-200'
-              }`}>
-                {resultMessage.type === 'success'
-                  ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  : <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />}
-                <div className="leading-relaxed">{resultMessage.text}</div>
+            {/* Form card */}
+            <div className="bg-white p-4 md:p-5 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+              {/* Header */}
+              <div>
+                <h2 className="text-xl font-bold text-stone-900">{t('business_claim.title')}</h2>
+                <p className="text-xs text-stone-500 mt-0.5">{t('business_claim.subtitle')}</p>
               </div>
-            )}
 
-            {/* Auth gate */}
+              {/* Result message */}
+              {resultMessage && (
+                <div className={`p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 ${
+                  resultMessage.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`}>
+                  {resultMessage.type === 'success'
+                    ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    : <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />}
+                  <div className="leading-relaxed">{resultMessage.text}</div>
+                </div>
+              )}
+
             {!isAuthenticated ? (
               <div className="text-center py-4 space-y-3">
                 <p className="text-xs text-stone-600">{t('business_claim.must_login')}</p>
@@ -387,6 +525,8 @@ function ClaimFormContent() {
                       value={selectedBusiness === 'new' ? 'new' : String((selectedBusiness as any).id || (selectedBusiness as any).ID || '')}
                       disabled={resultMessage?.type === 'success' || submitting}
                       onChange={(e) => {
+                        setCategoryWarning(null);
+                        setAckMismatch(false);
                         if (e.target.value === 'new') { setSelectedBusiness('new'); return; }
                         const found = myBusinesses.find(b => String((b as any).id || (b as any).ID) === e.target.value);
                         if (found) setSelectedBusiness(found);
@@ -405,13 +545,13 @@ function ClaimFormContent() {
 
                 {/* Inline new business form */}
                 {(myBusinesses.length === 0 || selectedBusiness === 'new') && (
-                  <div className="p-4 bg-white border border-stone-200 rounded-2xl space-y-3">
+                  <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl space-y-3">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-stone-800 pb-2 border-b border-stone-100">
                       <Building2 className="w-4 h-4 text-amber-600" />
                       <span>{t('business_claim.register_new')}</span>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_claim.biz_name')}</label>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_claim.biz_name')}</label>
                       <input
                         type="text"
                         required
@@ -424,7 +564,7 @@ function ClaimFormContent() {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_claim.category_label')}</label>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_claim.category_label')}</label>
                         <select
                           value={newBizData.category}
                           disabled={resultMessage?.type === 'success' || submitting}
@@ -435,7 +575,7 @@ function ClaimFormContent() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_claim.whatsapp_label')}</label>
+                        <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_claim.whatsapp_label')}</label>
                         <input
                           type="text"
                           inputMode="numeric"
@@ -448,7 +588,7 @@ function ClaimFormContent() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_page.field_address')}</label>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_address')}</label>
                       <textarea
                         rows={2}
                         required
@@ -460,7 +600,21 @@ function ClaimFormContent() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">{t('business_page.field_regions')}</label>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_email')}</label>
+                      <input
+                        type="email"
+                        disabled={resultMessage?.type === 'success' || submitting}
+                        value={newBizData.email}
+                        onChange={(e) => setNewBizData({ ...newBizData, email: e.target.value })}
+                        placeholder={t('business_page.field_email_placeholder')}
+                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white disabled:bg-stone-100"
+                      />
+                      {emailWarning && (
+                        <p className="text-[10px] text-amber-600 mt-1">{emailWarning}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-700 mb-1">{t('business_page.field_regions')}</label>
                       <div className="flex flex-wrap gap-1.5">
                         {REGIONS.map((region) => {
                           const checked = newBizData.regions.includes(region);
@@ -493,18 +647,46 @@ function ClaimFormContent() {
                   </div>
                 )}
 
+                {categoryWarning && (
+                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-[11px] leading-relaxed space-y-2">
+                    <p className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span>{categoryWarning}</span>
+                    </p>
+                    <label className="flex items-center gap-2 text-amber-950 font-semibold cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={ackMismatch}
+                        onChange={(e) => setAckMismatch(e.target.checked)}
+                        className="accent-amber-600"
+                      />
+                      Saya yakin dan ingin tetap melanjutkan klaim
+                    </label>
+                  </div>
+                )}
+
                 {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={resultMessage?.type === 'success' || submitting}
-                  className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
-                >
-                  {submitting
-                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {t('business_claim.submitting_btn')}</>
-                    : resultMessage?.type === 'success'
-                    ? <><CheckCircle2 className="w-3.5 h-3.5" /> {t('business_claim.success_btn')}</>
-                    : <><Briefcase className="w-3.5 h-3.5" /> {t('business_claim.submit_btn')}</>}
-                </button>
+                <div className="flex items-center justify-between pt-1 gap-3">
+                  <button
+                    type="button"
+                    onClick={goToBusinessDashboard}
+                    disabled={submitting || checkStep !== 'idle' || resultMessage?.type === 'success'}
+                    className="px-5 py-2.5 text-xs font-bold bg-white border border-stone-300 hover:border-amber-500 hover:bg-amber-50 text-stone-700 hover:text-amber-700 rounded-xl transition-colors disabled:opacity-50 shadow-sm"
+                  >
+                    {t('business_page.btn_cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={resultMessage?.type === 'success' || submitting || checkStep !== 'idle'}
+                    className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-xl transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+                  >
+                    {submitting || checkStep !== 'idle'
+                      ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {checkStep === 'done' ? 'Selesai!' : t('business_page.step_saving_fallback')}</>
+                      : resultMessage?.type === 'success'
+                      ? <><CheckCircle2 className="w-3.5 h-3.5" /> {t('business_claim.success_btn')}</>
+                      : <><Briefcase className="w-3.5 h-3.5" /> {t('business_claim.submit_btn')}</>}
+                  </button>
+                </div>
 
                 {resultMessage?.type === 'success' && (
                   <button
@@ -517,12 +699,27 @@ function ClaimFormContent() {
                 )}
               </form>
             )}
+            </div>{/* end form card */}
 
           </div>{/* end overflow-y-auto */}
         </div>{/* end right panel */}
       </div>
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+
+      {checkStep !== 'idle' && (
+        <VerificationStepper
+          steps={[
+            { id: 'checking-name', label: t('business_page.step_checking_name') },
+            { id: 'checking-email', label: t('business_page.step_checking_email') },
+            { id: 'checking-category', label: 'Memeriksa kecocokan kategori...' },
+            { id: 'saving', label: t('business_page.step_saving') },
+            { id: 'done', label: t('business_page.step_done') },
+          ]}
+          activeStep={checkStep}
+          allDone={checkStep === 'done'}
+        />
+      )}
     </div>
   );
 }

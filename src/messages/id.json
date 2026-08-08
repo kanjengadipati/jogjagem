@@ -580,6 +580,7 @@
     "claim_just_now": "Baru Saja",
     "form_title": "Form Pendaftaran Bisnis Baru",
     "form_title_ad": "Form Usaha — Slot \"{name}\"",
+    "form_subtitle": "Isi detail usaha Anda. Data akan diverifikasi sebelum diproses.",
     "form_step": "Step 1 dari 2",
     "field_name": "Nama Bisnis / Usaha *",
     "field_name_placeholder": "Contoh: Gudeg Pawon Jogja",
@@ -597,6 +598,7 @@
     "field_website": "Website (opsional)",
     "field_website_placeholder": "https://bisnisanda.com",
     "btn_cancel": "Batal",
+    "btn_back": "Kembali",
     "btn_submit": "Daftarkan Bisnis",
     "btn_submit_ad": "Daftarkan Usaha & Lanjut Pasang Iklan →",
     "step_checking_name": "Memeriksa nama bisnis...",
@@ -611,7 +613,12 @@
     "err_email_format": "Format email tidak valid.",
     "err_name_taken": "Bisnis dengan nama \"{name}\" sudah terdaftar. Gunakan nama lain atau klaim bisnis yang sudah ada.",
     "err_submit": "Gagal memproses pendaftaran bisnis.",
-    "success_registered": "Bisnis berhasil didaftarkan & terverifikasi! Mengalihkan ke Business Portal..."
+    "success_registered": "Bisnis berhasil didaftarkan & terverifikasi! Mengalihkan ke Business Portal...",
+    "pagination_prev": "Sebelumnya",
+    "pagination_next": "Berikutnya",
+    "pagination_page": "Halaman",
+    "claim_business_btn": "Klaim Bisnis",
+    "claim_existing_link": "Bisnis Anda sudah terdaftar di Jogjagem? Klaim kepemilikan"
   },
   "partner_page": {
     "hero_title": "Jadi Mitra",

@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/contexts/LocaleContext';
 import { businesses, listingClaims, BeBusiness, BeListingClaim } from '@/lib/api';
 import Image from 'next/image';
-import { useRouter } from '@/i18n/navigation';
+import { useRouter, Link } from '@/i18n/navigation';
+import VerificationStepper from '@/components/business-portal/VerificationStepper';
 import {
   CheckCircle2,
   XCircle,
@@ -21,12 +22,16 @@ import {
   Lock,
   ArrowRight,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
 import { PLACEMENT_NAMES } from '@/lib/adPlacements';
 
 const CATEGORIES = ['Kuliner', 'Hotel & Penginapan', 'Wisata & Destinasi', 'Oleh-oleh', 'Jasa', 'Lainnya'];
 const REGIONS = ['Kota Yogyakarta', 'Sleman', 'Bantul', 'Kulon Progo', 'Gunungkidul', 'Near Yogyakarta'] as const;
+
+const delay = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 function BusinessLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -105,7 +110,8 @@ function extractDataArray<T>(res: any): T[] {
   return [];
 }
 
-export default function BusinessPage() {
+ export default function BusinessPage() {
+  const isNew = process.env.NEXT_PUBLIC_BUSINESS_PLATFORM === 'new';
   const { user, isAuthenticated } = useAuth();
   const { t, locale } = useLocale();
   const searchParams = useSearchParams();
@@ -118,6 +124,10 @@ export default function BusinessPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(action === 'register' || Boolean(placement));
+  const [bizPage, setBizPage] = useState(1);
+  const BIZ_PAGE_SIZE = 4;
+  const totalBizPages = Math.max(1, Math.ceil(myBusinesses.length / BIZ_PAGE_SIZE));
+  const pagedBusinesses = myBusinesses.slice((bizPage - 1) * BIZ_PAGE_SIZE, bizPage * BIZ_PAGE_SIZE);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -163,6 +173,7 @@ export default function BusinessPage() {
       if (claimRes.status === 'fulfilled') {
         setMyClaims(extractDataArray<BeListingClaim>(claimRes.value));
       }
+      setBizPage(1);
     } catch {
       setMyBusinesses([]);
       setMyClaims([]);
@@ -228,47 +239,66 @@ export default function BusinessPage() {
     setSubmitStep('checking-name');
     setMessage(null);
     setEmailWarning(null);
+    let succeeded = false;
 
-    // Step 1: cek nama duplikat — global check via API (fail-open)
-    try {
-      const checkRes = await fetch(`/api/businesses/check-name?q=${encodeURIComponent(formData.name.trim())}`);
-      if (checkRes.ok) {
-        const checkData = await checkRes.json();
-        const similar: Array<{ name: string }> = checkData?.data ?? [];
-        const exactMatch = similar.find(
-          (b) => b.name?.trim().toLowerCase() === formData.name.trim().toLowerCase()
-        );
-        if (exactMatch) {
-          setMessage({
-            type: 'error',
-            text: t('business_page.err_name_taken', { name: exactMatch.name }),
-          });
-          setSubmitting(false);
-          setSubmitStep('idle');
-          return;
-        }
+    // Step 1: cek nama duplikat — global check via API (fail-open, min. 800ms)
+    {
+      let nameTaken = false;
+      await Promise.all([
+        (async () => {
+          try {
+            const checkRes = await fetch(`/api/businesses/check-name?q=${encodeURIComponent(formData.name.trim())}`);
+            if (checkRes.ok) {
+              const checkData = await checkRes.json();
+              const similar: Array<{ name: string }> = checkData?.data ?? [];
+              const exactMatch = similar.find(
+                (b) => b.name?.trim().toLowerCase() === formData.name.trim().toLowerCase()
+              );
+              if (exactMatch) {
+                nameTaken = true;
+                setMessage({
+                  type: 'error',
+                  text: t('business_page.err_name_taken', { name: exactMatch.name }),
+                });
+              }
+            }
+          } catch {
+            // fail-open: kalau endpoint tidak bisa dijangkau, lanjut saja
+          }
+        })(),
+        delay(800),
+      ]);
+      if (nameTaken) {
+        setSubmitting(false);
+        setSubmitStep('idle');
+        return;
       }
-    } catch {
-      // fail-open: kalau endpoint tidak bisa dijangkau, lanjut saja
     }
 
-    // Step 2: cek domain email (real DNS-over-HTTPS call)
+    // Step 2: cek domain email (real DNS-over-HTTPS call, min. 800ms)
     setSubmitStep('checking-email');
     if (formData.email.trim()) {
-      const validDomain = await checkEmailDomainValid(formData.email.trim());
-      if (!validDomain) {
-        setEmailWarning(t('business_page.email_warning'));
-      }
+      await Promise.all([
+        checkEmailDomainValid(formData.email.trim()).then((validDomain) => {
+          if (!validDomain) {
+            setEmailWarning(t('business_page.email_warning'));
+          }
+        }),
+        delay(800),
+      ]);
     }
 
-    // Step 3: simpan ke server
+    // Step 3: simpan ke server (min. 1200ms agar loading terlihat)
     setSubmitStep('saving');
     try {
-      const res = await businesses.create(formData);
+      const [res] = await Promise.all([
+        businesses.create(formData),
+        delay(1200),
+      ]);
       const createdBiz = (res as any)?.data || res;
-      const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
       const bizId = createdBiz?.external_id || createdBiz?.id || '';
 
+      succeeded = true;
       setSubmitStep('done');
       setMessage({
         type: 'success',
@@ -277,21 +307,38 @@ export default function BusinessPage() {
       setFormData({ name: '', category: CATEGORIES[0], description: '', phone: '', address: '', regions: [], email: '', website: '' });
       setShowCreateForm(false);
 
-      setTimeout(() => {
+      if (isNew) {
+        // Mode baru: tetap di halaman /business dan tampilkan daftar bisnis
+        // (termasuk yang baru dibuat) dengan shortcut menuju dashboard platform.
+        setTimeout(() => {
+          setSubmitting(false);
+          setSubmitStep('idle');
+          loadBusinesses();
+        }, 900);
+      } else {
+        const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002';
         const targetUrl = `${adminUrl}/business/${bizId}/dashboard${placement ? `?placement=${encodeURIComponent(placement)}` : ''}`;
-        window.location.href = targetUrl;
-      }, 1000);
+        setTimeout(() => {
+          window.location.href = targetUrl;
+        }, 1400);
+        setTimeout(() => {
+          setSubmitting(false);
+          setSubmitStep('idle');
+        }, 1400);
+      }
     } catch (err: any) {
       setMessage({ type: 'error', text: err?.message || t('business_page.err_submit') });
     } finally {
-      setSubmitting(false);
-      setSubmitStep('idle');
+      if (!succeeded) {
+        setSubmitting(false);
+        setSubmitStep('idle');
+      }
     }
   };
 
   const placementName = placement ? (PLACEMENT_NAMES[placement] || placement) : '';
 
-  return (
+  const landingPage = (
     <BusinessLayout>
       <VisualPanel />
       
@@ -361,7 +408,8 @@ export default function BusinessPage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between">
+            {!showCreateForm && (
+            <div className="space-y-2">
               <div>
                 <h2 className="text-xl font-bold text-stone-900">
                   {placementName ? t('business_page.ad_register_title') : t('business_page.my_businesses_title')}
@@ -372,7 +420,14 @@ export default function BusinessPage() {
                     : t('business_page.my_businesses_subtitle')}
                 </p>
               </div>
-              {!showCreateForm && (
+              <div className="flex items-center gap-2 justify-end">
+                <Link
+                  href="/business/claim"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-white border border-stone-300 hover:border-amber-500 text-stone-700 hover:text-amber-700 text-xs font-bold rounded-full transition-colors shadow-sm"
+                >
+                  <FileCheck className="w-3.5 h-3.5" />
+                  <span>{t('business_page.claim_business_btn')}</span>
+                </Link>
                 <button
                   onClick={() => setShowCreateForm(true)}
                   className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-full transition-colors shadow-sm"
@@ -380,8 +435,9 @@ export default function BusinessPage() {
                   <Plus className="w-3.5 h-3.5" />
                   <span>{t('business_page.add_business_btn')}</span>
                 </button>
-              )}
+              </div>
             </div>
+            )}
 
             {message && (
               <div className={`p-3.5 rounded-xl text-xs font-medium flex items-center gap-2 ${
@@ -398,13 +454,20 @@ export default function BusinessPage() {
             )}
 
             {showCreateForm ? (
-              <form onSubmit={handleSubmit} className="space-y-3 bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
-                <div className="flex items-center justify-between gap-3 border-b border-stone-100 pb-3">
-                  <h3 className="text-sm font-bold text-stone-800 truncate">
-                    {placementName
-                      ? t('business_page.form_title_ad', { name: placementName })
-                      : t('business_page.form_title')}
-                  </h3>
+              <form onSubmit={handleSubmit} className="space-y-3 bg-white p-4 md:p-5 rounded-2xl border border-stone-200 shadow-sm">
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-stone-900">
+                      {placementName
+                        ? t('business_page.form_title_ad', { name: placementName })
+                        : t('business_page.form_title')}
+                    </h2>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      {placementName
+                        ? t('business_page.ad_register_subtitle', { name: placementName })
+                        : t('business_page.form_subtitle')}
+                    </p>
+                  </div>
                   {placementName && (
                     <span className="text-[10px] font-bold px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full border border-amber-200 shrink-0 whitespace-nowrap">
                       {t('business_page.form_step')}
@@ -530,7 +593,7 @@ export default function BusinessPage() {
                   <button
                     type="button"
                     onClick={() => setShowCreateForm(false)}
-                    className="px-4 py-2 text-xs font-semibold text-stone-500 hover:text-stone-800 transition-colors"
+                    className="px-5 py-2.5 text-xs font-bold bg-white border border-stone-300 hover:border-amber-500 hover:bg-amber-50 text-stone-700 hover:text-amber-700 rounded-xl transition-colors shadow-sm"
                   >
                     {t('business_page.btn_cancel')}
                   </button>
@@ -549,6 +612,16 @@ export default function BusinessPage() {
                         } as const)[submitStep]
                       : (placementName ? t('business_page.btn_submit_ad') : t('business_page.btn_submit'))}
                   </button>
+                </div>
+                <div className="pt-2 border-t border-stone-100 flex items-center justify-center">
+                  <Link
+                    href="/business/claim"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-amber-700 transition-colors"
+                  >
+                    <FileCheck className="w-3.5 h-3.5" />
+                    {t('business_page.claim_existing_link')}
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
                 </div>
               </form>
             ) : (
@@ -591,8 +664,9 @@ export default function BusinessPage() {
                     </p>
                   </div>
                 ) : (
-                  myBusinesses.map((biz) => (
-                    <div key={biz.id} className="p-4 rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100/80 transition-colors flex items-center justify-between">
+                  <>
+                    {pagedBusinesses.map((biz) => (
+                      <div key={biz.id} className="p-4 rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100/80 transition-colors flex items-center justify-between">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-sm text-stone-900">{biz.name}</span>
@@ -614,6 +688,17 @@ export default function BusinessPage() {
                           </p>
                         )}
                       </div>
+                      {isNew ? (
+                        <Link
+                          href={`/business/${biz.external_id || (biz as any).id || ''}/dashboard${placement ? `?placement=${encodeURIComponent(placement)}` : ''}`}
+                          className={`flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-colors shadow-xs ${
+                            placement ? 'bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold' : 'bg-stone-900 hover:bg-black text-white'
+                          }`}
+                        >
+                          <span>{placement ? t('business_page.go_place_ad') : t('business_page.go_dashboard')}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      ) : (
                       <a
                         href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/business/${biz.external_id || (biz as any).id || ''}/dashboard${placement ? `?placement=${encodeURIComponent(placement)}` : ''}`}
                         target="_blank"
@@ -625,8 +710,36 @@ export default function BusinessPage() {
                         <span>{placement ? t('business_page.go_place_ad') : t('business_page.go_dashboard')}</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
+                      )}
                     </div>
-                  ))
+                    ))}
+
+                    {totalBizPages > 1 && (
+                      <div className="flex items-center justify-between pt-1">
+                        <button
+                          type="button"
+                          disabled={bizPage <= 1}
+                          onClick={() => setBizPage((p) => Math.max(1, p - 1))}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 text-xs font-semibold hover:border-stone-400 hover:text-stone-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                          {t('business_page.pagination_prev')}
+                        </button>
+                        <span className="text-[11px] text-stone-500 font-medium tabular-nums">
+                          {t('business_page.pagination_page')} {bizPage} / {totalBizPages}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={bizPage >= totalBizPages}
+                          onClick={() => setBizPage((p) => Math.min(totalBizPages, p + 1))}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 text-xs font-semibold hover:border-stone-400 hover:text-stone-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {t('business_page.pagination_next')}
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {myClaims.length > 0 && (
@@ -690,5 +803,21 @@ export default function BusinessPage() {
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </BusinessLayout>
+  );
+
+  const verifySteps = [
+    { id: 'checking-name', label: t('business_page.step_checking_name') },
+    { id: 'checking-email', label: t('business_page.step_checking_email') },
+    { id: 'saving', label: t('business_page.step_saving') },
+    { id: 'done', label: t('business_page.step_done') },
+  ];
+
+  return (
+    <>
+      {landingPage}
+      {submitStep !== 'idle' && (
+        <VerificationStepper steps={verifySteps} activeStep={submitStep} allDone={submitStep === 'done'} />
+      )}
+    </>
   );
 }

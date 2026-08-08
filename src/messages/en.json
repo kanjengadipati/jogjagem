@@ -580,6 +580,7 @@
     "claim_just_now": "Just Now",
     "form_title": "New Business Registration Form",
     "form_title_ad": "Business Form — Slot \"{name}\"",
+    "form_subtitle": "Fill in your business details. Data will be verified before processing.",
     "form_step": "Step 1 of 2",
     "field_name": "Business / Brand Name *",
     "field_name_placeholder": "Example: Gudeg Pawon Jogja",
@@ -597,6 +598,7 @@
     "field_website": "Website (optional)",
     "field_website_placeholder": "https://yourbusiness.com",
     "btn_cancel": "Cancel",
+    "btn_back": "Back",
     "btn_submit": "Register Business",
     "btn_submit_ad": "Register Business & Continue to Place Ad →",
     "step_checking_name": "Checking business name...",
@@ -611,7 +613,12 @@
     "err_email_format": "Invalid email format.",
     "err_name_taken": "A business named \"{name}\" is already registered. Use a different name or claim the existing listing.",
     "err_submit": "Failed to process business registration.",
-    "success_registered": "Business successfully registered & verified! Redirecting to Business Portal..."
+    "success_registered": "Business successfully registered & verified! Redirecting to Business Portal...",
+    "pagination_prev": "Previous",
+    "pagination_next": "Next",
+    "pagination_page": "Page",
+    "claim_business_btn": "Claim Business",
+    "claim_existing_link": "Already listed on Jogjagem? Claim ownership"
   },
   "partner_page": {
     "hero_title": "Become a",
