@@ -86,13 +86,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const dest = await fetchDestinationBySlug(slugStr, locale);
 
+  if (dest === 'fetch_error') {
+    // Transient API failure — keep indexable so Google retries later.
+    const pageUrl = locale === 'en'
+      ? `${SITE_URL}/en/destinations/${slugStr}`
+      : `${SITE_URL}/destinations/${slugStr}`;
+    return {
+      title: slugStr.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') +
+        (locale === 'en' ? ' — Yogyakarta Tourism' : ' — Wisata Yogyakarta'),
+      robots: { index: true, follow: true },
+      alternates: { canonical: pageUrl },
+    };
+  }
+
   if (!dest) {
+    // Confirmed 404 — destination does not exist in the database.
     return {
       title: 'Destinasi Tidak Ditemukan — Jogjagem',
-      robots: {
-        index: false,
-        follow: false,
-      },
+      robots: { index: false, follow: false },
     };
   }
 
@@ -171,7 +182,9 @@ export default async function DestinationDetailPage({ params }: PageProps) {
     return <DestinationsPageClient initialCategory={categoryId} initialDestinations={initialDestinations} />;
   }
 
-  const dest = await fetchDestinationBySlug(slugStr, locale);
+  const destResult = await fetchDestinationBySlug(slugStr, locale);
+  // treat fetch_error the same as null for rendering — show not-found UI
+  const dest = destResult === 'fetch_error' ? null : destResult;
 
   const name = dest?.name || '';
   const tagline = dest?.tagline || '';

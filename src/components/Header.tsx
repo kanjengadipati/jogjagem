@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from '@/i18n/navigation';
+import { useRouter, Link } from '@/i18n/navigation';
 import { Compass, Heart, Bell, Menu, X, Brain, CalendarDays, Map, LogIn, LogOut, ShieldCheck, Settings, HelpCircle, Bookmark, ChevronRight, MapPin, Briefcase, User, ExternalLink, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { useAuth } from '../contexts/AuthContext';
@@ -152,6 +152,15 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
               </a>
             )}
             {isAuthenticated && user?.role === 'partner' && (
+              process.env.NEXT_PUBLIC_BUSINESS_PLATFORM === 'new' ? (
+                <Link
+                  href="/business"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-gold-400/30 text-gold-400 hover:bg-gold-400/10 transition-colors text-[11px] font-semibold"
+                >
+                  <Briefcase className="h-3 w-3 shrink-0" />
+                  <span>{t('business_page.business_dashboard') || 'Dashboard Bisnis'}</span>
+                </Link>
+              ) : (
               <a
                 href={`${process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3002'}/business`}
                 target="_blank"
@@ -161,6 +170,7 @@ export default function Header({ activeTab, setActiveTab, savedCount, isOverHero
                 <Briefcase className="h-3 w-3 shrink-0" />
                 <span>{t('business_page.business_dashboard') || 'Dashboard Bisnis'}</span>
               </a>
+              )
             )}
 
             <button

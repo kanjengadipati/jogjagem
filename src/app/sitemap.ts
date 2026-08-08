@@ -181,62 +181,87 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     if (destinations.length > 0) {
-      const destinationPages: MetadataRoute.Sitemap = destinations.map((d) => {
+      const destinationPages: MetadataRoute.Sitemap = destinations.flatMap((d) => {
         const slug = toSlug(d.name) || d.id;
         const updated = d.updatedAt || NOW;
-        return {
-          url: `${SITE_URL}/destinations/${slug}`,
+        const base = {
           lastModified: updated,
           changeFrequency: 'weekly' as const,
           priority: 0.8,
-          alternates: {
-            languages: {
-              id: `${SITE_URL}/destinations/${slug}`,
-              en: `${SITE_URL}/en/destinations/${slug}`,
+        };
+        return [
+          {
+            ...base,
+            url: `${SITE_URL}/destinations/${slug}`,
+            alternates: {
+              languages: {
+                id: `${SITE_URL}/destinations/${slug}`,
+                en: `${SITE_URL}/en/destinations/${slug}`,
+              },
             },
           },
-        };
+          {
+            ...base,
+            url: `${SITE_URL}/en/destinations/${slug}`,
+            alternates: {
+              languages: {
+                id: `${SITE_URL}/destinations/${slug}`,
+                en: `${SITE_URL}/en/destinations/${slug}`,
+              },
+            },
+          },
+        ];
       });
       staticPages.push(...destinationPages);
     }
 
     if (events.length > 0) {
-      const eventPages: MetadataRoute.Sitemap = events.map((e) => {
+      const eventPages: MetadataRoute.Sitemap = events.flatMap((e) => {
         const id = (e.id || e.Id || '') as string;
         const updated = (e.updated_at || e.UpdatedAt || e.updatedAt || NOW) as string;
-        return {
-          url: `${SITE_URL}/events/${id}`,
+        const base = {
           lastModified: updated,
           changeFrequency: 'weekly' as const,
           priority: 0.6,
-          alternates: {
-            languages: {
-              id: `${SITE_URL}/events/${id}`,
-              en: `${SITE_URL}/en/events/${id}`,
-            },
-          },
         };
+        return [
+          {
+            ...base,
+            url: `${SITE_URL}/events/${id}`,
+            alternates: { languages: { id: `${SITE_URL}/events/${id}`, en: `${SITE_URL}/en/events/${id}` } },
+          },
+          {
+            ...base,
+            url: `${SITE_URL}/en/events/${id}`,
+            alternates: { languages: { id: `${SITE_URL}/events/${id}`, en: `${SITE_URL}/en/events/${id}` } },
+          },
+        ];
       });
       staticPages.push(...eventPages);
     }
 
     if (articles.length > 0) {
-      const articlePages: MetadataRoute.Sitemap = articles.map((a) => {
+      const articlePages: MetadataRoute.Sitemap = articles.flatMap((a) => {
         const slug = (a.slug || a.Slug || '') as string;
         const updated = (a.updated_at || a.UpdatedAt || a.updatedAt || NOW) as string;
-        if (!slug) return null;
-        return {
-          url: `${SITE_URL}/blog/${slug}`,
+        if (!slug) return [];
+        const base = {
           lastModified: updated,
           changeFrequency: 'weekly' as const,
           priority: 0.6,
-          alternates: {
-            languages: {
-              id: `${SITE_URL}/blog/${slug}`,
-              en: `${SITE_URL}/en/blog/${slug}`,
-            },
-          },
         };
+        return [
+          {
+            ...base,
+            url: `${SITE_URL}/blog/${slug}`,
+            alternates: { languages: { id: `${SITE_URL}/blog/${slug}`, en: `${SITE_URL}/en/blog/${slug}` } },
+          },
+          {
+            ...base,
+            url: `${SITE_URL}/en/blog/${slug}`,
+            alternates: { languages: { id: `${SITE_URL}/blog/${slug}`, en: `${SITE_URL}/en/blog/${slug}` } },
+          },
+        ];
       }).filter(Boolean) as MetadataRoute.Sitemap;
       staticPages.push(...articlePages);
     }

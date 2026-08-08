@@ -22,6 +22,29 @@
   --color-royal-900: #1b1c16;
   --color-royal-800: #292a22;
   --color-royal-700: #3f4136;
+
+  /* Tokens clone business portal (kompat admin tailwind.config.ts) */
+  --color-primary: #8B5E3C;
+  --color-primary-light: #A06E4A;
+  --color-primary-dark: #734E30;
+  --color-secondary: #B68D40;
+  --color-secondary-light: #C8A254;
+  --color-secondary-dark: #9A752F;
+  --color-bg: #F8F7F4;
+  --color-card: #FFFFFF;
+  --color-border: #ECECEC;
+  --color-text: #222222;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+
+  --radius-card: 24px;
+  --radius-button: 12px;
+
+  --shadow-soft: 0 8px 30px rgb(0 0 0 / 0.04);
+  --shadow-premium: 0 12px 40px rgb(139 94 60 / 0.05);
+  --shadow-apple: 0 4px 20px rgb(0 0 0 / 0.02);
 }
 
 /* Base resets & custom scrollbar */
