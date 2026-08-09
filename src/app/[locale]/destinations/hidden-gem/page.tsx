@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import DestinationsPageClient from '../DestinationsPageClient';
-import { fetchAllDestinations } from '@/lib/server-destinations';
+import { fetchHiddenGemDestinations } from '@/lib/server-destinations';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
@@ -9,12 +9,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const isEn = locale === 'en';
 
   const title = isEn
-    ? '23+ Hidden Gems Yogyakarta You Must Visit 2026 | Jogjagem'
-    : '23+ Hidden Gem Jogja Wajib Dikunjungi 2026 | Jogjagem';
+    ? "This Week's Hidden Gems in Yogyakarta | Jogjagem"
+    : 'Hidden Gem Jogja Pilihan Minggu Ini | Jogjagem';
 
   const description = isEn
-    ? 'Explore curated hidden gems in Yogyakarta. Secret destinations, quiet spots, and healing places not yet widely known. Updated 2026.'
-    : 'Jelajahi hidden gem Jogja terkurasi. Destinasi tersembunyi, spot sepi, dan tempat healing yang belum banyak diketahui di Yogyakarta. Terbaru 2026.';
+    ? 'A curated selection of up to 15 hidden gems in Yogyakarta, refreshed every week. Secret spots, quiet retreats, and off-the-beaten-path destinations handpicked by our team.'
+    : 'Pilihan hingga 15 hidden gem Jogja yang dikurasi setiap minggu. Destinasi tersembunyi, spot sepi, dan tempat healing yang belum banyak diketahui — dipilih ulang tiap pekan.';
 
   const keywords = isEn
     ? 'hidden gems yogyakarta, hidden gem jogja, secret spots jogja, off the beaten path yogyakarta, quiet places jogja, healing spots yogyakarta'
@@ -45,6 +45,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function HiddenGemPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const initialDestinations = await fetchAllDestinations(locale);
-  return <DestinationsPageClient initialCategory="hidden-gem" initialDestinations={initialDestinations} />;
+  // Fetch only the 15 curated destinations instead of the full catalogue.
+  const initialDestinations = await fetchHiddenGemDestinations(locale);
+  return (
+    <DestinationsPageClient
+      initialCategory="hidden-gem"
+      initialDestinations={initialDestinations}
+      isWeeklyCurated
+    />
+  );
 }

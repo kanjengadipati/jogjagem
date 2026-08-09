@@ -10,6 +10,7 @@ import {
   Sun, Leaf, Sunset, Moon,
 } from 'lucide-react';
 import { Destination, Festival } from '../types';
+import AdBanner from './AdBanner';
 import { auth, ai, ads, type BeAdCampaign, type BeHouseAd } from '../lib/api';
 import { useLocation } from '@/contexts/LocationContext';
 import { toSlug } from '@/lib/slug';
@@ -728,6 +729,7 @@ export default function MobileDiscoverView({
         })()}
 
         {/* ── Popular destinations ── */}
+        <AdBanner placement="homepage_category_banner" category={selectedCategory ?? undefined} className="px-4" />
         {(() => {
           type MobileGridItem =
             | { kind: 'organic'; dest: Destination }
@@ -737,12 +739,7 @@ export default function MobileDiscoverView({
           const buildMobileGrid = (): MobileGridItem[] => {
             if (popularDests.length === 0) return [];
             const items: MobileGridItem[] = popularDests.map(d => ({ kind: 'organic', dest: d }));
-            const slot1: MobileGridItem = topCampaign
-              ? { kind: 'campaign', camp: topCampaign }
-              : topHouseAd
-                ? { kind: 'house', ad: topHouseAd }
-                : { kind: 'organic', dest: popularDests[0] };
-            items[0] = slot1;
+            // Slot #5 (index 4) — only if we have enough organic (same as desktop)
             if (items.length >= 5) {
               const slot5: MobileGridItem = topCampaign
                 ? { kind: 'campaign', camp: topCampaign }
@@ -750,6 +747,15 @@ export default function MobileDiscoverView({
                   ? { kind: 'house', ad: topHouseAd }
                   : { kind: 'organic', dest: popularDests[4] };
               items[4] = slot5;
+            }
+            // Slot #12 (index 13) — only if we have enough organic (same as desktop)
+            if (items.length >= 14) {
+              const slot13: MobileGridItem = topCampaign
+                ? { kind: 'campaign', camp: topCampaign }
+                : topHouseAd
+                  ? { kind: 'house', ad: topHouseAd }
+                  : { kind: 'organic', dest: popularDests[13] };
+              items[13] = slot13;
             }
             return items;
           };
@@ -843,17 +849,26 @@ export default function MobileDiscoverView({
 
                       const dest = item.dest;
                       return (
-                        <MobileDestinationCard
-                          key={dest.id}
-                          destination={dest}
-                          isSaved={isSaved(dest.id)}
-                          onToggleSave={(d) => {
-                            if (!auth.isLoggedIn()) { onOpenAuth('login'); return; }
-                            onToggleSave(d);
-                          }}
-                          onAuthRequired={() => onOpenAuth('login')}
-                          className={index % 7 === 0 ? 'col-span-2' : ''}
-                        />
+                        <React.Fragment key={dest.id}>
+                          <MobileDestinationCard
+                            destination={dest}
+                            isSaved={isSaved(dest.id)}
+                            onToggleSave={(d) => {
+                              if (!auth.isLoggedIn()) { onOpenAuth('login'); return; }
+                              onToggleSave(d);
+                            }}
+                            onAuthRequired={() => onOpenAuth('login')}
+                            className={index % 7 === 0 ? 'col-span-2' : ''}
+                          />
+                          {index === 3 && (
+                            <AdBanner
+                              placement="listing_native"
+                              category={selectedCategory ?? undefined}
+                              variant="native"
+                              className="col-span-1 rounded-3xl"
+                            />
+                          )}
+                        </React.Fragment>
                       );
                     })
                 }

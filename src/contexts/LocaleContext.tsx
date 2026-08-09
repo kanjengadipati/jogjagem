@@ -55,6 +55,9 @@ export function LocaleProvider({ children, locale }: LocaleProviderProps) {
   const setLocale = useCallback((newLocale: Locale) => {
     setApiLocale(newLocale);
     try {
+      // Always write the cookie so the middleware never falls back to
+      // Accept-Language detection (which is now disabled). Setting it
+      // explicitly on both id→en and en→id keeps state consistent.
       localStorage.setItem('locale', newLocale);
       document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
     } catch { /* ignore */ }

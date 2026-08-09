@@ -36,6 +36,8 @@ import {
   SELLABLE_PLACEMENTS,
   computePrice,
   formatPrice,
+  fetchPlacementPricing,
+  type PlacementPriceInfo,
 } from "@/lib/businessAdPlacements";
 
 const CATEGORIES = [
@@ -193,6 +195,7 @@ export default function PromotionsPanel() {
   const [ownListings, setOwnListings] = useState<OwnedListing[]>([]);
   const [ownListingsLoading, setOwnListingsLoading] = useState(false);
   const [placementParam, setPlacementParam] = useState<string | null>(null);
+  const [livePricing, setLivePricing] = useState<Record<string, PlacementPriceInfo>>({});
 
   // ── Load data ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -260,6 +263,12 @@ export default function PromotionsPanel() {
   useEffect(() => {
     if (partnerId) loadOwnListings();
   }, [partnerId]);
+
+  // Muat harga live (termasuk promo) dari backend agar estimasi biaya
+  // mencerminkan tarif & diskon yang dikustomisasi admin.
+  useEffect(() => {
+    fetchPlacementPricing().then(setLivePricing);
+  }, []);
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const activePromos = promotions.filter(
@@ -454,8 +463,17 @@ export default function PromotionsPanel() {
     }
   }
 
-  const adPrice = computePrice(adForm.placement, adForm.start_at, adForm.end_at);
+  const liveMonthlyRate = livePricing[adForm.placement]?.monthlyRate;
+  const adPrice = computePrice(
+    adForm.placement,
+    adForm.start_at,
+    adForm.end_at,
+    liveMonthlyRate
+  );
   const adPlacementMeta = AD_PLACEMENTS[adForm.placement];
+  const adPromo = livePricing[adForm.placement]?.promoActive
+    ? livePricing[adForm.placement]?.promoLabel
+    : undefined;
   // Approval is mandatory for every sellable slot (spec: approval wajib).
   const needsReview = true;
   const ecosystem = isEcosystemPlacement(adForm.placement);
@@ -1391,8 +1409,16 @@ export default function PromotionsPanel() {
                     </span>
                   )}
                 </div>
-                <div className="text-sm font-extrabold text-[#6B440A]">
-                  {formatPrice(adPrice)}
+                <div className="text-right">
+                  <div className="text-sm font-extrabold text-[#6B440A]">
+                    {formatPrice(adPrice)}
+                  </div>
+                  {adPromo && (
+                    <div className="inline-flex items-center gap-1 text-[9px] font-bold text-[#8F5D15] bg-[#F2E3C6] rounded-full px-2 py-0.5 mt-0.5">
+                      <Zap className="w-2.5 h-2.5" />
+                      {adPromo}
+                    </div>
+                  )}
                 </div>
               </div>
 

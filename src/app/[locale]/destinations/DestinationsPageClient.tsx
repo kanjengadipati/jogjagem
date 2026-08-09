@@ -268,9 +268,10 @@ type DestinationsPageClientProps = {
   initialCategory?: string | null;
   initialRegion?: string | null;  // e.g. "Sleman", "Bantul" — filters by subRegion
   initialDestinations?: Destination[];
+  isWeeklyCurated?: boolean;       // true on the hidden-gem page — shows the weekly refresh badge
 };
 
-function DestinationsPageInner({ initialCategory = null, initialRegion = null, initialDestinations }: DestinationsPageClientProps) {
+function DestinationsPageInner({ initialCategory = null, initialRegion = null, initialDestinations, isWeeklyCurated = false }: DestinationsPageClientProps) {
   const router = useRouter();
   const { t, locale } = useLocale();
 
@@ -400,7 +401,11 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
         return;
       }
       // Filter changes after mount: apply them against the full server list.
-      setAllDestinations(filterDestinations(initialDestinations!, selectedCategory, selectedRegion));
+      setAllDestinations(
+        isWeeklyCurated && selectedCategory === 'hidden-gem'
+          ? initialDestinations!  // already the curated 15, no filtering needed
+          : filterDestinations(initialDestinations!, selectedCategory, selectedRegion)
+      );
       setPage(1);
       setTotalPages(1);
       return;
@@ -411,12 +416,26 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
       setIsLoading(true);
       setTotalCount(null);
       try {
-        // Fetch semua data untuk pemfilteran sisi klien
-        const response = await destinationApi.getAll({ limit: 500 });
-        const data = (response as any).data || (response as any);
-        const full = Array.isArray(data) ? data.map(mapApiToDestination) : [];
+        let full: Destination[] = [];
+
+        if (isWeeklyCurated && selectedCategory === 'hidden-gem') {
+          // Use the dedicated endpoint — returns only the 15 curated destinations
+          // instead of fetching the full catalogue and filtering client-side.
+          const response = await destinationApi.getHiddenGem();
+          const data = (response as any).data || (response as any);
+          full = Array.isArray(data) ? data.map(mapApiToDestination) : [];
+        } else {
+          const response = await destinationApi.getAll({ limit: 500 });
+          const data = (response as any).data || (response as any);
+          full = Array.isArray(data) ? data.map(mapApiToDestination) : [];
+        }
+
         if (cancelled) return;
-        setAllDestinations(filterDestinations(full, selectedCategory, selectedRegion));
+        setAllDestinations(
+          isWeeklyCurated && selectedCategory === 'hidden-gem'
+            ? full  // already the exact curated list, no further filtering needed
+            : filterDestinations(full, selectedCategory, selectedRegion)
+        );
         setPage(1); setTotalPages(1);
       } catch (e) { console.error('Failed to fetch destinations:', e); }
       finally {
@@ -522,6 +541,16 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                     region: selectedRegion || t('destinations_page.all_yogyakarta')
                   })}
                 </p>
+                {/* Weekly curated badge — shown only on the hidden-gem page */}
+                {isWeeklyCurated && (
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/15 border border-teal-400/25 text-teal-300 text-xs font-semibold">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-60" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-400" />
+                    </span>
+                    {locale === 'en' ? 'Updated every week' : 'Diperbarui tiap minggu'}
+                  </div>
+                )}
                 {/* SEO links — only show when no filter active */}
                 {!selectedCategory && !selectedRegion && (
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -708,13 +737,14 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
   );
 }
 
-export default function DestinationsPageClient({ initialCategory = null, initialRegion = null, initialDestinations }: DestinationsPageClientProps) {
+export default function DestinationsPageClient({ initialCategory = null, initialRegion = null, initialDestinations, isWeeklyCurated = false }: DestinationsPageClientProps) {
   return (
     <AuthProvider>
       <DestinationsPageInner
         initialCategory={initialCategory}
         initialRegion={initialRegion}
         initialDestinations={initialDestinations}
+        isWeeklyCurated={isWeeklyCurated}
       />
     </AuthProvider>
   );

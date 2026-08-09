@@ -10,23 +10,20 @@ import AdBanner from '@/components/AdBanner';
 import type { Destination } from '@/types';
 import { toSlug } from '@/lib/slug';
 
-interface WisataJogjaClientProps {
+interface HiddenGemJogjaClientProps {
   destinations: Destination[];
   locale: string;
 }
 
 const BADGE_LABEL: Record<string, { id: string; en: string }> = {
-  trending:   { id: 'Trending',   en: 'Trending'   },
-  hidden_gem: { id: 'Hidden Gem', en: 'Hidden Gem'  },
+  trending:   { id: 'Trending',   en: 'Trending'  },
+  hidden_gem: { id: 'Hidden Gem', en: 'Hidden Gem' },
 };
 
-export default function WisataJogjaClient({ destinations, locale }: WisataJogjaClientProps) {
+export default function HiddenGemJogjaClient({ destinations, locale }: HiddenGemJogjaClientProps) {
   const router = useRouter();
   const isEn = locale === 'en';
   const localePrefix = isEn ? '/en' : '';
-  const updatedAt = new Date().toLocaleDateString(isEn ? 'en-US' : 'id-ID', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
 
   return (
     <AuthProvider>
@@ -47,41 +44,49 @@ export default function WisataJogjaClient({ destinations, locale }: WisataJogjaC
               </Link>
               <span className="mx-2 text-gold-300">/</span>
               <span className="text-royal-700">
-                {isEn ? 'Popular Destinations' : 'Wisata Jogja'}
+                {isEn ? 'Hidden Gems' : 'Hidden Gem Jogja'}
               </span>
             </nav>
 
-            {/* Eyebrow */}
+            {/* Eyebrow — weekly framing */}
             <p className="font-mono text-[11px] tracking-[0.25em] uppercase text-gold-700 mb-4">
               {isEn
-                ? `Updated ${updatedAt} · ${destinations.length} spots`
-                : `Diperbarui ${updatedAt} · ${destinations.length} tempat`}
+                ? `Picked this week · ${destinations.length} spots`
+                : `Pilihan minggu ini · ${destinations.length} tempat`}
             </p>
 
             {/* Headline */}
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-medium text-royal-900 leading-[1.05] mb-6">
               {isEn ? (
-                <>Yogyakarta&apos;s{' '}
-                  <span className="italic text-gold-600">Most Loved</span> Places
+                <>Hidden Gems{' '}
+                  <span className="italic text-gold-600">Pilihan Minggu Ini</span>
                 </>
               ) : (
-                <>Tempat Wisata{' '}
-                  <span className="italic text-gold-600">Paling Dicari</span> di Jogja
+                <>Hidden Gem{' '}
+                  <span className="italic text-gold-600">Pilihan Minggu Ini</span>
                 </>
               )}
             </h1>
 
-            {/* Intro paragraph */}
+            {/* Intro */}
             <p className="font-sans text-lg text-royal-700/85 leading-relaxed max-w-xl">
               {isEn
-                ? 'Planning a trip to Yogyakarta? Here are the most popular places to visit right now, ranked by what travelers are actually searching for and rating highest — from iconic temples to beaches and trending hidden gems.'
-                : 'Lagi rencanain liburan ke Jogja? Berikut tempat wisata paling populer saat ini, diurutkan berdasarkan apa yang paling banyak dicari dan dinilai tinggi oleh wisatawan — mulai dari candi ikonik, pantai, sampai hidden gem yang lagi trending.'}
+                ? 'Up to 15 off-the-beaten-path destinations in Yogyakarta, picked fresh every week. High-rated spots that haven\'t gone mainstream yet — the kind of places most visitors walk right past.'
+                : 'Hingga 15 destinasi tersembunyi di Yogyakarta yang dipilih ulang setiap minggu. Tempat-tempat berkualitas tinggi yang belum banyak diketahui — spot yang sering terlewat kebanyakan wisatawan.'}
             </p>
+
+            {/* Weekly refresh indicator */}
+            <div className="mt-5 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-400/20 text-teal-700 text-xs font-semibold font-mono tracking-wider">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-400" />
+              </span>
+              {isEn ? 'Updated every week' : 'Diperbarui tiap minggu'}
+            </div>
           </div>
         </header>
 
         {/* ── Listicle — "Kraton Ledger" ───────────────────────────────────── */}
-        {/* Hairline gold dividers instead of card boxes; ghost ordinal numerals */}
         <main className="max-w-3xl mx-auto px-4 sm:px-6">
           <ol className="divide-y divide-gold-200">
             {destinations.map((d, i) => {
@@ -96,10 +101,9 @@ export default function WisataJogjaClient({ destinations, locale }: WisataJogjaC
 
               return (
                 <li key={d.id} className="scroll-mt-24 py-10 md:py-14" id={`item-${i + 1}`}>
-                  {/* Two-column: ghost ordinal + content */}
                   <div className="grid grid-cols-[64px_1fr] md:grid-cols-[96px_1fr] gap-4 md:gap-8 items-start">
 
-                    {/* Ghost ordinal numeral — "plat katalog kraton" */}
+                    {/* Ghost ordinal numeral */}
                     <span
                       className="font-display italic text-gold-200 leading-none select-none pt-1"
                       style={{ fontSize: 'clamp(48px, 8vw, 80px)' }}
@@ -109,7 +113,7 @@ export default function WisataJogjaClient({ destinations, locale }: WisataJogjaC
                     </span>
 
                     <div className="min-w-0">
-                      {/* Name + badge row */}
+                      {/* Name + badge */}
                       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5 mb-4">
                         <h2 className="font-manrope text-2xl md:text-3xl font-bold text-royal-900">
                           <Link
@@ -152,7 +156,7 @@ export default function WisataJogjaClient({ destinations, locale }: WisataJogjaC
                         </p>
                       )}
 
-                      {/* "Read more" link */}
+                      {/* Read more */}
                       <Link
                         href={`${localePrefix}/destinations/${slug}`}
                         className="inline-flex items-center gap-1.5 font-mono text-xs tracking-[0.15em] uppercase text-gold-700 hover:text-royal-900 hover:gap-2.5 transition-all duration-150"
@@ -163,10 +167,10 @@ export default function WisataJogjaClient({ destinations, locale }: WisataJogjaC
                     </div>
                   </div>
 
-                  {/* Native ad slot — unchanged cadence (every 8th item) */}
+                  {/* Ad slot every 8th item */}
                   {(i + 1) % 8 === 0 && (
                     <div className="mt-8 ml-[72px] md:ml-[112px]">
-                      <AdBanner placement="wisata_jogja_listicle" variant="native" showHouseAdFallback />
+                      <AdBanner placement="hidden_gem_listicle" variant="native" showHouseAdFallback />
                     </div>
                   )}
                 </li>
@@ -178,8 +182,8 @@ export default function WisataJogjaClient({ destinations, locale }: WisataJogjaC
           <div className="py-16 md:py-24 text-center border-t border-gold-200">
             <p className="font-display italic text-xl md:text-2xl text-royal-900 mb-8">
               {isEn
-                ? 'Want to see everything Yogyakarta has to offer?'
-                : 'Mau lihat semua destinasi wisata Jogja?'}
+                ? 'Want to explore more of Yogyakarta?'
+                : 'Mau jelajahi lebih banyak destinasi Jogja?'}
             </p>
             <Link
               href={`${localePrefix}/destinations`}

@@ -13,6 +13,7 @@ import {
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import { PLACEMENT_NAMES } from '@/lib/adPlacements';
+import { fetchPlacementPricing, formatPrice, type PlacementPriceInfo } from '@/lib/businessAdPlacements';
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -77,9 +78,11 @@ interface SlotCardProps {
   formatLabel: string;
   preview: React.ReactNode;
   onSelect: () => void;
+  price?: number;
+  promoLabel?: string;
 }
 
-function SlotCard({ featured, badge, badgeVariant, icon, title, description, formatLabel, preview, onSelect }: SlotCardProps) {
+function SlotCard({ featured, badge, badgeVariant, icon, title, description, formatLabel, preview, onSelect, price, promoLabel }: SlotCardProps) {
   const bs = BADGE_STYLES[badgeVariant];
   return (
     <div className={`rounded-2xl overflow-hidden bg-white transition-all hover:shadow-md ${
@@ -102,6 +105,19 @@ function SlotCard({ featured, badge, badgeVariant, icon, title, description, for
           <span className="font-display font-semibold text-sm text-stone-900">{title}</span>
         </div>
         <p className="text-xs text-stone-500 leading-relaxed mb-3">{description}</p>
+        {price != null && price > 0 && (
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-extrabold text-stone-900">
+              {formatPrice(price)}
+              <span className="text-[10px] font-semibold text-stone-400 ml-1">/bulan</span>
+            </span>
+            {promoLabel && (
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                {promoLabel}
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex items-center justify-between border-t border-stone-100 pt-3">
           <span className="text-[11px] font-mono font-medium text-stone-400">{formatLabel}</span>
           <button
@@ -120,6 +136,11 @@ export default function AdsLandingClient() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const slotsRef = React.useRef<HTMLElement>(null);
+  const [pricing, setPricing] = React.useState<Record<string, PlacementPriceInfo>>({});
+
+  React.useEffect(() => {
+    fetchPlacementPricing().then(setPricing);
+  }, []);
 
   const placement = searchParams.get('placement') || '';
   const type = searchParams.get('type') || searchParams.get('category') || 'destination';
@@ -332,6 +353,8 @@ export default function AdsLandingClient() {
               title="Homepage Hero AIPick Card"
               description="Card sponsor yang menempati slot 'Jogjagem's Pick' di hero. Setiap load halaman diundi 50:50 (coin-flip) — saat terpilih, iklanmu menggantikan rekomendasi AI organik di posisi paling pertama dilihat wisatawan."
               formatLabel="Portrait card — 2:3 (~210px)"
+              price={pricing['homepage_hero_aicard']?.monthlyRate}
+              promoLabel={pricing['homepage_hero_aicard']?.promoActive ? pricing['homepage_hero_aicard']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('homepage_hero_aicard'); }}
               preview={
                 <PreviewFrame>
@@ -373,6 +396,8 @@ export default function AdsLandingClient() {
               title="Homepage Hero Trending"
               description="Card sponsor di posisi ke-3 & ke-8 carousel 'Sedang Trending' (10 item, auto-geser). Menyatu natural di antara destinasi yang sedang ramai dicari wisatawan."
               formatLabel="Carousel — posisi #3 & #8"
+              price={pricing['homepage_hero_trending']?.monthlyRate}
+              promoLabel={pricing['homepage_hero_trending']?.promoActive ? pricing['homepage_hero_trending']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('homepage_hero_trending'); }}
               preview={
                 <PreviewFrame>
@@ -432,6 +457,8 @@ export default function AdsLandingClient() {
               title="Homepage Category Banner"
               description="Banner full-width tepat di bawah filter kategori halaman utama. Menjangkau wisatawan yang sudah memilih kategori dan siap menelusuri destinasi spesifik."
               formatLabel="16:5 — 1600×500px"
+              price={pricing['homepage_category_banner']?.monthlyRate}
+              promoLabel={pricing['homepage_category_banner']?.promoActive ? pricing['homepage_category_banner']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('homepage_category_banner'); }}
               preview={
                 <PreviewFrame>
@@ -465,6 +492,8 @@ export default function AdsLandingClient() {
               title="Destination Detail Sponsorship"
               description="Tampil eksklusif di dalam halaman detail destinasi wisata populer. Menjangkau calon pengunjung yang sedang aktif merencanakan kunjungan."
               formatLabel="1200×375 — 16:5 wide"
+              price={pricing['destination_detail']?.monthlyRate}
+              promoLabel={pricing['destination_detail']?.promoActive ? pricing['destination_detail']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('destination_detail'); }}
               preview={
                 <PreviewFrame>
@@ -490,6 +519,8 @@ export default function AdsLandingClient() {
               title="Listing Top Priority"
               description="Bisnis Anda menempati posisi #5 dan #10 di grid Destinasi Populer — kolom pertama tiap baris (landscape), section terpisah di luar hero, dilihat oleh wisatawan yang sedang aktif menelusuri destinasi."
               formatLabel="Grid 4 col — posisi #5 & #10, landscape (col span 2)"
+              price={pricing['listing_top']?.monthlyRate}
+              promoLabel={pricing['listing_top']?.promoActive ? pricing['listing_top']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('listing_top'); }}
               preview={
                 <PreviewFrame>
@@ -545,6 +576,8 @@ export default function AdsLandingClient() {
               title="Native In-Feed Ad"
               description="Banner yang menyatu secara seamless di antara daftar rekomendasi tempat menarik — tidak mengganggu kenyamanan eksplorasi pengunjung."
               formatLabel="480×360 — native card integration"
+              price={pricing['listing_native']?.monthlyRate}
+              promoLabel={pricing['listing_native']?.promoActive ? pricing['listing_native']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('listing_native'); }}
               preview={
                 <PreviewFrame>
@@ -590,6 +623,8 @@ export default function AdsLandingClient() {
               title="Rel Rekomendasi — Menginap"
               description="Kartu sponsor naik ke urutan teratas rail 'Menginap' di halaman destinasi. Memakai foto & data hotel milik bisnis Anda; bisa diarahkan ke destinasi spesifik."
               formatLabel="Native card — data hotel"
+              price={pricing['ecosystem_stay']?.monthlyRate}
+              promoLabel={pricing['ecosystem_stay']?.promoActive ? pricing['ecosystem_stay']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('ecosystem_stay'); }}
               preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Menginap' — pakai foto hotel Anda" />}
             />
@@ -602,6 +637,8 @@ export default function AdsLandingClient() {
               title="Rel Rekomendasi — Kuliner"
               description="Kartu sponsor di rail 'Kuliner' halaman destinasi, memakai data restoran/kafe milik bisnis Anda. Menarik wisatawan yang mencari tempat makan."
               formatLabel="Native card — data restoran"
+              price={pricing['ecosystem_eat']?.monthlyRate}
+              promoLabel={pricing['ecosystem_eat']?.promoActive ? pricing['ecosystem_eat']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('ecosystem_eat'); }}
               preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Kuliner' — pakai foto restoran Anda" />}
             />
@@ -614,6 +651,8 @@ export default function AdsLandingClient() {
               title="Rel Rekomendasi — Vibe & Aktivitas"
               description="Kartu sponsor di rail 'Vibe & Aktivitas' halaman destinasi, memakai data rental/agen milik bisnis Anda. Jangkau traveler yang mencari pengalaman."
               formatLabel="Native card — data rental"
+              price={pricing['ecosystem_experience']?.monthlyRate}
+              promoLabel={pricing['ecosystem_experience']?.promoActive ? pricing['ecosystem_experience']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('ecosystem_experience'); }}
               preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Vibe & Aktivitas'" />}
             />
@@ -626,6 +665,8 @@ export default function AdsLandingClient() {
               title="Rel Rekomendasi — Belanja"
               description="Kartu sponsor di rail 'Belanja' halaman destinasi, memakai data souvenir shop milik bisnis Anda. Ideal untuk toko oleh-oleh & kerajinan."
               formatLabel="Native card — data souvenir"
+              price={pricing['ecosystem_shop']?.monthlyRate}
+              promoLabel={pricing['ecosystem_shop']?.promoActive ? pricing['ecosystem_shop']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('ecosystem_shop'); }}
               preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Belanja'" />}
             />
@@ -638,6 +679,8 @@ export default function AdsLandingClient() {
               title="Rel Rekomendasi — Transport"
               description="Kartu sponsor di rail 'Transport' halaman destinasi, memakai data rental/transport milik bisnis Anda. Jangkau wisatawan yang butuh mobilitas."
               formatLabel="Native card — data rental"
+              price={pricing['ecosystem_move']?.monthlyRate}
+              promoLabel={pricing['ecosystem_move']?.promoActive ? pricing['ecosystem_move']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('ecosystem_move'); }}
               preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Transport'" />}
             />
@@ -650,6 +693,8 @@ export default function AdsLandingClient() {
               title="Rel Rekomendasi — Guide Lokal"
               description="Kartu sponsor di rail 'Guide Lokal' halaman destinasi, memakai data guide milik bisnis Anda dengan foto profil & tarif harian."
               formatLabel="Native card — data guide"
+              price={pricing['ecosystem_guide']?.monthlyRate}
+              promoLabel={pricing['ecosystem_guide']?.promoActive ? pricing['ecosystem_guide']?.promoLabel : undefined}
               onSelect={() => { window.location.href = getSlotUrl('ecosystem_guide'); }}
               preview={<EcosystemRailPreview highlightLabel="Urutan teratas di tab 'Guide Lokal'" />}
             />
