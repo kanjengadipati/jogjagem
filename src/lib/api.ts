@@ -398,6 +398,10 @@ export const destinations = {
     return request(`/destinations${suffix}`);
   },
 
+  async getHiddenGem() {
+    return request(`/destinations/hidden-gem`);
+  },
+
   async getById(id: string) {
     return request(`/destinations/${id}`);
   },

@@ -40,8 +40,8 @@ function getBadge(dest: Destination): Badge {
   if (nm.includes('air terjun') || nm.includes('curug') || nm.includes('waterfall'))
     return { label: 'Waterfall', color: 'bg-cyan-600' };
 
-  // Instagramable — pantai atau hidden-gem dengan rating tinggi
-  if ((category === 'beach' || category === 'hidden-gem') && rating >= 4.4)
+  // Instagramable — pantai dengan rating tinggi
+  if (category === 'beach' && rating >= 4.4)
     return { label: 'Instagramable', color: 'bg-pink-600' };
 
   // Perfect Morning — alam atau warisan, waktu terbaik pagi
@@ -85,8 +85,8 @@ function getBadge(dest: Destination): Badge {
   if (category === 'weekend')
     return { label: 'Akhir Pekan', color: 'bg-purple-600' };
 
-  // Hidden Gem — kualitas tinggi tapi belum banyak yang tahu (after category-specific badges)
-  if (rating >= 4.5 && reviewCount < 2500)
+  // Hidden Gem — hanya destinasi dengan category 'hidden-gem' dan rating tinggi
+  if (category === 'hidden-gem' && rating >= 4.5)
     return { label: 'Hidden Gem', color: 'bg-teal-600' };
 
   // Budget Friendly — tiket gratis/free

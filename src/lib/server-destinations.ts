@@ -81,3 +81,30 @@ export async function fetchDestinationBySlug(slugOrId: string, locale: string = 
 
   return null;
 }
+
+/**
+ * Fetch this week's curated Hidden Gem selection (max 15) from the dedicated
+ * API endpoint. Much cheaper than fetchAllDestinations — only 15 rows come
+ * back instead of the full catalogue.
+ *
+ * Returns an empty array on any error so the page degrades gracefully.
+ */
+export async function fetchHiddenGemDestinations(locale: string = 'id'): Promise<Destination[]> {
+  try {
+    const res = await fetch(`${API_BASE}/destinations/hidden-gem`, {
+      headers: { 'Accept-Language': locale },
+      // Revalidate every hour — the cache on the API side is 7 days, but a
+      // shorter Next.js cache means admin overrides propagate within an hour
+      // without requiring a manual redeploy.
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return [];
+    const body = await res.json();
+    const list: unknown[] = body?.data || [];
+    if (!Array.isArray(list)) return [];
+    return list.map((raw) => mapApiToDestination(raw as Record<string, unknown>));
+  } catch (err) {
+    console.error('[hidden-gem] failed to fetch curated list:', err);
+    return [];
+  }
+}
