@@ -232,9 +232,7 @@ export default function PromotionsPanel() {
       const list: AdCampaign[] = d?.data ?? [];
       setCampaigns(list);
       list.forEach((c) => {
-        fetch(
-          `/api/payments?subject_type=ad_campaign&subject_external_id=${c.id}`
-        )
+        fetch(`/api/businesses/me/${id}/ad-campaigns/${c.id}/payments`)
           .then((r) => r.json())
           .then((d) => {
             const latest = d?.data?.[0];
@@ -781,6 +779,7 @@ export default function PromotionsPanel() {
                               amount={c.price_amount ?? 0}
                               itemName={`Ad Campaign: ${c.business_name ?? c.partner_name}`}
                               customerName={c.business_name ?? c.partner_name}
+                              apiEndpoint={`/api/businesses/me/${externalId || business?.id}/ad-campaigns/${c.id}/invoice`}
                               onPaid={() => {
                                 setPaymentBySubject((prev) => ({
                                   ...prev,

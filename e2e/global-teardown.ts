@@ -42,6 +42,27 @@ export default async function globalTeardown(_config: FullConfig) {
     );
     const ids = rows.map((r) => r.id);
     if (ids.length) {
+      // ad_campaigns links to businesses via external_id (no FK/cascade), so
+      // clean related campaigns and their payment transactions first.
+      const { rows: campRows } = await client.query(
+        `SELECT external_id FROM ad_campaigns WHERE business_external_id = ANY(
+           SELECT external_id FROM businesses WHERE id = ANY($1::int[])
+         )`,
+        [ids]
+      );
+      const campaignIds = campRows.map((r) => r.external_id);
+      if (campaignIds.length) {
+        await client.query(
+          `DELETE FROM payment_transactions
+            WHERE subject_type = 'ad_campaign'
+              AND subject_external_id = ANY($1::text[])`,
+          [campaignIds]
+        );
+        await client.query(`DELETE FROM ad_campaigns WHERE external_id = ANY($1::text[])`, [
+          campaignIds,
+        ]);
+        console.log(`[global-teardown] deleted ${campaignIds.length} E2E ad campaign(s) + payments`);
+      }
       await client.query(`DELETE FROM businesses WHERE id = ANY($1::int[])`, [ids]);
       console.log(`[global-teardown] deleted ${ids.length} E2E business(es): ${rows.map((r) => r.name).join(', ')}`);
     }
