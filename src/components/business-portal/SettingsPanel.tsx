@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import BusinessHeader from "@/components/business-portal/BusinessHeader";
 import { useToast } from "@/components/Toast";
 import { Building, Users, AlertTriangle, Save, Loader2, Info, User, Mail, Shield, ShieldCheck, KeyRound, CheckCircle2, UserPlus, Crown, X } from "lucide-react";
+import CoverImageUpload from "@/components/business-portal/CoverImageUpload";
 import type { Partner } from "@/types/business";
 import { useActiveBusiness } from "@/hooks/useActiveBusiness";
 
@@ -44,6 +45,7 @@ export default function SettingsPanel() {
   const [bizCategory, setBizCategory] = useState("Wisata & Destinasi");
   const [bizDescription, setBizDescription] = useState("");
   const [bizWebsite, setBizWebsite] = useState("");
+  const [bizLogoUrl, setBizLogoUrl] = useState("");
   const [phoneError, setPhoneError] = useState("");
 
   // User Profile State (Right Column)
@@ -78,6 +80,7 @@ export default function SettingsPanel() {
     setBizCategory(biz.category || "Wisata & Destinasi");
     setBizDescription(biz.description || "");
     setBizWebsite(biz.website || "");
+    setBizLogoUrl(biz.avatar_url || "");
   };
 
   useEffect(() => {
@@ -200,6 +203,7 @@ export default function SettingsPanel() {
             category: bizCategory,
             description: bizDescription,
             website: bizWebsite,
+            avatar_url: bizLogoUrl || undefined,
           }),
         });
 
@@ -293,9 +297,9 @@ export default function SettingsPanel() {
   return (
     <>
       <BusinessHeader />
-      <main className="flex-1 overflow-y-auto bg-[#F9F9FB] p-6 md:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto bg-gold-50 p-6 md:p-8 space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-stone-900 font-display">Pengaturan</h1>
+          <h1 className="text-xl font-bold text-stone-900 font-sans">Pengaturan</h1>
           <p className="text-xs text-stone-500 font-medium mt-1">Kelola profil bisnis, informasi pengguna, dan tim Anda</p>
         </div>
 
@@ -308,7 +312,7 @@ export default function SettingsPanel() {
             {/* Section 1: Info Bisnis */}
             <form onSubmit={handleSaveBusiness} className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-5">
               <div className="flex items-center justify-between border-b border-stone-100 pb-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-stone-900 font-display">
+                <div className="flex items-center gap-2 text-sm font-bold text-stone-900 font-sans">
                   <Building className="w-4 h-4 text-stone-600" />
                   <span>Info bisnis</span>
                 </div>
@@ -321,6 +325,31 @@ export default function SettingsPanel() {
               </div>
 
               <div className="space-y-4">
+                {/* Logo upload */}
+                <div>
+                  <label className="block text-xs font-semibold text-stone-700 mb-2">Logo Usaha</label>
+                  <div className="flex items-center gap-4">
+                    {/* Preview circle */}
+                    <div className="w-16 h-16 rounded-2xl border border-stone-200 bg-stone-50 overflow-hidden shrink-0 flex items-center justify-center text-stone-400">
+                      {bizLogoUrl ? (
+                        <img src={bizLogoUrl} alt="Logo" className="w-full h-full object-cover" />
+                      ) : (
+                        <Building className="w-6 h-6 text-stone-300" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <CoverImageUpload
+                        value={bizLogoUrl}
+                        onChange={setBizLogoUrl}
+                        label=""
+                        folder="explore-jogja/business-logos"
+                        aspectClassName="aspect-square"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-stone-400 mt-1.5">Logo ditampilkan di sidebar dan halaman bisnis Anda. Disarankan rasio 1:1, min 200×200px.</p>
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1.5">Nama bisnis *</label>
                   <input
@@ -410,7 +439,7 @@ export default function SettingsPanel() {
             {/* Section 2: Tim */}
             <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-4">
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm font-bold text-stone-900 font-display">
+                <div className="flex items-center gap-2 text-sm font-bold text-stone-900 font-sans">
                   <Users className="w-4 h-4 text-stone-600" />
                   <span>Tim</span>
                 </div>
@@ -525,7 +554,7 @@ export default function SettingsPanel() {
             {/* Section 3: Profil Pengguna (Account Profile) */}
             <form onSubmit={handleSaveProfile} className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-5">
               <div className="flex items-center justify-between border-b border-stone-100 pb-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-stone-900 font-display">
+                <div className="flex items-center gap-2 text-sm font-bold text-stone-900 font-sans">
                   <User className="w-4 h-4 text-stone-600" />
                   <span>Profil Pengguna</span>
                 </div>
@@ -599,7 +628,7 @@ export default function SettingsPanel() {
 
             {/* Section 4: Keamanan & Akun */}
             <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-stone-900 font-display">
+              <div className="flex items-center gap-2 text-sm font-bold text-stone-900 font-sans">
                 <Shield className="w-4 h-4 text-stone-600" />
                 <span>Keamanan</span>
               </div>
@@ -652,7 +681,7 @@ export default function SettingsPanel() {
               className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4"
             >
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-stone-900 font-display">
+                <h2 className="text-base font-bold text-stone-900 font-sans">
                   Undang Anggota Tim
                 </h2>
                 <button
@@ -746,7 +775,7 @@ export default function SettingsPanel() {
             />
             <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-stone-900 font-display">
+                <h2 className="text-base font-bold text-stone-900 font-sans">
                   Bagikan Link Undangan
                 </h2>
                 <button

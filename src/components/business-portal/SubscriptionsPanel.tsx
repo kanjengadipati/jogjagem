@@ -99,7 +99,7 @@ export default function SubscriptionsPanel() {
     return (
       <>
         <BusinessHeader />
-        <main className="flex-1 overflow-y-auto bg-[#F9F9FB] p-6 md:p-8 space-y-6">
+        <main className="flex-1 overflow-y-auto bg-gold-50 p-6 md:p-8 space-y-6">
           <div className="flex items-center justify-center py-24 text-stone-400 gap-3">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span className="text-xs font-semibold">Memuat data langganan...</span>
@@ -112,9 +112,9 @@ export default function SubscriptionsPanel() {
   return (
     <>
       <BusinessHeader />
-      <main className="flex-1 overflow-y-auto bg-[#F9F9FB] p-6 md:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto bg-gold-50 p-6 md:p-8 space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-stone-900 font-display">Langganan</h1>
+          <h1 className="text-xl font-bold text-stone-900 font-sans">Langganan</h1>
           <p className="text-xs text-stone-500 font-medium mt-1">Paket aktif dan opsi upgrade untuk bisnis Anda</p>
         </div>
 
@@ -171,7 +171,7 @@ export default function SubscriptionsPanel() {
                       Paket aktif
                     </span>
                   )}
-                  <h3 className="text-lg font-extrabold text-stone-900 font-display">{plan.label}</h3>
+                  <h3 className="text-lg font-extrabold text-stone-900 font-sans">{plan.label}</h3>
                   <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">{plan.description}</p>
                   {plan.price > 0 && (
                     <p className="text-sm font-extrabold text-stone-900 mt-2">

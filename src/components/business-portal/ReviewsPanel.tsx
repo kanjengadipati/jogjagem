@@ -55,9 +55,9 @@ export default function ReviewsPanel() {
   return (
     <>
       <BusinessHeader />
-      <main className="flex-1 overflow-y-auto bg-[#F9F9FB] p-6 md:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto bg-gold-50 p-6 md:p-8 space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-stone-900 font-display">Reviews</h1>
+          <h1 className="text-xl font-bold text-stone-900 font-sans">Reviews</h1>
           <p className="text-xs text-stone-500 font-medium mt-1">
             Ulasan pelanggan untuk bisnis Anda
           </p>
@@ -79,7 +79,7 @@ export default function ReviewsPanel() {
             {/* Rating Summary Card */}
             <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs flex flex-col md:flex-row items-center gap-8">
               <div className="text-center md:text-left shrink-0">
-                <div className="text-4xl font-extrabold text-stone-900 font-display">
+                <div className="text-4xl font-extrabold text-stone-900 font-sans">
                   {avgRating.toFixed(1)}
                 </div>
                 <div className="text-xs font-bold text-amber-500 flex items-center gap-1 justify-center md:justify-start mt-1">

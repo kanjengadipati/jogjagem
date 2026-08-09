@@ -60,10 +60,10 @@ export default function ListingsPanel() {
   return (
     <>
       <BusinessHeader />
-      <main className="flex-1 overflow-y-auto bg-[#F9F9FB] p-6 md:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto bg-gold-50 p-6 md:p-8 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-stone-900 font-display">{title}</h1>
+            <h1 className="text-xl font-bold text-stone-900 font-sans">{title}</h1>
             <p className="text-xs text-stone-500 font-medium mt-1">
               {business ? `Listing milik ${business.name}` : "Listing yang terhubung ke bisnis Anda"}
             </p>

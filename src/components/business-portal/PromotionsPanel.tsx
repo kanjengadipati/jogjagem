@@ -484,12 +484,12 @@ export default function PromotionsPanel() {
   return (
     <>
       <BusinessHeader />
-      <main className="flex-1 overflow-y-auto bg-[#F9F9FB] p-5 md:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto bg-gold-50 p-5 md:p-8 space-y-6">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-stone-900 font-display">
+            <h1 className="text-xl font-bold text-stone-900 font-sans">
               Marketing
             </h1>
             <p className="text-xs text-stone-500 font-medium mt-1">
@@ -511,7 +511,7 @@ export default function PromotionsPanel() {
             <div className="flex items-center gap-2 text-xs font-bold text-stone-500">
               <Tag className="w-3.5 h-3.5" /> Promosi aktif
             </div>
-            <div className="text-3xl font-extrabold text-stone-900 font-display">
+            <div className="text-3xl font-extrabold text-stone-900 font-sans">
               {loadingPromos ? (
                 <Loader2 className="w-6 h-6 animate-spin text-stone-300" />
               ) : (
@@ -523,7 +523,7 @@ export default function PromotionsPanel() {
             <div className="flex items-center gap-2 text-xs font-bold text-stone-500">
               <Megaphone className="w-3.5 h-3.5" /> Iklan tayang
             </div>
-            <div className="text-3xl font-extrabold text-stone-900 font-display">
+            <div className="text-3xl font-extrabold text-stone-900 font-sans">
               {loadingCampaigns ? (
                 <Loader2 className="w-6 h-6 animate-spin text-stone-300" />
               ) : (
@@ -535,7 +535,7 @@ export default function PromotionsPanel() {
             <div className="flex items-center gap-2 text-xs font-bold text-stone-500">
               <Eye className="w-3.5 h-3.5" /> Impresi iklan
             </div>
-            <div className="text-3xl font-extrabold text-stone-900 font-display">
+            <div className="text-3xl font-extrabold text-stone-900 font-sans">
               {loadingCampaigns ? (
                 <Loader2 className="w-6 h-6 animate-spin text-stone-300" />
               ) : (
@@ -547,7 +547,7 @@ export default function PromotionsPanel() {
             <div className="flex items-center gap-2 text-xs font-bold text-stone-500">
               <MousePointerClick className="w-3.5 h-3.5" /> Klik (total)
             </div>
-            <div className="text-3xl font-extrabold text-stone-900 font-display">
+            <div className="text-3xl font-extrabold text-stone-900 font-sans">
               {loadingCampaigns ? (
                 <Loader2 className="w-6 h-6 animate-spin text-stone-300" />
               ) : (
@@ -560,7 +560,7 @@ export default function PromotionsPanel() {
         {/* ── Seksi Promosi ── */}
         <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-stone-900 font-display flex items-center gap-2">
+            <h2 className="text-sm font-bold text-stone-900 font-sans flex items-center gap-2">
               <Ticket className="w-4 h-4 text-amber-600" />
               <span>Promosi</span>
             </h2>
@@ -643,7 +643,7 @@ export default function PromotionsPanel() {
         {/* ── Seksi Iklan ── */}
         <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-stone-900 font-display flex items-center gap-2">
+            <h2 className="text-sm font-bold text-stone-900 font-sans flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-600" />
               <span>Kampanye Iklan</span>
             </h2>
@@ -819,7 +819,7 @@ export default function PromotionsPanel() {
         {/* ── Slot Iklan Tersedia ── */}
         <div className="bg-white p-6 rounded-3xl border border-stone-200/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-stone-900 font-display flex items-center gap-2">
+            <h2 className="text-sm font-bold text-stone-900 font-sans flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-600" />
               <span>Slot Iklan Tersedia</span>
             </h2>
@@ -970,7 +970,7 @@ export default function PromotionsPanel() {
           <div className="pt-2">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="text-xs font-bold text-stone-900 font-display">
+                <h3 className="text-xs font-bold text-stone-900 font-sans">
                   Rail Ecosystem — Halaman Detail Destinasi
                 </h3>
                 <p className="text-[10px] text-stone-400 mt-0.5">
@@ -1046,7 +1046,7 @@ export default function PromotionsPanel() {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-stone-100">
-              <h3 className="text-sm font-bold text-stone-900 font-display flex items-center gap-2">
+              <h3 className="text-sm font-bold text-stone-900 font-sans flex items-center gap-2">
                 <Ticket className="w-4 h-4 text-amber-600" />
                 Buat Promosi Baru
               </h3>
@@ -1211,7 +1211,7 @@ export default function PromotionsPanel() {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-stone-100">
-              <h3 className="text-sm font-bold text-stone-900 font-display flex items-center gap-2">
+              <h3 className="text-sm font-bold text-stone-900 font-sans flex items-center gap-2">
                 <Megaphone className="w-4 h-4 text-amber-600" />
                 Pasang Iklan Baru
               </h3>

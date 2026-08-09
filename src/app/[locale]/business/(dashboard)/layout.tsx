@@ -20,9 +20,9 @@ export default async function BusinessDashboardLayout({
   return (
     <ToastProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen relative">
+        <div className="flex h-screen relative">
           <BusinessSidebar />
-          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden h-full">
             {children}
           </div>
         </div>

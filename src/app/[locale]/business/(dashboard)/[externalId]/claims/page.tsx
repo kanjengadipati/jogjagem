@@ -86,9 +86,9 @@ export default function BusinessClaimsPage() {
   return (
     <>
       <BusinessHeader />
-      <main className="flex-1 overflow-y-auto bg-[#F9F9FB] p-5 md:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto bg-gold-50 p-5 md:p-8 space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-stone-900 font-display flex items-center gap-2">
+          <h1 className="text-xl font-bold text-stone-900 font-sans flex items-center gap-2">
             <FileCheck className="w-5 h-5 text-amber-600" />
             Klaim Bisnis
           </h1>
