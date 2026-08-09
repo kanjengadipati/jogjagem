@@ -2,7 +2,6 @@ import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 3001;
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${PORT}`;
-const ADMIN_DIR = process.env.JOGJAGEM_ADMIN_DIR || '/Users/meilanasapta/Code/jogjagem-admin';
 
 export default defineConfig({
   testDir: './e2e',
@@ -37,12 +36,6 @@ export default defineConfig({
       reuseExistingServer: true,
       timeout: 120_000,
     },
-    {
-      command: 'npm run dev',
-      url: 'http://localhost:3002',
-      reuseExistingServer: true,
-      timeout: 120_000,
-      cwd: ADMIN_DIR,
-    },
   ],
 });
+
