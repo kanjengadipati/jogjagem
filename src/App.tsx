@@ -20,6 +20,8 @@ import { destinations, events, config, auth, ai, ads, APIResponse } from '@/lib/
 import type { BeAdCampaign, BeHouseAd } from '@/lib/api';
 import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, CalendarDays, Map, Sun, Utensils, Leaf, Sunset, Moon, RefreshCw, User, ChevronRight, Star } from 'lucide-react';
 
+const CATEGORY_PAGE_SIZE = 15;
+
 export default function App() {
   console.log('DEBUG: App component rendered');
   const { t, locale } = useLocale();
@@ -38,6 +40,8 @@ export default function App() {
   const [destPage, setDestPage] = useState(1);
   const [destTotalPages, setDestTotalPages] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Category mode loads the full list once and reveals it incrementally.
+  const [categoryVisible, setCategoryVisible] = useState(CATEGORY_PAGE_SIZE);
   const [eventPage, setEventPage] = useState(1);
   const [eventTotalPages, setEventTotalPages] = useState(1);
   const [loadingMoreEvents, setLoadingMoreEvents] = useState(false);
@@ -131,6 +135,7 @@ export default function App() {
 
     async function loadCategory() {
       setIsFilterLoading(true);
+      setCategoryVisible(CATEGORY_PAGE_SIZE);
       try {
         const mapRaw = (raw: any) => ({
           ...raw,
@@ -160,14 +165,14 @@ export default function App() {
               return String(dest.badge || '').toLowerCase() === 'hidden_gem'
                 || badges.some((badge: unknown) => String(badge).toLowerCase() === 'hidden_gem');
             });
-            setAllDestinations(hiddenGems.slice(0, 15));
+            setAllDestinations(hiddenGems);
             setDestPage(1);
             setDestTotalPages(1);
           }
         } else if (selectedCategory) {
           const res = await destinations.getByCategory(selectedCategory);
           if (res.status === 'success' && res.data) {
-            setAllDestinations((res.data as any[]).map(mapRaw).slice(0, 15) as Destination[]);
+            setAllDestinations((res.data as any[]).map(mapRaw) as Destination[]);
             setDestPage(1);
             setDestTotalPages(1);
           }
@@ -287,6 +292,11 @@ export default function App() {
   };
 
   const loadMoreDestinations = async () => {
+    // Category mode already has the full list in memory — just reveal more.
+    if (selectedCategory) {
+      setCategoryVisible(v => Math.min(v + CATEGORY_PAGE_SIZE, allDestinations.length));
+      return;
+    }
     if (loadingMore || destPage >= destTotalPages) return;
     setLoadingMore(true);
     try {
@@ -407,7 +417,7 @@ export default function App() {
 
   // Popular destinations — sorted by popularity score DESC
   const displayDestinations = selectedCategory
-    ? allDestinations
+    ? allDestinations.slice(0, categoryVisible)
     : [...allDestinations].sort((a, b) => {
       const scoreA = (
         ((a.rating || 0) / 5 * 0.4) +
@@ -421,6 +431,13 @@ export default function App() {
       );
       return scoreB - scoreA;
     });
+
+  // Load More should only appear while there is genuinely more to reveal.
+  // Category mode is fully in memory (revealed CATEGORY_PAGE_SIZE at a time);
+  // the default feed is server-paginated via the API meta.
+  const hasMoreDestinations = selectedCategory
+    ? categoryVisible < allDestinations.length
+    : destPage < destTotalPages;
 
   // ── Sponsored grid item types ───────────────────────────────────────────────
   type DesktopGridItem =
@@ -759,7 +776,7 @@ export default function App() {
                       </div>
                     )}
 
-                    {!selectedCategory && destPage < destTotalPages && (
+                    {hasMoreDestinations && (
                       <div className="mt-8 flex justify-center">
                         <button
                           onClick={loadMoreDestinations}
