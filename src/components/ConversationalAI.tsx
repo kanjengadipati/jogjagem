@@ -1,10 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Send, Brain, Bot, User, RefreshCw, CornerDownRight, MapPin, ChevronDown, Sparkles } from 'lucide-react';
+import { Send, Brain, Bot, User, RefreshCw, CornerDownRight, MapPin, ChevronDown, Sparkles, Calendar } from 'lucide-react';
 import { Destination } from '../types';
 import DestinationCard from './DestinationCard';
-import { ai, destinations as destinationApi } from '../lib/api';
+import { ai, destinations as destinationApi, events as eventsApi } from '../lib/api';
 import { useLocale } from '@/contexts/LocaleContext';
+
+interface EventItem {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  start_date: string;
+  end_date: string;
+  image_url: string;
+  category: string;
+  ticket_price: string;
+  organizer: string;
+}
 
 interface Message {
   id: string;
@@ -12,6 +25,7 @@ interface Message {
   text: string;
   imageUrl?: string;
   matchedDestinations?: Destination[];
+  matchedEvents?: EventItem[];
   timestamp?: string;
 }
 
@@ -199,8 +213,9 @@ export default function ConversationalAI({
       const responseData = await ai.query(textToSend, history);
 
       if (responseData.status === 'success' && responseData.data) {
-        const { reply, matchedDestinationIds } = responseData.data;
+        const { reply, matchedDestinationIds, matchedEventIds } = responseData.data;
         const safeIds = Array.isArray(matchedDestinationIds) ? matchedDestinationIds : [];
+        const safeEventIds = Array.isArray(matchedEventIds) ? matchedEventIds : [];
 
         const matchedDests: Destination[] = [];
         for (const id of safeIds) {
@@ -214,11 +229,24 @@ export default function ConversationalAI({
           }
         }
 
+        const matchedEvts: EventItem[] = [];
+        for (const id of safeEventIds) {
+          try {
+            const res = await eventsApi.getById(id);
+            if (res.status === 'success' && res.data) {
+              matchedEvts.push(res.data as EventItem);
+            }
+          } catch (e) {
+            console.error(`Failed to fetch event ${id}`, e);
+          }
+        }
+
         const aiMsg: Message = {
           id: Math.random().toString(),
           role: 'model',
           text: reply,
           matchedDestinations: matchedDests,
+          matchedEvents: matchedEvts,
           timestamp: formatTime(new Date()),
         };
 
@@ -380,6 +408,66 @@ export default function ConversationalAI({
                             onToggleSave={onToggleSave}
                             isSaved={isSaved(dest.id)}
                           />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Matched event cards */}
+                  {msg.matchedEvents && msg.matchedEvents.length > 0 && (
+                    <div className="space-y-3 pl-1">
+                      <div className="flex items-center gap-1.5 text-fuchsia-700">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span className="font-mono text-[10px] uppercase tracking-wider font-bold">
+                          Event &amp; Festival
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {msg.matchedEvents.map((evt) => (
+                          <div
+                            key={evt.id}
+                            className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col"
+                          >
+                            {evt.image_url && (
+                              <div className="relative h-32 w-full overflow-hidden bg-stone-100">
+                                <Image
+                                  src={evt.image_url}
+                                  alt={evt.title}
+                                  fill
+                                  className="object-cover"
+                                  sizes="(max-width: 768px) 100vw, 50vw"
+                                />
+                                <span className="absolute top-2 left-2 bg-fuchsia-700/90 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                  {evt.category || 'Event'}
+                                </span>
+                              </div>
+                            )}
+                            <div className="p-3 flex flex-col gap-1.5 flex-1">
+                              <p className="text-sm font-bold text-royal-950 leading-tight line-clamp-2">
+                                {evt.title}
+                              </p>
+                              {(evt.start_date || evt.end_date) && (
+                                <div className="flex items-center gap-1 text-[11px] text-stone-500">
+                                  <Calendar className="h-3 w-3 shrink-0" />
+                                  <span>
+                                    {evt.start_date}
+                                    {evt.end_date && evt.end_date !== evt.start_date ? ` – ${evt.end_date}` : ''}
+                                  </span>
+                                </div>
+                              )}
+                              {evt.location && (
+                                <div className="flex items-center gap-1 text-[11px] text-stone-500">
+                                  <MapPin className="h-3 w-3 shrink-0" />
+                                  <span className="line-clamp-1">{evt.location}</span>
+                                </div>
+                              )}
+                              {evt.ticket_price && (
+                                <p className="text-[11px] font-semibold text-gold-700 mt-auto pt-1">
+                                  {evt.ticket_price}
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>

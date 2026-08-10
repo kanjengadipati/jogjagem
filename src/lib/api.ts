@@ -386,6 +386,7 @@ export const auth = {
 interface AIQueryResponse {
   reply: string;
   matchedDestinationIds: string[];
+  matchedEventIds?: string[];
 }
 
 export const destinations = {
