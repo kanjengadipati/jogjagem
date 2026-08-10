@@ -281,53 +281,18 @@ export default function ConversationalAI({
         className="relative overflow-hidden rounded-t-3xl px-6 pt-6 pb-8"
         style={{ background: '#F7F3EE' }}
       >
-        {/* Prambanan silhouette SVG */}
+        {/* Merapi background image */}
         <div
           className="absolute inset-0 pointer-events-none select-none"
           aria-hidden="true"
         >
-          <svg
-            viewBox="0 0 800 180"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="absolute right-0 top-0 h-full w-auto opacity-20"
-            preserveAspectRatio="xMaxYMax meet"
-          >
-            {/* Main central tower */}
-            <rect x="365" y="20" width="70" height="160" rx="2" fill="#C4A97E" />
-            <polygon points="365,20 400,2 435,20" fill="#C4A97E" />
-            <rect x="375" y="40" width="50" height="8" fill="#B8936A" />
-            <rect x="378" y="55" width="44" height="8" fill="#B8936A" />
-            <rect x="381" y="70" width="38" height="6" fill="#B8936A" />
-
-            {/* Left tower */}
-            <rect x="290" y="55" width="52" height="125" rx="2" fill="#C4A97E" />
-            <polygon points="290,55 316,38 342,55" fill="#C4A97E" />
-            <rect x="298" y="72" width="36" height="6" fill="#B8936A" />
-            <rect x="301" y="84" width="30" height="6" fill="#B8936A" />
-
-            {/* Right tower */}
-            <rect x="458" y="55" width="52" height="125" rx="2" fill="#C4A97E" />
-            <polygon points="458,55 484,38 510,55" fill="#C4A97E" />
-            <rect x="466" y="72" width="36" height="6" fill="#B8936A" />
-            <rect x="469" y="84" width="30" height="6" fill="#B8936A" />
-
-            {/* Far left small shrine */}
-            <rect x="222" y="90" width="38" height="90" rx="2" fill="#C4A97E" />
-            <polygon points="222,90 241,76 260,90" fill="#C4A97E" />
-
-            {/* Far right small shrine */}
-            <rect x="540" y="90" width="38" height="90" rx="2" fill="#C4A97E" />
-            <polygon points="540,90 559,76 578,90" fill="#C4A97E" />
-
-            {/* Ground line */}
-            <rect x="0" y="176" width="800" height="4" fill="#C4A97E" opacity="0.4" />
-          </svg>
-
-          {/* Decorative sparkle dots */}
-          <span className="absolute top-4 right-48 text-gold-400 text-lg">✦</span>
-          <span className="absolute top-10 right-64 text-gold-300 text-xs">✦</span>
-          <span className="absolute top-16 right-56 text-gold-400/60 text-sm">✦</span>
+          <img
+            src="/merapi.jpg"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover object-center opacity-15"
+          />
+          {/* Gradient overlay so text stays readable */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F7F3EE] via-[#F7F3EE]/80 to-[#F7F3EE]/30" />
         </div>
 
         {/* Left: icon + title */}
