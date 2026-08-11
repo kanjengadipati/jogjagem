@@ -93,9 +93,6 @@ export async function fetchHiddenGemDestinations(locale: string = 'id'): Promise
   try {
     const res = await fetch(`${API_BASE}/destinations/hidden-gem`, {
       headers: { 'Accept-Language': locale },
-      // Revalidate every hour — the cache on the API side is 7 days, but a
-      // shorter Next.js cache means admin overrides propagate within an hour
-      // without requiring a manual redeploy.
       next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
@@ -108,3 +105,74 @@ export async function fetchHiddenGemDestinations(locale: string = 'id'): Promise
     return [];
   }
 }
+
+/**
+ * Helper to match destinations by categories or keyword list
+ */
+function isKeywordMatch(d: Destination, keywords: string[]): boolean {
+  const text = `${d.name} ${d.category} ${d.tagline} ${d.description} ${d.location}`.toLowerCase();
+  return keywords.some((kw) => text.includes(kw.toLowerCase()));
+}
+
+export async function fetchCulinaryDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  const keywords = ['culinary', 'kuliner', 'gudeg', 'soto', 'kopi', 'warung', 'makanan', 'sate', 'bakpia', 'angkringan', 'resto', 'mie', 'bakmi'];
+  const matches = all.filter((d) => d.category?.toLowerCase() === 'culinary' || isKeywordMatch(d, keywords));
+  return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);
+}
+
+export async function fetchNatureDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  const keywords = ['nature', 'beach', 'alam', 'pantai', 'hutan', 'air terjun', 'curug', 'bukit', 'gunung', 'goa', 'embung', 'sungai', 'pinus'];
+  const matches = all.filter((d) => ['nature', 'beach', 'adventure'].includes(d.category?.toLowerCase()) || isKeywordMatch(d, keywords));
+  return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);
+}
+
+export async function fetchPhotoSpotDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  const keywords = ['foto', 'spot', 'view', 'estetik', 'instagramable', 'tebing', 'puncak', 'candi', 'hutan', 'taman', 'swafoto'];
+  const matches = all.filter((d) => d.rating >= 4.5 || isKeywordMatch(d, keywords));
+  return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);
+}
+
+export async function fetchCulturalDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  const keywords = ['heritage', 'culture', 'candi', 'keraton', 'museum', 'budaya', 'sejarah', 'kraton', 'situs', 'taman sari', 'benteng', 'cagar'];
+  const matches = all.filter((d) => ['heritage', 'culture'].includes(d.category?.toLowerCase()) || isKeywordMatch(d, keywords));
+  return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);
+}
+
+export async function fetchSunsetDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  const keywords = ['sunset', 'senja', 'bukit', 'pantai', 'tebing', 'puncak', 'view', 'ketinggian', 'embung', 'obelix', 'heha'];
+  const matches = all.filter((d) => isKeywordMatch(d, keywords) || d.category?.toLowerCase() === 'beach');
+  return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);
+}
+
+export async function fetchFamilyDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  const keywords = ['family', 'keluarga', 'anak', 'taman', 'zoo', 'edukasi', 'wahana', 'museum', 'pantai', 'ramah anak', 'wisata edukasi'];
+  const matches = all.filter((d) => d.category?.toLowerCase() === 'family' || isKeywordMatch(d, keywords));
+  return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);
+}
+
+export async function fetchItineraryDestinations(locale: string = 'id', limit = 15): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  // Pick diverse top-rated destinations spanning nature, culture, culinary, and sunset
+  if (all.length === 0) return [];
+  const top = [...all].sort((a, b) => b.rating - a.rating);
+  return top.slice(0, limit);
+}
+
+export async function fetchMalioboroDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  const keywords = ['malioboro', 'titik nol', 'kraton', 'keraton', 'vredeburg', 'beringharjo', 'taman sari', 'taman pintar', 'tugu', 'alun-alun', 'kota yogyakarta', 'yogyakarta city', 'mangkubumi'];
+  const matches = all.filter((d) => 
+    d.subRegion?.toLowerCase() === 'yogyakarta' || 
+    d.location?.toLowerCase().includes('yogyakarta') || 
+    isKeywordMatch(d, keywords)
+  );
+  return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);
+}
+
+
