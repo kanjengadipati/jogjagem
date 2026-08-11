@@ -78,9 +78,9 @@ export default function SeoListicleLayout({
                 src={heroBgImage}
                 alt=""
                 aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover object-center opacity-50"
+                className="absolute inset-0 w-full h-full object-cover object-top"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-gold-50/20 via-gold-50/50 to-gold-50" />
+              <div className="absolute inset-0 bg-gradient-to-b from-gold-50/30 via-gold-50/60 to-gold-50" />
             </div>
           )}
           <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 md:pt-16 md:pb-14">
