@@ -241,7 +241,40 @@ export default function SeoListicleLayout({
               <ArrowUpRight size={16} strokeWidth={2.5} />
             </Link>
           </div>
+
+          {/* ── Related SEO Pages ─────────────────────────────────────────── */}
+          <div className="pb-16 border-t border-gold-200">
+            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-gold-600 mb-5 mt-10">
+              {isEn ? 'More Travel Guides' : 'Panduan Wisata Lainnya'}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {[
+                { slug: 'hidden-gem-jogja', labelId: '✨ Hidden Gem Jogja', labelEn: '✨ Hidden Gems' },
+                { slug: 'wisata-hits-jogja', labelId: '🔥 Wisata Hits Jogja', labelEn: '🔥 Trending Hits' },
+                { slug: 'kuliner-jogja', labelId: '🍜 Kuliner Lokal Jogja', labelEn: '🍜 Local Culinary' },
+                { slug: 'wisata-alam-jogja', labelId: '🌿 Wisata Alam Jogja', labelEn: '🌿 Nature Spots' },
+                { slug: 'spot-foto-jogja', labelId: '📸 Spot Foto Unik', labelEn: '📸 Photo Spots' },
+                { slug: 'wisata-budaya-jogja', labelId: '🏛️ Wisata Budaya', labelEn: '🏛️ Culture & Heritage' },
+                { slug: 'spot-sunset-jogja', labelId: '🌅 Spot Sunset Jogja', labelEn: '🌅 Sunset Spots' },
+                { slug: 'wisata-keluarga-jogja', labelId: '👨‍👩‍👧 Wisata Keluarga', labelEn: '👨‍👩‍👧 Family Trips' },
+                { slug: 'wisata-sekitar-malioboro', labelId: '🛍️ Sekitar Malioboro', labelEn: '🛍️ Around Malioboro' },
+                { slug: 'itinerary-jogja-2-3-hari', labelId: '🗺️ Itinerary 2–3 Hari', labelEn: '🗺️ 2–3 Day Itinerary' },
+                { slug: 'pantai-eksotis-jogja', labelId: '🏖️ Pantai Eksotis', labelEn: '🏖️ Exotic Beaches' },
+              ].map(({ slug, labelId, labelEn }) => (
+                <Link
+                  key={slug}
+                  href={`${localePrefix}/${slug}`}
+                  className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-gold-200 bg-white hover:border-gold-400 hover:bg-gold-50 transition-all duration-150 group"
+                >
+                  <span className="font-sans text-[13px] text-royal-800 font-medium leading-tight group-hover:text-royal-900 transition-colors">
+                    {isEn ? labelEn : labelId}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
         </main>
+
       </div>
     </AuthProvider>
   );
