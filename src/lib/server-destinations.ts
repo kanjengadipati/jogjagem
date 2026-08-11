@@ -175,4 +175,27 @@ export async function fetchMalioboroDestinations(locale: string = 'id', limit = 
   return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);
 }
 
+export async function fetchTrendingHitsDestinations(locale: string = 'id', limit = 10): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  // Filter destinations with badge 'trending' or badges containing 'trending'
+  const trending = all.filter((d) => {
+    const badge = d.badge?.toLowerCase();
+    const badges = d.badges?.map((b) => b.toLowerCase()) || [];
+    return badge === 'trending' || badges.includes('trending');
+  });
+
+  if (trending.length >= limit) {
+    return trending.slice(0, limit);
+  }
+
+  // Fill remaining slots with top rated / highly reviewed destinations
+  const existingIds = new Set(trending.map((t) => t.id));
+  const remaining = all
+    .filter((d) => !existingIds.has(d.id))
+    .sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0) || b.rating - a.rating);
+
+  return [...trending, ...remaining].slice(0, limit);
+}
+
+
 

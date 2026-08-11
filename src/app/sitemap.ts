@@ -57,6 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       'wisata-keluarga-jogja',
       'itinerary-jogja-2-3-hari',
       'wisata-sekitar-malioboro',
+      'wisata-hits-jogja',
     ].map((slug) => ({
       url: `${SITE_URL}/${slug}`,
       lastModified: NOW,
