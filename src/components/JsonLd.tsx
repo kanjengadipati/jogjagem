@@ -78,10 +78,11 @@ export function TouristDestinationJsonLd({
 }: TouristDestinationJsonLdProps) {
   const data: Record<string, any> = {
     '@context': 'https://schema.org',
-    '@type': 'TouristDestination',
+    '@type': ['TouristDestination', 'TouristAttraction', 'LocalBusiness'],
     name,
     description,
     url,
+    priceRange: '$$',
   };
 
   if (image) {
@@ -110,11 +111,11 @@ export function TouristDestinationJsonLd({
     data.touristType = category;
   }
 
-  if (rating && reviewCount) {
+  if (rating && reviewCount && rating > 0 && reviewCount > 0) {
     data.aggregateRating = {
       '@type': 'AggregateRating',
-      ratingValue: rating,
-      reviewCount,
+      ratingValue: Number(rating.toFixed(1)),
+      reviewCount: Number(reviewCount),
       bestRating: 5,
       worstRating: 1,
     };
