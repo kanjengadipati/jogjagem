@@ -413,14 +413,25 @@ export default function DestinationDetail({
 
         const all = res.data as any[];
 
+        // Filter hanya event yang belum selesai (upcoming atau sedang berlangsung)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const upcoming = all.filter(e => {
+          // Gunakan end_date jika ada, fallback ke start_date
+          const dateStr = e.end_date || e.endDate || e.start_date || e.startDate || e.date;
+          if (!dateStr) return true; // Jika tidak ada tanggal, tampilkan saja
+          const eventDate = new Date(dateStr);
+          return !isNaN(eventDate.getTime()) ? eventDate >= today : true;
+        });
+
         // 1. Prioritas utama: relasi langsung via destination_id
-        const byRelation = all.filter(e =>
+        const byRelation = upcoming.filter(e =>
           e.destination_id && e.destination_id === destination.id
         );
 
         // 2. Fallback: punya koordinat + dalam radius 30km (exclude yg sudah ada di relasi)
         const relatedIds = new Set(byRelation.map(e => e.id));
-        const byProximity = all
+        const byProximity = upcoming
           .filter(e => e.latitude && e.longitude && !relatedIds.has(e.id))
           .map(e => ({ ...e, _dist: haversine(destination.latitude, destination.longitude, e.latitude, e.longitude) }))
           .filter(e => e._dist <= 30)
@@ -428,10 +439,11 @@ export default function DestinationDetail({
 
         // 3. Last resort: tidak punya koordinat dan tidak ada relasi
         const usedIds = new Set([...byRelation, ...byProximity].map(e => e.id));
-        const noCoord = all.filter(e => !e.latitude && !e.longitude && !usedIds.has(e.id));
+        const noCoord = upcoming.filter(e => !e.latitude && !e.longitude && !usedIds.has(e.id));
 
         const combined = [...byRelation, ...byProximity, ...noCoord].slice(0, 4);
         setNearbyEvents(combined);
+
       }
     }).catch(() => {});
   }, [destination.id, destination.latitude, destination.longitude]);
