@@ -47,6 +47,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       },
     },
+    ...([
+      'hidden-gem-jogja',
+      'kuliner-jogja',
+      'wisata-alam-jogja',
+      'spot-foto-jogja',
+      'wisata-budaya-jogja',
+      'spot-sunset-jogja',
+      'wisata-keluarga-jogja',
+      'itinerary-jogja-2-3-hari',
+      'wisata-sekitar-malioboro',
+    ].map((slug) => ({
+      url: `${SITE_URL}/${slug}`,
+      lastModified: NOW,
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+      alternates: {
+        languages: {
+          id: `${SITE_URL}/${slug}`,
+          en: `${SITE_URL}/en/${slug}`,
+        },
+      },
+    }))),
+
     {
       url: `${SITE_URL}/destinations`,
       lastModified: NOW,
