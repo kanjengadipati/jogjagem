@@ -80,14 +80,16 @@ export default function SearchBar({
           className="w-full bg-transparent py-2.5 sm:py-3 pl-2.5 pr-20 text-xs sm:text-sm text-white placeholder-white/60 focus:outline-none font-sans"
         />
         {showingClue && (
-          <button
-            type="button"
-            onClick={() => onRotatingClueClick(currentClue)}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 pr-20 w-[calc(100%-0.625rem)] text-left text-xs sm:text-sm text-white/60 hover:text-white transition-colors cursor-pointer"
-            title={currentClue}
-          >
-            <span key={clueIndex} className="truncate animate-fade-in">{currentClue}</span>
-          </button>
+          <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pr-20 w-[calc(100%-0.625rem)] pointer-events-none">
+            <button
+              type="button"
+              onClick={() => onRotatingClueClick(currentClue)}
+              className="pointer-events-auto inline-block max-w-full text-left text-xs sm:text-sm text-white/60 hover:text-white transition-colors cursor-pointer"
+              title={currentClue}
+            >
+              <span key={clueIndex} className="truncate animate-fade-in">{currentClue}</span>
+            </button>
+          </div>
         )}
       </div>
       {showImageSearch && (
