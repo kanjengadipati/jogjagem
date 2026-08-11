@@ -74,6 +74,12 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
   const hour = new Date().getHours();
   const greetingKey = hour < 11 ? 'hero.good_morning' : hour < 18 ? 'hero.good_afternoon' : 'hero.good_evening';
   const userName = isAuthenticated && user?.name ? user.name : 'Traveler';
+  const searchClues = [
+    t('hero.search_clue_hidden_gem'),
+    t('hero.search_clue_kuliner'),
+    t('hero.search_clue_sunset'),
+    t('hero.search_clue_daytrip'),
+  ];
   const heroConfig = {
     title: heroTitleMain,
     titleAccent: heroTitleAccent,
@@ -565,6 +571,11 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
                     onChange={setSearchQuery}
                     onSubmit={() => { if (searchQuery.trim()) onSearchSubmit(searchQuery); }}
                     placeholder={t('hero.search_placeholder')}
+                    rotatingClues={searchClues}
+                    onRotatingClueClick={(clue) => {
+                      setSearchQuery(clue);
+                      onSearchSubmit(clue);
+                    }}
                     showImageSearch
                     showVoiceSearch
                     onImageSearch={async (file) => {
