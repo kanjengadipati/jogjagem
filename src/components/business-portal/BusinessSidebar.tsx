@@ -151,7 +151,11 @@ export default function BusinessSidebar() {
         </button>
 
         {/* Brand */}
-        <div className={`flex items-center gap-3 border-b border-stone-200/60 ${collapsed ? "p-4 justify-center" : "px-5 py-4"}`}>
+        <Link
+          href="/"
+          title="Kembali ke Portal Utama"
+          className={`flex items-center gap-3 border-b border-stone-200/60 hover:bg-white/40 transition-colors ${collapsed ? "p-4 justify-center" : "px-5 py-4"}`}
+        >
           <div className="w-9 h-9 rounded-xl bg-stone-900 flex items-center justify-center shrink-0">
             <Image src="/logo-gold-new.png" alt="Jogjagem" width={22} height={22} className="object-contain" />
           </div>
@@ -168,7 +172,7 @@ export default function BusinessSidebar() {
               <p className="text-[10px] text-gold-600 font-semibold tracking-widest uppercase">Business Portal</p>
             </div>
           )}
-        </div>
+        </Link>
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-4">
