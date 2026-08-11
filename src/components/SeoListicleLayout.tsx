@@ -72,14 +72,10 @@ export default function SeoListicleLayout({
         {/* ── Masthead ─────────────────────────────────────────────────────── */}
         <header className="relative border-b border-gold-200 overflow-hidden">
           {heroBgImage && (
-            <div className="absolute inset-0 pointer-events-none select-none">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={heroBgImage}
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover object-top"
-              />
+            <div
+              className="absolute inset-0 pointer-events-none select-none bg-cover bg-top"
+              style={{ backgroundImage: `url('${heroBgImage}')` }}
+            >
               <div className="absolute inset-0 bg-gradient-to-b from-gold-50/30 via-gold-50/60 to-gold-50" />
             </div>
           )}
