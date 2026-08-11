@@ -83,11 +83,10 @@ export default function SearchBar({
           <button
             type="button"
             onClick={() => onRotatingClueClick(currentClue)}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pr-20 w-[calc(100%-0.625rem)] text-left text-xs sm:text-sm text-white/60 hover:text-white transition-colors cursor-pointer group"
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 pr-20 w-[calc(100%-0.625rem)] text-left text-xs sm:text-sm text-white/60 hover:text-white transition-colors cursor-pointer"
             title={currentClue}
           >
             <span key={clueIndex} className="truncate animate-fade-in">{currentClue}</span>
-            <Search className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
         )}
       </div>
