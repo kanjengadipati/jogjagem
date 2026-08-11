@@ -197,5 +197,22 @@ export async function fetchTrendingHitsDestinations(locale: string = 'id', limit
   return [...trending, ...remaining].slice(0, limit);
 }
 
+export async function fetchExoticBeachDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
+  const all = await fetchAllDestinations(locale);
+  const keywords = ['pantai', 'beach', 'gunungkidul', 'pasir putih', 'tebing', 'laut'];
+  
+  const matches = all.filter((d) => {
+    const cat = d.category?.toLowerCase();
+    const isBeachOrHidden = cat === 'beach' || cat === 'hidden-gem';
+    return isBeachOrHidden && isKeywordMatch(d, keywords);
+  });
+
+  if (matches.length > 0) return matches.slice(0, limit);
+
+  const fallback = all.filter((d) => d.category?.toLowerCase() === 'beach' || isKeywordMatch(d, ['pantai', 'beach']));
+  return fallback.length > 0 ? fallback.slice(0, limit) : all.slice(0, limit);
+}
+
+
 
 
