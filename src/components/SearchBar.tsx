@@ -62,6 +62,7 @@ export default function SearchBar({
   };
 
   const currentClue = rotatingClues.length > 0 ? rotatingClues[clueIndex % rotatingClues.length] : '';
+  const showingClue = !value && !!currentClue && !!onRotatingClueClick;
 
   return (
     <form
@@ -73,12 +74,12 @@ export default function SearchBar({
       <div className="relative w-full">
         <input
           type="text"
-          placeholder={placeholder}
+          placeholder={showingClue ? '' : placeholder}
           value={value}
           onChange={e => onChange(e.target.value)}
           className="w-full bg-transparent py-2.5 sm:py-3 pl-2.5 pr-20 text-xs sm:text-sm text-white placeholder-white/60 focus:outline-none font-sans"
         />
-        {!value && currentClue && onRotatingClueClick && (
+        {showingClue && (
           <button
             type="button"
             onClick={() => onRotatingClueClick(currentClue)}

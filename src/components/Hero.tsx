@@ -572,10 +572,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
                     onSubmit={() => { if (searchQuery.trim()) onSearchSubmit(searchQuery); }}
                     placeholder={t('hero.search_placeholder')}
                     rotatingClues={searchClues}
-                    onRotatingClueClick={(clue) => {
-                      setSearchQuery(clue);
-                      onSearchSubmit(clue);
-                    }}
+                    onRotatingClueClick={(clue) => setSearchQuery(clue)}
                     showImageSearch
                     showVoiceSearch
                     onImageSearch={async (file) => {
