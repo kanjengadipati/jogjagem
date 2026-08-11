@@ -30,6 +30,7 @@ export interface SeoListicleLayoutProps {
   adPlacement?: string;
   customItemBadge?: (d: Destination, index: number) => string | null;
   customSubTitle?: (d: Destination, index: number) => string | null;
+  heroBgImage?: string;
 }
 
 const BADGE_LABEL: Record<string, { id: string; en: string }> = {
@@ -57,6 +58,7 @@ export default function SeoListicleLayout({
   adPlacement = 'seo_listicle',
   customItemBadge,
   customSubTitle,
+  heroBgImage = '/bg-hero-per-clue.png',
 }: SeoListicleLayoutProps) {
   const router = useRouter();
   const isEn = locale === 'en';
@@ -68,9 +70,20 @@ export default function SeoListicleLayout({
         <Header activeTab={activeTab} setActiveTab={() => router.push('/')} savedCount={0} isOverHero={false} />
 
         {/* ── Masthead ─────────────────────────────────────────────────────── */}
-        <header className="border-b border-gold-200">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 md:pt-16 md:pb-14">
-
+        <header className="relative border-b border-gold-200 overflow-hidden">
+          {heroBgImage && (
+            <div className="absolute inset-0 pointer-events-none select-none">
+              <Image
+                src={heroBgImage}
+                alt=""
+                fill
+                priority
+                className="object-cover object-center opacity-40 mix-blend-multiply"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-gold-50/60 via-gold-50/85 to-gold-50" />
+            </div>
+          )}
+          <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 md:pt-16 md:pb-14">
             {/* Breadcrumb */}
             <nav
               className="font-mono text-[10px] tracking-[0.2em] uppercase text-gold-700/80 mb-6"
@@ -112,6 +125,7 @@ export default function SeoListicleLayout({
             )}
           </div>
         </header>
+
 
         {/* ── Listicle — Kraton Ledger Layout ───────────────────────────────────── */}
         <main className="max-w-3xl mx-auto px-4 sm:px-6">
