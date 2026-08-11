@@ -34,6 +34,21 @@ export function WebsiteJsonLd({ locale = 'id' }: { locale?: 'id' | 'en' }) {
   return <JsonLd data={data} />;
 }
 
+export function OrganizationJsonLd() {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/icon-512.png`,
+    description: 'Platform panduan wisata dan informasi destinasi terpercaya di Yogyakarta.',
+    sameAs: [
+      'https://www.instagram.com/jogjagem',
+    ],
+  };
+  return <JsonLd data={data} />;
+}
+
 interface TouristDestinationJsonLdProps {
   name: string;
   description: string;

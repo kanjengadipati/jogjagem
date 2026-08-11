@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import ClientShell from '@/components/ClientShell';
+import { OrganizationJsonLd, ItemListJsonLd, FAQJsonLd } from '@/components/JsonLd';
+import { toSlug } from '@/lib/slug';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
@@ -7,8 +9,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 if (!process.env.NEXT_PUBLIC_API_BASE) {
   console.warn('[SEO Shell] NEXT_PUBLIC_API_BASE is not set — falling back to localhost:8081. SEO shell will be empty in production unless env var is configured.');
 }
-
-import { toSlug } from '@/lib/slug';
 
 async function getTopDestinations() {
   try {
@@ -77,11 +77,64 @@ function SeoShell({ destinations }: { destinations: Array<{ id: string; name: st
   );
 }
 
-export default async function Page() {
+type PageProps = { params: Promise<{ locale: string }> };
+
+export default async function Page({ params }: PageProps) {
+  const { locale } = await params;
+  const isEn = locale === 'en';
   const destinations = await getTopDestinations();
+  const pageUrl = isEn ? `${SITE_URL}/en` : SITE_URL;
+
+  const faqs = isEn
+    ? [
+        {
+          question: 'What are the top tourist destinations in Yogyakarta?',
+          answer: 'Prambanan Temple, Malioboro Street, Taman Sari Water Castle, Parangtritis Beach, and Mount Merapi Lava Tour are among the top attractions in Yogyakarta.',
+        },
+        {
+          question: 'How many days are recommended to visit Yogyakarta?',
+          answer: 'A 2 to 3 day itinerary is ideal for exploring Yogyakarta city heritage, culinary spots, and surrounding natural attractions.',
+        },
+        {
+          question: 'When is the best time to visit Yogyakarta?',
+          answer: 'The dry season from May to October is the best time to visit Yogyakarta for outdoor activities, beaches, and temple tours.',
+        },
+      ]
+    : [
+        {
+          question: 'Apa saja tempat wisata paling populer di Jogja?',
+          answer: 'Candi Prambanan, Jalan Malioboro, Taman Sari, Pantai Parangtritis, dan Lava Tour Gunung Merapi merupakan destinasi favorit di Yogyakarta.',
+        },
+        {
+          question: 'Berapa hari waktu ideal untuk liburan di Jogja?',
+          answer: 'Waktu ideal liburan di Jogja adalah 2–3 hari untuk menjelajahi pusat kota, candi bersejarah, dan wisata alam di sekitarnya.',
+        },
+        {
+          question: 'Kapan waktu terbaik berkunjung ke Yogyakarta?',
+          answer: 'Musim kemarau antara Mei hingga Oktober adalah waktu terbaik untuk menikmati wisata alam dan pantai di Jogja.',
+        },
+      ];
 
   return (
     <>
+      <OrganizationJsonLd />
+      {destinations.length > 0 && (
+        <ItemListJsonLd
+          pageName={isEn ? 'Top Destinations in Yogyakarta' : 'Destinasi Wisata Paling Dicari di Jogja'}
+          pageUrl={pageUrl}
+          description={
+            isEn
+              ? 'Discover top-rated tourist destinations, heritage sites, and hidden gems in Yogyakarta.'
+              : 'Temukan destinasi wisata populer, cagar budaya, dan hidden gem di Yogyakarta.'
+          }
+          items={destinations.map((d, i) => ({
+            position: i + 1,
+            name: d.name,
+            url: `${SITE_URL}${isEn ? '/en' : ''}/destinations/${d.slug}`,
+          }))}
+        />
+      )}
+      <FAQJsonLd items={faqs} />
       <SeoShell destinations={destinations} />
       <Suspense>
         <ClientShell />
