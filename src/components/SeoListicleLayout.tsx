@@ -73,14 +73,14 @@ export default function SeoListicleLayout({
         <header className="relative border-b border-gold-200 overflow-hidden">
           {heroBgImage && (
             <div className="absolute inset-0 pointer-events-none select-none">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={heroBgImage}
                 alt=""
-                fill
-                priority
-                className="object-cover object-center opacity-40 mix-blend-multiply"
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover object-center opacity-25"
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-gold-50/60 via-gold-50/85 to-gold-50" />
+              <div className="absolute inset-0 bg-gradient-to-b from-gold-50/40 via-gold-50/70 to-gold-50" />
             </div>
           )}
           <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-12 pb-10 md:pt-16 md:pb-14">
