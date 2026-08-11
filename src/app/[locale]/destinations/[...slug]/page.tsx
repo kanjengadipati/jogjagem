@@ -233,7 +233,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
           )}
         </>
       )}
-      <DestinationDetailClient slug={slug} />
+      <DestinationDetailClient slug={slug} initialData={dest} />
     </>
   );
 }

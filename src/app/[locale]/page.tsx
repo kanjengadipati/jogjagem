@@ -39,7 +39,7 @@ async function getTopDestinations() {
 
 function SeoShell({ destinations }: { destinations: Array<{ id: string; name: string; slug: string; imageUrl: string; tagline: string; category: string }> }) {
   return (
-    <div aria-hidden="true" className="sr-only">
+    <div className="sr-only">
       <h1>Jogjagem — Jelajahi Yogyakarta Lebih Dalam</h1>
       <p>Temukan destinasi wisata terbaik di Yogyakarta. Panduan lengkap Candi Prambanan, Malioboro, Pantai Parangtritis, Gunung Merapi, dan 100+ destinasi lainnya.</p>
       <nav aria-label="Popular destinations">

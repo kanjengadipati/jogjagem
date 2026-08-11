@@ -52,18 +52,36 @@ function mapApiToDestination(raw: any): Destination {
   };
 }
 
-export default function DestinationDetailClient({ slug }: { slug: string[] }) {
+export default function DestinationDetailClient({
+  slug,
+  initialData = null,
+}: {
+  slug: string[];
+  initialData?: Destination | null;
+}) {
   const { t } = useLocale();
   const router = useRouter();
   const destinationId = slug.join('/');
-  const [destination, setDestination] = useState<Destination | null>(null);
+  const [destination, setDestination] = useState<Destination | null>(initialData);
   const [allDestinations, setAllDestinations] = useState<Destination[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState('');
   const [savedDestinationIds, setSavedDestinationIds] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    if (initialData) {
+      setDestination(initialData);
+      setLoading(false);
+      // Lazy-load all destinations for "similar destinations" section (non-blocking)
+      destinations.getAll().then((allRes) => {
+        if (allRes.status === 'success' && Array.isArray(allRes.data)) {
+          setAllDestinations(allRes.data.map(mapApiToDestination));
+        }
+      }).catch(() => {});
+      return;
+    }
+
     const fetchDestination = async () => {
       setLoading(true);
       const slugStr = slug.join('/');
@@ -105,7 +123,7 @@ export default function DestinationDetailClient({ slug }: { slug: string[] }) {
       setLoading(false);
     };
     fetchDestination();
-  }, [destinationId]);
+  }, [destinationId, initialData]);
 
   useEffect(() => {
     try {

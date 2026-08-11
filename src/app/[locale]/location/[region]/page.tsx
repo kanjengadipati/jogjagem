@@ -4,6 +4,10 @@ import DestinationsPageClient from '@/app/[locale]/destinations/DestinationsPage
 import { BreadcrumbJsonLd, ItemListJsonLd } from '@/components/JsonLd';
 import { toSlug } from '@/lib/slug';
 
+import type { Destination } from '@/types';
+import { fetchAllDestinations } from '@/lib/server-destinations';
+import { mapApiToDestination } from '@/lib/destination-mapper';
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'http://localhost:8081';
 
@@ -61,18 +65,23 @@ const REGION_META: Record<string, {
 
 type PageProps = { params: Promise<{ region: string; locale: string }> };
 
-// Fetch a lightweight list of destinations for JSON-LD ItemList (SSR only)
-async function fetchRegionDestinations(dbName: string, locale: string) {
+// Fetch destinations for region (SSR)
+async function fetchRegionDestinations(dbName: string, locale: string): Promise<Destination[]> {
   try {
-    const res = await fetch(`${API_BASE}/locations/${encodeURIComponent(
-      Object.entries(REGION_META).find(([, v]) => v.dbName === dbName)?.[0] ?? ''
-    )}`, {
+    const regionKey = Object.entries(REGION_META).find(([, v]) => v.dbName === dbName)?.[0] ?? '';
+    const res = await fetch(`${API_BASE}/locations/${encodeURIComponent(regionKey)}`, {
       headers: { 'Accept-Language': locale },
       next: { revalidate: 3600 },
     });
-    if (!res.ok) return [];
-    const body = await res.json();
-    return (body?.data?.destinations ?? []) as Array<{ id: string; name: string }>;
+    if (res.ok) {
+      const body = await res.json();
+      const rawList = body?.data?.destinations ?? [];
+      if (Array.isArray(rawList) && rawList.length > 0) {
+        return rawList.map((raw: Record<string, unknown>) => mapApiToDestination(raw));
+      }
+    }
+    const all = await fetchAllDestinations(locale);
+    return all.filter((d) => d.subRegion?.toLowerCase().includes(dbName.toLowerCase()));
   } catch {
     return [];
   }
@@ -147,7 +156,7 @@ export default async function LocationPage({ params }: PageProps) {
         />
       )}
       {/* Reuse DestinationsPageClient with region pre-filter — same UI, same components */}
-      <DestinationsPageClient initialRegion={meta.dbName} />
+      <DestinationsPageClient initialRegion={meta.dbName} initialDestinations={destinations} />
     </>
   );
 }

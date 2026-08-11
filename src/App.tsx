@@ -23,7 +23,6 @@ import { Sparkles, Calendar, Quote, Compass, Eye, Heart, MapPin, Brain, Calendar
 const CATEGORY_PAGE_SIZE = 15;
 
 export default function App() {
-  console.log('DEBUG: App component rendered');
   const { t, locale } = useLocale();
   const { coords } = useLocation();
   const router = useRouter();
