@@ -230,7 +230,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
       ai.trending().then(res => {
         if (cancelled) return;
         if (res.status === 'success' && res.data?.items?.length) setTrendingItems(res.data.items.slice(0, 10));
-      }).catch(() => {});
+      }).catch(() => { });
     }).finally(() => { if (!cancelled) setTrendingLoading(false); });
 
     return () => { cancelled = true; };
@@ -659,13 +659,36 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
               >
                 {trendingLoading
                   ? Array.from({ length: 4 }).map((_, i) => (
-                      <div key={i} className="shrink-0 w-[100px] snap-start bg-white/5 border border-white/10 rounded-xl overflow-hidden animate-pulse">
-                        <div className="h-[60px] bg-white/10" /><div className="p-2 space-y-1"><div className="h-2 w-16 bg-white/10 rounded" /><div className="h-3 w-full bg-white/10 rounded" /></div>
-                      </div>
-                    ))
+                    <div key={i} className="shrink-0 w-[100px] snap-start bg-white/5 border border-white/10 rounded-xl overflow-hidden animate-pulse">
+                      <div className="h-[60px] bg-white/10" /><div className="p-2 space-y-1"><div className="h-2 w-16 bg-white/10 rounded" /><div className="h-3 w-full bg-white/10 rounded" /></div>
+                    </div>
+                  ))
                   : trendingItems.map((item, idx) => renderTrendingCard(item, 'mobile', idx + 1))
                 }
               </div>
+            </div>
+
+            {/* Region chips — mobile/tablet */}
+            <div className="block lg:hidden pb-4">
+              <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2">
+                {[
+                  { slug: 'kota-yogyakarta', label: 'Kota Yogyakarta', title: 'Wisata Kota Yogyakarta' },
+                  { slug: 'sleman', label: 'Sleman', title: 'Wisata Sleman & Merapi' },
+                  { slug: 'bantul', label: 'Bantul', title: 'Wisata Pantai & Kerajinan Bantul' },
+                  { slug: 'kulon-progo', label: 'Kulon Progo', title: 'Wisata Alam Kulon Progo' },
+                  { slug: 'gunungkidul', label: 'Gunungkidul', title: 'Wisata Pantai & Gua Gunungkidul' },
+                ].map(({ slug, label, title }) => (
+                  <button
+                    key={slug}
+                    title={title}
+                    aria-label={title}
+                    onClick={() => router.push(`/location/${slug}`)}
+                    className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5 transition-all duration-200 cursor-pointer"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </nav>
             </div>
 
           </div>{/* end main content */}
@@ -701,13 +724,38 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
               >
                 {trendingLoading
                   ? Array.from({ length: 4 }).map((_, i) => (
-                      <div key={i} className="shrink-0 w-[140px] snap-start bg-white/5 border border-white/10 rounded-xl overflow-hidden animate-pulse">
-                        <div className="h-[80px] bg-white/10" /><div className="p-2.5 space-y-1.5"><div className="h-2 w-16 bg-white/10 rounded" /><div className="h-3 w-full bg-white/10 rounded" /><div className="h-2 w-10 bg-white/10 rounded" /></div>
-                      </div>
-                    ))
+                    <div key={i} className="shrink-0 w-[140px] snap-start bg-white/5 border border-white/10 rounded-xl overflow-hidden animate-pulse">
+                      <div className="h-[80px] bg-white/10" /><div className="p-2.5 space-y-1.5"><div className="h-2 w-16 bg-white/10 rounded" /><div className="h-3 w-full bg-white/10 rounded" /><div className="h-2 w-10 bg-white/10 rounded" /></div>
+                    </div>
+                  ))
                   : trendingItems.map((item, idx) => renderTrendingCard(item, 'desktop', idx + 1))
                 }
               </div>
+            </div>
+          </div>
+
+          {/* Region chips — desktop, pinned below Trending Now */}
+          <div className="hidden lg:block absolute bottom-4 left-0 right-0 z-10">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2">
+                {[
+                  { slug: 'kota-yogyakarta', label: 'Kota Yogyakarta', title: 'Wisata Kota Yogyakarta' },
+                  { slug: 'sleman', label: 'Sleman', title: 'Wisata Sleman & Merapi' },
+                  { slug: 'bantul', label: 'Bantul', title: 'Wisata Pantai & Kerajinan Bantul' },
+                  { slug: 'kulon-progo', label: 'Kulon Progo', title: 'Wisata Alam Kulon Progo' },
+                  { slug: 'gunungkidul', label: 'Gunungkidul', title: 'Wisata Pantai & Gua Gunungkidul' },
+                ].map(({ slug, label, title }) => (
+                  <button
+                    key={slug}
+                    title={title}
+                    aria-label={title}
+                    onClick={() => router.push(`/location/${slug}`)}
+                    className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5 transition-all duration-200 cursor-pointer"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </nav>
             </div>
           </div>
 
