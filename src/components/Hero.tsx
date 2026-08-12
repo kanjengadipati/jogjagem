@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { useRouter } from '@/i18n/navigation';
+import { useRouter, Link } from '@/i18n/navigation';
 import { Search, ChevronLeft, ChevronRight, Mic, MicOff, Camera, Loader2, Bookmark, X, Star, CalendarDays, Heart, MapPin } from 'lucide-react';
 import { Destination, Festival } from '../types';
 import { ai, ads, type BeAdCampaign } from '../lib/api';
@@ -678,15 +678,15 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
                   { slug: 'kulon-progo', label: 'Kulon Progo', title: 'Wisata Alam Kulon Progo' },
                   { slug: 'gunungkidul', label: 'Gunungkidul', title: 'Wisata Pantai & Gua Gunungkidul' },
                 ].map(({ slug, label, title }) => (
-                  <button
+                  <Link
                     key={slug}
+                    href={`/location/${slug}`}
                     title={title}
                     aria-label={title}
-                    onClick={() => router.push(`/location/${slug}`)}
-                    className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5 transition-all duration-200 cursor-pointer"
+                    className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5 transition-all duration-200"
                   >
                     {label}
-                  </button>
+                  </Link>
                 ))}
               </nav>
             </div>
@@ -745,15 +745,15 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
                   { slug: 'kulon-progo', label: 'Kulon Progo', title: 'Wisata Alam Kulon Progo' },
                   { slug: 'gunungkidul', label: 'Gunungkidul', title: 'Wisata Pantai & Gua Gunungkidul' },
                 ].map(({ slug, label, title }) => (
-                  <button
+                  <Link
                     key={slug}
+                    href={`/location/${slug}`}
                     title={title}
                     aria-label={title}
-                    onClick={() => router.push(`/location/${slug}`)}
-                    className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5 transition-all duration-200 cursor-pointer"
+                    className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5 transition-all duration-200"
                   >
                     {label}
-                  </button>
+                  </Link>
                 ))}
               </nav>
             </div>
