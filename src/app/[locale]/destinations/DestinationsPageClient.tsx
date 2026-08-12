@@ -584,24 +584,23 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                     {locale === 'en' ? 'Updated every week' : 'Diperbarui tiap minggu'}
                   </div>
                 )}
-                {/* SEO links — only show when no filter active */}
+                {/* Region quick links — only show when no filter active */}
                 {!selectedCategory && !selectedRegion && (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {[
-                      { href: `/${locale}/destinations/hidden-gem`, label: locale === 'en' ? 'Hidden Gems' : 'Hidden Gem' },
-                      { href: `/${locale}/destinations/nature`, label: locale === 'en' ? 'Nature' : 'Wisata Alam' },
-                      { href: `/${locale}/destinations/culinary`, label: locale === 'en' ? 'Culinary' : 'Kuliner' },
-                      { href: `/${locale}/destinations/heritage`, label: locale === 'en' ? 'Heritage' : 'Sejarah & Budaya' },
-                      { href: `/${locale}/destinations/adventure`, label: locale === 'en' ? 'Adventure' : 'Petualangan' },
-                      { href: `/${locale}/destinations/beach`, label: locale === 'en' ? 'Beaches' : 'Pantai' },
-                    ].map(({ href, label }) => (
-                      <Link
-                        key={href}
-                        href={href}
-                        className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/50 hover:border-gold-400/50 hover:text-gold-400 transition-all"
+                      { slug: 'kota-yogyakarta', label: locale === 'en' ? 'Yogyakarta City' : 'Kota Yogyakarta' },
+                      { slug: 'sleman', label: 'Sleman' },
+                      { slug: 'bantul', label: 'Bantul' },
+                      { slug: 'kulon-progo', label: 'Kulon Progo' },
+                      { slug: 'gunungkidul', label: 'Gunungkidul' },
+                    ].map(({ slug, label }) => (
+                      <button
+                        key={slug}
+                        onClick={() => router.push(`/${locale}/location/${slug}`)}
+                        className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/50 hover:border-gold-400/50 hover:text-gold-400 transition-all cursor-pointer"
                       >
                         {label}
-                      </Link>
+                      </button>
                     ))}
                   </div>
                 )}
