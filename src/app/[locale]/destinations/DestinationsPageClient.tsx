@@ -586,7 +586,7 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                 )}
                 {/* Powerful SEO Quick Links Chips — Always rendered for maximum crawling & internal link equity */}
                 <nav aria-label="Navigasi Wilayah dan Kategori Wisata" className="mt-4 flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-extrabold tracking-wider uppercase text-gold-400/70 mr-1">Wilayah:</span>
+
                   {[
                     { slug: 'kota-yogyakarta', label: locale === 'en' ? 'Kota Yogyakarta' : 'Kota Yogyakarta', seoTitle: 'Wisata Kota Yogyakarta', match: 'yogyakarta' },
                     { slug: 'sleman', label: 'Sleman', seoTitle: 'Wisata Sleman & Merapi', match: 'sleman' },
@@ -613,7 +613,7 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                       </Link>
                     );
                   })}
-                  <span className="text-[10px] font-extrabold tracking-wider uppercase text-gold-400/70 ml-2 mr-1">Kategori:</span>
+
                   {[
                     { slug: 'hidden-gem', label: locale === 'en' ? 'Hidden Gems' : 'Hidden Gem', seoTitle: 'Destinasi Hidden Gem Yogyakarta' },
                     { slug: 'nature', label: locale === 'en' ? 'Nature' : 'Wisata Alam', seoTitle: 'Wisata Alam Yogyakarta' },
