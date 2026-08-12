@@ -21,44 +21,44 @@ const REGION_META: Record<string, {
 }> = {
   'kota-yogyakarta': {
     dbName: 'Yogyakarta',
-    id: 'Kota Yogyakarta',
-    en: 'Yogyakarta City',
-    descId: 'Temukan destinasi wisata terbaik di Kota Yogyakarta — pusat budaya, kuliner, dan sejarah Jogja.',
-    descEn: 'Discover the best tourist destinations in Yogyakarta City — the cultural, culinary, and historical heart of Jogja.',
+    id: 'Yogyakarta',
+    en: 'Yogyakarta',
+    descId: 'Temukan destinasi & tempat wisata terbaik di Yogyakarta — pusat budaya, kuliner khas, dan sejarah Jogja.',
+    descEn: 'Discover the best tourist destinations in Yogyakarta — the cultural, culinary, and historical heart of Jogja.',
   },
   sleman: {
     dbName: 'Sleman',
     id: 'Sleman',
     en: 'Sleman',
-    descId: 'Jelajahi destinasi wisata di Sleman — dari Candi Prambanan hingga lereng Gunung Merapi.',
+    descId: 'Jelajahi destinasi & tempat wisata di Sleman — dari Candi Prambanan hingga wisata alam lereng Gunung Merapi.',
     descEn: 'Explore tourist destinations in Sleman — from Prambanan Temple to the slopes of Mount Merapi.',
   },
   bantul: {
     dbName: 'Bantul',
     id: 'Bantul',
     en: 'Bantul',
-    descId: 'Temukan destinasi wisata di Bantul — pantai Parangtritis, kerajinan perak Kotagede, dan lebih banyak lagi.',
-    descEn: 'Discover destinations in Bantul — Parangtritis beach, Kotagede silver craft, and much more.',
+    descId: 'Temukan destinasi & tempat wisata di Bantul — pantai Parangtritis, bukit pemandangan, dan sentra kerajinan.',
+    descEn: 'Discover destinations in Bantul — Parangtritis beach, scenic hills, and craft centers.',
   },
   'kulon-progo': {
     dbName: 'Kulon Progo',
     id: 'Kulon Progo',
     en: 'Kulon Progo',
-    descId: 'Wisata alam dan budaya di Kulon Progo — perbukitan Menoreh, air terjun, dan desa wisata.',
+    descId: 'Wisata alam dan budaya di Kulon Progo — perbukitan Menoreh, air terjun eksotis, dan tempat hits Jogja.',
     descEn: 'Nature and cultural tourism in Kulon Progo — Menoreh hills, waterfalls, and cultural villages.',
   },
   gunungkidul: {
     dbName: 'Gunungkidul',
     id: 'Gunungkidul',
     en: 'Gunungkidul',
-    descId: 'Wisata Gunungkidul — pantai karst memukau, gua tersembunyi, dan bentang alam yang unik.',
-    descEn: 'Gunungkidul tourism — stunning karst beaches, hidden caves, and unique landscapes.',
+    descId: 'Wisata Gunungkidul — pantai pasir putih memukau, gua tersembunyi, dan petualangan alam terpopuler.',
+    descEn: 'Gunungkidul tourism — stunning white sand beaches, hidden caves, and unique karst landscapes.',
   },
   'near-yogyakarta': {
     dbName: 'Near Yogyakarta',
     id: 'Dekat Yogyakarta',
     en: 'Near Yogyakarta',
-    descId: 'Destinasi wisata di sekitar Yogyakarta — Borobudur, Magelang, dan tempat menarik di luar DIY.',
+    descId: 'Destinasi wisata di sekitar Yogyakarta — Candi Borobudur, Magelang, dan tempat menarik di luar DIY.',
     descEn: 'Destinations near Yogyakarta — Borobudur, Magelang, and attractions just outside DIY province.',
   },
 };
@@ -97,12 +97,13 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { region, locale } = await params;
   const isEn = locale === 'en';
+  const year = new Date().getFullYear();
   const meta = REGION_META[region];
   if (!meta) return { title: 'Region Not Found', robots: { index: false, follow: false } };
 
   const title = isEn
-    ? `${meta.en} Destinations — Best Places to Visit | Jogjagem`
-    : `Wisata ${meta.id} — Destinasi Terbaik | Jogjagem`;
+    ? `${meta.en} Destinations ${year} — Best Places to Visit | Jogjagem`
+    : `Wisata ${meta.id} ${year} — Destinasi & Tempat Terbaik | Jogjagem`;
   const description = isEn ? meta.descEn : meta.descId;
   const pageUrl = isEn
     ? `${SITE_URL}/en/location/${region}`
@@ -138,9 +139,9 @@ export default async function LocationPage({ params }: PageProps) {
     <>
       <BreadcrumbJsonLd
         items={[
-          { name: 'Beranda', url: SITE_URL },
-          { name: isEn ? 'Destinations' : 'Destinasi', url: `${SITE_URL}/${locale === 'en' ? 'en/' : ''}destinations` },
-          { name: regionName, url: pageUrl },
+          { name: 'Jogjagem', url: `${SITE_URL}/${locale === 'en' ? 'en' : ''}` },
+          { name: isEn ? 'Destinations' : 'Destinasi Wisata', url: `${SITE_URL}/${locale === 'en' ? 'en/' : ''}destinations` },
+          { name: `Wisata ${regionName}`, url: pageUrl },
         ]}
       />
       {destinations.length > 0 && (
