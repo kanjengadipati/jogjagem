@@ -313,11 +313,12 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
     setActiveFilters({ minRating: null, free: false, openNow: false, familyFriendly: false, petFriendly: false, outdoor: false });
 
   const handleSelectCategory = (cat: string | null) => {
-    setSelectedCategory(cat);
-    // scroll so the hero section top is visible, category pills just below header
-    if (stickyFilterRef.current) {
-      const top = stickyFilterRef.current.getBoundingClientRect().top + window.scrollY - 120;
-      window.scrollTo({ top, behavior: 'smooth' });
+    if (cat) {
+      // Redirect to the canonical category URL for SEO
+      router.push(`/${locale}/destinations/${cat}`);
+    } else {
+      // Deselect: go back to the all destinations page
+      router.push(`/${locale}/destinations`);
     }
   };
 
@@ -687,15 +688,13 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
             </div>
           </div>
 
-            {!selectedCategory && (
-              <div className="border-t border-white/8 mt-2 relative z-40">
-                <CategoryLinks
-                  selectedCategory={selectedCategory}
-                  onSelectCategory={handleSelectCategory}
-                  dark
-                />
-              </div>
-            )}
+            <div className="border-t border-white/8 mt-2 relative z-40">
+              <CategoryLinks
+                selectedCategory={selectedCategory}
+                onSelectCategory={handleSelectCategory}
+                dark
+              />
+            </div>
         </section>
 
         <div ref={stickyFilterRef} className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 shadow-sm">
