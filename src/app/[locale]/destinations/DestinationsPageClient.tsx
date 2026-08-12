@@ -495,21 +495,47 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
 
       <main className="flex-1">
         <section className="relative bg-royal-950 pt-10 pb-0 overflow-hidden">
-          {/* Background image: Merapi */}
-          <div className="absolute inset-0">
-            <Image
-              src="/merapi.jpg"
-              alt="Gunung Merapi"
-              fill
-              sizes="100vw"
-              className="object-cover object-center opacity-40"
-              priority
-            />
-            {/* gradient: dark left → transparent right */}
-            <div className="absolute inset-0 bg-gradient-to-r from-royal-950 via-royal-950/70 to-transparent" />
-            {/* subtle bottom fade so content blends into page */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-royal-950" />
-          </div>
+          {/* Background image: dynamically calculated based on selectedRegion */}
+          {(() => {
+            let bgSrc = '/merapi.jpg';
+            let bgAlt = 'Yogyakarta';
+            if (selectedRegion) {
+              const r = selectedRegion.toLowerCase();
+              if (r.includes('sleman')) {
+                bgSrc = '/merapi.png';
+                bgAlt = 'Gunung Merapi Sleman';
+              } else if (r.includes('gunungkidul') || r.includes('gunung kidul')) {
+                bgSrc = '/pantai.png';
+                bgAlt = 'Pantai Gunungkidul';
+              } else if (r.includes('yogyakarta') || r.includes('jogja')) {
+                bgSrc = '/tugu.png';
+                bgAlt = 'Tugu Yogyakarta';
+              } else if (r.includes('kulon') || r.includes('progo')) {
+                bgSrc = '/kalibiru.png';
+                bgAlt = 'Kalibiru Kulon Progo';
+              } else if (r.includes('bantul')) {
+                bgSrc = '/pantai.png';
+                bgAlt = 'Pantai Bantul';
+              }
+            }
+            return (
+              <div className="absolute inset-0">
+                <Image
+                  key={bgSrc}
+                  src={bgSrc}
+                  alt={bgAlt}
+                  fill
+                  sizes="100vw"
+                  className="object-cover object-center opacity-40 transition-opacity duration-500"
+                  priority
+                />
+                {/* gradient: dark left → transparent right */}
+                <div className="absolute inset-0 bg-gradient-to-r from-royal-950 via-royal-950/70 to-transparent" />
+                {/* subtle bottom fade so content blends into page */}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-royal-950" />
+              </div>
+            );
+          })()}
 
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <button
