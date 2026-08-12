@@ -642,7 +642,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
             </div>
 
             {/* Trending Now — mobile/tablet */}
-            <div className="block lg:hidden pb-[82px]">
+            <div className="block lg:hidden pb-4">
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-gold-400 text-xs">✦</span>
                 <span className="text-[11px] font-bold text-white tracking-wide">{t('hero.trending')}</span>
@@ -692,7 +692,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
 
 
           {/* RouteMap — desktop only, pinned above Trending */}
-          <div className="hidden lg:block absolute bottom-[168px] left-0 right-0 z-10">
+          <div className="hidden lg:block absolute bottom-[210px] left-0 right-0 z-10">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="max-w-[calc(100%-360px)]">
                 <RouteMapItinerary
@@ -705,10 +705,10 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
             </div>
           </div>
 
-          {/* Trending Now — desktop only, pinned above slide controls */}
-          <div className="hidden lg:block absolute bottom-[56px] left-0 right-0 z-10">
+          {/* Trending Now + Region chips — desktop only, pinned above slide controls */}
+          <div className="hidden lg:block absolute bottom-3 left-0 right-0 z-10">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center gap-1.5 mb-2">
+              <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="text-gold-400 text-xs">✦</span>
                 <span className="text-[11px] font-bold text-white tracking-wide">{t('hero.trending')}</span>
                 <span className="text-gold-400 text-xs">✦</span>
@@ -728,13 +728,9 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
                   : trendingItems.map((item, idx) => renderTrendingCard(item, 'desktop', idx + 1))
                 }
               </div>
-            </div>
-          </div>
 
-          {/* Region chips — desktop, pinned below Trending Now */}
-          <div className="hidden lg:block absolute bottom-4 left-0 right-0 z-10">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2">
+              {/* Region chips — desktop, below Trending Now */}
+              <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2 mt-2 max-w-[calc(100%-380px)]">
                 {[
                   { slug: 'kota-yogyakarta', label: 'Kota Yogyakarta', title: 'Wisata Kota Yogyakarta' },
                   { slug: 'sleman', label: 'Sleman', title: 'Wisata Sleman & Merapi' },

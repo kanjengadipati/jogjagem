@@ -422,7 +422,7 @@ export default function MobileDiscoverView({
         </div>
 
         {/* ── Hero body ── */}
-        <div className="relative z-10 flex-1 flex flex-col pt-4 max-[380px]:pt-2 pb-[84px] sm:pb-[calc(88px+env(safe-area-inset-bottom,0px))] px-4 sm:px-8 min-h-0">
+        <div className="relative z-10 flex-1 flex flex-col pt-4 max-[380px]:pt-2 pb-4 sm:pb-6 px-4 sm:px-8 min-h-0">
 
           {/* ── AI Card: absolute top-right for ALL screen sizes ── */}
           {recommendation ? (
