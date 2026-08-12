@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from '@/i18n/navigation';
+import { useRouter, Link } from '@/i18n/navigation';
 import {
   Search, MapPin, Bell, Star, Heart, ChevronRight,
   Grid2x2, Compass, Utensils, Calendar, MoreHorizontal, Bookmark,
@@ -650,6 +650,26 @@ export default function MobileDiscoverView({
                         );
                       })}
                 </div>
+                {/* Region chips — below trending carousel */}
+                <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2 px-4 pb-4 mt-3">
+                  {[
+                    { slug: 'kota-yogyakarta', label: 'Kota Yogyakarta', title: 'Wisata Kota Yogyakarta' },
+                    { slug: 'sleman', label: 'Sleman', title: 'Wisata Sleman & Merapi' },
+                    { slug: 'bantul', label: 'Bantul', title: 'Wisata Pantai & Kerajinan Bantul' },
+                    { slug: 'kulon-progo', label: 'Kulon Progo', title: 'Wisata Alam Kulon Progo' },
+                    { slug: 'gunungkidul', label: 'Gunungkidul', title: 'Wisata Pantai & Gua Gunungkidul' },
+                  ].map(({ slug, label, title }) => (
+                    <Link
+                      key={slug}
+                      href={`/location/${slug}`}
+                      title={title}
+                      aria-label={title}
+                      className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5 active:bg-white/10 transition-all duration-200"
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </nav>
               </div>
             )}
           </div>

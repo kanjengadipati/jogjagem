@@ -666,11 +666,8 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
                   : trendingItems.map((item, idx) => renderTrendingCard(item, 'mobile', idx + 1))
                 }
               </div>
-            </div>
-
-            {/* Region chips — mobile/tablet */}
-            <div className="block lg:hidden pb-4">
-              <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2">
+              {/* Region chips — mobile, below trending carousel */}
+              <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2 mt-3">
                 {[
                   { slug: 'kota-yogyakarta', label: 'Kota Yogyakarta', title: 'Wisata Kota Yogyakarta' },
                   { slug: 'sleman', label: 'Sleman', title: 'Wisata Sleman & Merapi' },
