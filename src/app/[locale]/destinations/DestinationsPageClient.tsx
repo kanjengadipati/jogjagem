@@ -746,9 +746,15 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                   if (selectedCategory) return false;
                   return true;
                 }
-                const dest = destIndex.get(item.id);
-                if (selectedCategory && dest) {
-                  if (dest.category?.toLowerCase() !== selectedCategory.toLowerCase()) return false;
+                const dest = destIndex.get(item.id) || allDestinations.find(d => 
+                  d.name.toLowerCase() === item.headline.toLowerCase() || 
+                  item.headline.toLowerCase().includes(d.name.toLowerCase()) ||
+                  d.name.toLowerCase().includes(item.headline.toLowerCase())
+                );
+
+                if (selectedCategory) {
+                  if (!dest || !dest.category) return false;
+                  if (dest.category.toLowerCase() !== selectedCategory.toLowerCase()) return false;
                 }
                 if (selectedRegion) {
                   const loc = (dest?.subRegion || dest?.location || item.location || '').toLowerCase();
