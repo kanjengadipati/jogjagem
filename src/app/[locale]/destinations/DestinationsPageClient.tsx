@@ -585,10 +585,10 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                         ? `Explore ${count} top-rated nature spots, Menoreh hills, and trending attractions in Kulon Progo, Jogja ${year}.`
                         : `Eksplorasi ${count} tempat wisata alam, perbukitan Menoreh, serta destinasi hits terbaik di Kulon Progo, Jogja ${year}.`;
                     } else if (r.includes('yogyakarta') || r.includes('jogja')) {
-                      title = isEn ? 'Wisata Kota Yogyakarta' : 'Wisata Kota Yogyakarta';
+                      title = isEn ? 'Wisata Yogyakarta' : 'Wisata Yogyakarta';
                       subtitle = isEn
-                        ? `Explore ${count} top-rated heritage, culture, Malioboro, and culinary spots in Yogyakarta City ${year}.`
-                        : `Eksplorasi ${count} tempat wisata sejarah, budaya, Malioboro, serta kuliner khas terbaik di Kota Yogyakarta ${year}.`;
+                        ? `Explore ${count} top-rated heritage, culture, Malioboro, and culinary spots in Yogyakarta ${year}.`
+                        : `Eksplorasi ${count} tempat wisata sejarah, budaya, Malioboro, serta kuliner khas terbaik di Yogyakarta ${year}.`;
                     } else {
                       title = `Wisata ${selectedRegion}`;
                       subtitle = isEn
@@ -635,7 +635,7 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                 <nav aria-label="Navigasi Wilayah dan Kategori Wisata" className="mt-4 flex flex-wrap items-center gap-2">
 
                   {[
-                    { slug: 'kota-yogyakarta', label: locale === 'en' ? 'Kota Yogyakarta' : 'Kota Yogyakarta', seoTitle: 'Wisata Kota Yogyakarta', match: 'yogyakarta' },
+                    { slug: 'kota-yogyakarta', label: 'Yogyakarta', seoTitle: 'Wisata Yogyakarta', match: 'yogyakarta' },
                     { slug: 'sleman', label: 'Sleman', seoTitle: 'Wisata Sleman & Merapi', match: 'sleman' },
                     { slug: 'bantul', label: 'Bantul', seoTitle: 'Wisata Pantai & Kerajinan Bantul', match: 'bantul' },
                     { slug: 'kulon-progo', label: 'Kulon Progo', seoTitle: 'Wisata Alam Kulon Progo', match: 'kulon' },

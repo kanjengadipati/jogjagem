@@ -669,7 +669,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
               {/* Region chips — mobile, below trending carousel */}
               <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2 mt-3">
                 {[
-                  { slug: 'kota-yogyakarta', label: 'Kota Yogyakarta', title: 'Wisata Kota Yogyakarta' },
+                  { slug: 'kota-yogyakarta', label: 'Yogyakarta', title: 'Wisata Yogyakarta' },
                   { slug: 'sleman', label: 'Sleman', title: 'Wisata Sleman & Merapi' },
                   { slug: 'bantul', label: 'Bantul', title: 'Wisata Pantai & Kerajinan Bantul' },
                   { slug: 'kulon-progo', label: 'Kulon Progo', title: 'Wisata Alam Kulon Progo' },
@@ -732,7 +732,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
               {/* Region chips — desktop, below Trending Now */}
               <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2 mt-2 max-w-[calc(100%-380px)] relative z-30">
                 {[
-                  { slug: 'kota-yogyakarta', label: 'Kota Yogyakarta', title: 'Wisata Kota Yogyakarta' },
+                  { slug: 'kota-yogyakarta', label: 'Yogyakarta', title: 'Wisata Yogyakarta' },
                   { slug: 'sleman', label: 'Sleman', title: 'Wisata Sleman & Merapi' },
                   { slug: 'bantul', label: 'Bantul', title: 'Wisata Pantai & Kerajinan Bantul' },
                   { slug: 'kulon-progo', label: 'Kulon Progo', title: 'Wisata Alam Kulon Progo' },
