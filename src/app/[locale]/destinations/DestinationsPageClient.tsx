@@ -618,11 +618,11 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
               </div>
             </div>
 
-            {(trendingLoading || trendingItems.length > 0) && (() => {
+            {(trendingLoading || trendingItems.length > 0 || allDestinations.length > 0) && (() => {
               // Cross-reference trending items against allDestinations to filter by active category/region.
               // Events are always included (they carry a location string but no category).
               const destIndex = new Map(allDestinations.map(d => [d.id, d]));
-              const filteredTrending = trendingLoading ? trendingItems : trendingItems.filter(item => {
+              let filteredTrending = trendingLoading ? trendingItems : trendingItems.filter(item => {
                 if (item.type === 'event') {
                   // Filter events by region if a region is active
                   if (selectedRegion) {
@@ -642,6 +642,39 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                 }
                 return true;
               });
+
+              // Fallback: If AI global trending has fewer than 3 matches for the active filter (e.g. Bantul, Kulon Progo),
+              // populate with top-rated destinations matching the filter from allDestinations.
+              if (!trendingLoading && filteredTrending.length < 3 && allDestinations.length > 0) {
+                const existingIds = new Set(filteredTrending.map(t => t.id));
+                const candidates = allDestinations.filter(dest => {
+                  if (existingIds.has(dest.id)) return false;
+                  if (selectedCategory) {
+                    if (dest.category?.toLowerCase() !== selectedCategory.toLowerCase()) return false;
+                  }
+                  if (selectedRegion) {
+                    const loc = (dest.subRegion || dest.location || '').toLowerCase();
+                    if (!loc.includes(selectedRegion.toLowerCase())) return false;
+                  }
+                  return true;
+                });
+
+                candidates.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+                const fallbacks: TrendingItem[] = candidates.slice(0, 5 - filteredTrending.length).map(dest => ({
+                  type: 'destination',
+                  id: dest.id,
+                  badge: dest.category ? (t(`category.${dest.category.replace(/-/g, '_')}`) || dest.category) : 'Pilihan',
+                  headline: dest.name,
+                  reason: dest.tagline || dest.description || '',
+                  imageUrl: dest.images?.[0]?.url || '',
+                  rating: dest.rating || 4.5,
+                  distance: '',
+                  location: dest.subRegion || dest.location || '',
+                }));
+
+                filteredTrending = [...filteredTrending, ...fallbacks];
+              }
 
               const trendingLabel = selectedCategory
                 ? `Trending · ${t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory}`
