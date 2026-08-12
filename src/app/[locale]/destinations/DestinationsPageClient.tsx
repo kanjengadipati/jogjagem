@@ -549,32 +549,78 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
 
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-10">
               <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <MapPin className="h-4 w-4 text-gold-400" />
-                  <span className="text-xs font-semibold uppercase tracking-widest text-gold-400">
-                    {selectedRegion
-                      ? (locale === 'en' ? 'Region' : 'Wilayah')
-                      : selectedCategory
-                      ? t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory.toUpperCase()
-                      : t('destinations_page.all_destinations')}
-                  </span>
-                </div>
-                <h1 className="font-manrope text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.05]">
-                  {selectedRegion ? selectedRegion : t('destinations_page.heading')}
-                </h1>
-                <p className="mt-3 text-sm sm:text-base text-white/50 font-light max-w-lg">
-                  {selectedCategory
-                    ? t('destinations_page.subtitle_prefix_category', {
-                        count: (selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+',
-                        category: t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory,
-                        region: selectedRegion || t('destinations_page.all_yogyakarta')
-                      })
-                    : t('destinations_page.subtitle_prefix', {
-                        count: (selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+',
-                        region: selectedRegion || t('destinations_page.all_yogyakarta')
-                      })
+                {(() => {
+                  const isEn = locale === 'en';
+                  const year = new Date().getFullYear();
+                  const count = (selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+';
+                  
+                  let badge = isEn ? `TRAVEL GUIDE ${year}` : `PANDUAN WISATA ${year}`;
+                  let title = t('destinations_page.heading');
+                  let subtitle = isEn
+                    ? `Discover ${count} curated destinations across Yogyakarta ${year}.`
+                    : `Eksplorasi ${count} destinasi & tempat wisata pilihan paling populer di Yogyakarta ${year}.`;
+
+                  if (selectedRegion) {
+                    const r = selectedRegion.toLowerCase();
+                    badge = isEn ? `DESTINATIONS · ${selectedRegion.toUpperCase()}` : `DESTINASI · ${selectedRegion.toUpperCase()}`;
+
+                    if (r.includes('gunungkidul') || r.includes('gunung kidul')) {
+                      title = isEn ? 'Wisata Gunungkidul' : 'Wisata Gunungkidul';
+                      subtitle = isEn
+                        ? `Explore ${count} top-rated exotic beaches, caves, and natural adventure destinations in Gunungkidul, Jogja ${year}.`
+                        : `Eksplorasi ${count} tempat wisata pantai eksotis, gua, serta petualangan alam terbaik di Gunungkidul, Jogja ${year}.`;
+                    } else if (r.includes('sleman')) {
+                      title = isEn ? 'Wisata Sleman & Merapi' : 'Wisata Sleman & Merapi';
+                      subtitle = isEn
+                        ? `Explore ${count} top-rated Merapi nature spots, historical temples, and culinary destinations in Sleman, Jogja ${year}.`
+                        : `Eksplorasi ${count} tempat wisata alam Merapi, candi bersejarah, serta kuliner hits terbaik di Sleman, Jogja ${year}.`;
+                    } else if (r.includes('bantul')) {
+                      title = isEn ? 'Wisata Bantul' : 'Wisata Bantul';
+                      subtitle = isEn
+                        ? `Explore ${count} top-rated beaches, scenic hills, and craft centers in Bantul, Jogja ${year}.`
+                        : `Eksplorasi ${count} tempat wisata pantai, bukit pemandangan, serta sentra kerajinan terbaik di Bantul, Jogja ${year}.`;
+                    } else if (r.includes('kulon') || r.includes('progo')) {
+                      title = isEn ? 'Wisata Kulon Progo' : 'Wisata Kulon Progo';
+                      subtitle = isEn
+                        ? `Explore ${count} top-rated nature spots, Menoreh hills, and trending attractions in Kulon Progo, Jogja ${year}.`
+                        : `Eksplorasi ${count} tempat wisata alam, perbukitan Menoreh, serta destinasi hits terbaik di Kulon Progo, Jogja ${year}.`;
+                    } else if (r.includes('yogyakarta') || r.includes('jogja')) {
+                      title = isEn ? 'Wisata Kota Yogyakarta' : 'Wisata Kota Yogyakarta';
+                      subtitle = isEn
+                        ? `Explore ${count} top-rated heritage, culture, Malioboro, and culinary spots in Yogyakarta City ${year}.`
+                        : `Eksplorasi ${count} tempat wisata sejarah, budaya, Malioboro, serta kuliner khas terbaik di Kota Yogyakarta ${year}.`;
+                    } else {
+                      title = `Wisata ${selectedRegion}`;
+                      subtitle = isEn
+                        ? `Explore ${count} curated destinations in ${selectedRegion}, Yogyakarta ${year}.`
+                        : `Eksplorasi ${count} tempat wisata pilihan terbaik di ${selectedRegion}, Jogja ${year}.`;
+                    }
+                  } else if (selectedCategory) {
+                    const catName = t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory;
+                    badge = isEn ? `CATEGORY · ${catName.toUpperCase()}` : `KATEGORI · ${catName.toUpperCase()}`;
+                    title = `Wisata ${catName} Jogja`;
+                    subtitle = isEn
+                      ? `Explore ${count} top-rated ${catName.toLowerCase()} destinations across Yogyakarta ${year}.`
+                      : `Eksplorasi ${count} tempat wisata ${catName.toLowerCase()} pilihan paling populer dan hits di Yogyakarta ${year}.`;
                   }
-                </p>
+
+                  return (
+                    <>
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin className="h-4 w-4 text-gold-400" />
+                        <span className="text-xs font-semibold uppercase tracking-widest text-gold-400">
+                          {badge}
+                        </span>
+                      </div>
+                      <h1 className="font-manrope text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.05]">
+                        {title}
+                      </h1>
+                      <p className="mt-3 text-sm sm:text-base text-white/70 font-light max-w-xl leading-relaxed">
+                        {subtitle}
+                      </p>
+                    </>
+                  );
+                })()}
                 {/* Weekly curated badge — shown only on the hidden-gem page */}
                 {isWeeklyCurated && (
                   <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/15 border border-teal-400/25 text-teal-300 text-xs font-semibold">
