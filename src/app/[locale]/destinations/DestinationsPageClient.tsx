@@ -663,12 +663,13 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                         : `Eksplorasi ${count} tempat wisata pilihan terbaik di ${selectedRegion}, Jogja ${year}.`;
                     }
                   } else if (selectedCategory) {
-                    const catName = t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory;
-                    badge = isEn ? `CATEGORY · ${catName.toUpperCase()}` : `KATEGORI · ${catName.toUpperCase()}`;
-                    title = `Wisata ${catName} Jogja`;
+                    const rawCatName = t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory;
+                    const catCore = rawCatName.replace(/^wisata\s+/i, '');
+                    badge = isEn ? `CATEGORY · ${rawCatName.toUpperCase()}` : `KATEGORI · ${rawCatName.toUpperCase()}`;
+                    title = isEn ? `${rawCatName} Destinations Jogja` : `Wisata ${catCore} Jogja`;
                     subtitle = isEn
-                      ? `Explore ${count} top-rated ${catName.toLowerCase()} destinations across Yogyakarta ${year}.`
-                      : `Eksplorasi ${count} tempat wisata ${catName.toLowerCase()} pilihan paling populer dan hits di Yogyakarta ${year}.`;
+                      ? `Explore ${count} top-rated ${rawCatName.toLowerCase()} destinations across Yogyakarta ${year}.`
+                      : `Eksplorasi ${count} tempat wisata ${catCore.toLowerCase()} pilihan paling populer dan hits di Yogyakarta ${year}.`;
                   }
 
                   return (
