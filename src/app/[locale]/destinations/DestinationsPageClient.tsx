@@ -652,13 +652,15 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
             </div>
           </div>
 
-            <div className="border-t border-white/8 mt-2 relative z-40">
-              <CategoryLinks
-                selectedCategory={selectedCategory}
-                onSelectCategory={handleSelectCategory}
-                dark
-              />
-            </div>
+            {!selectedCategory && (
+              <div className="border-t border-white/8 mt-2 relative z-40">
+                <CategoryLinks
+                  selectedCategory={selectedCategory}
+                  onSelectCategory={handleSelectCategory}
+                  dark
+                />
+              </div>
+            )}
         </section>
 
         <div ref={stickyFilterRef} className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md border-b border-stone-200/80 shadow-sm">
