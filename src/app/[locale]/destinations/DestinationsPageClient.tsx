@@ -22,6 +22,7 @@ import {
   Star, SlidersHorizontal, X, MapPin, Sparkles,
   Flame,
 } from 'lucide-react';
+import { BreadcrumbJsonLd } from '@/components/JsonLd';
 
 type TrendingItem = {
   type: 'destination' | 'event';
@@ -539,13 +540,79 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
           })()}
 
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <button
-              onClick={() => router.push('/')}
-              className="flex items-center gap-1.5 text-gold-400/70 hover:text-gold-300 transition-colors mb-8 group"
-            >
-              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
-              <span className="text-sm font-medium">{t('destinations_page.back_to_explore')}</span>
-            </button>
+            {/* SEO Breadcrumb Navigation & JSON-LD Structured Data */}
+            {(() => {
+              const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
+              const items: { label: string; href?: string; schemaUrl: string }[] = [];
+
+              if (selectedRegion && selectedCategory) {
+                const regSlug = selectedRegion.toLowerCase().replace(/\s+/g, '-');
+                const catName = t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory;
+                const regLabel = selectedRegion.toLowerCase().includes('yogyakarta') ? 'Wisata Yogyakarta' : `Wisata ${selectedRegion}`;
+                
+                items.push({
+                  label: regLabel,
+                  href: `/${locale}/location/${regSlug}`,
+                  schemaUrl: `${siteUrl}/${locale}/location/${regSlug}`,
+                });
+                items.push({
+                  label: catName,
+                  schemaUrl: `${siteUrl}/${locale}/destinations/${selectedCategory}`,
+                });
+              } else if (selectedRegion) {
+                const regSlug = selectedRegion.toLowerCase().replace(/\s+/g, '-');
+                const regLabel = selectedRegion.toLowerCase().includes('yogyakarta') ? 'Wisata Yogyakarta' : `Wisata ${selectedRegion}`;
+                items.push({
+                  label: regLabel,
+                  schemaUrl: `${siteUrl}/${locale}/location/${regSlug}`,
+                });
+              } else if (selectedCategory) {
+                const catName = t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory;
+                items.push({
+                  label: catName,
+                  schemaUrl: `${siteUrl}/${locale}/destinations/${selectedCategory}`,
+                });
+              } else {
+                items.push({
+                  label: locale === 'en' ? 'All Destinations' : 'Destinasi Wisata',
+                  schemaUrl: `${siteUrl}/${locale}/destinations`,
+                });
+              }
+
+              const schemaItems = [
+                { name: 'Jogjagem', url: `${siteUrl}/${locale}` },
+                ...items.map(i => ({ name: i.label, url: i.schemaUrl })),
+              ];
+
+              return (
+                <>
+                  <BreadcrumbJsonLd items={schemaItems} />
+                  <nav aria-label="Breadcrumb" className="mb-6">
+                    <ol className="flex flex-wrap items-center gap-1.5 text-xs text-white/60">
+                      <li className="flex items-center gap-1.5">
+                        <Link href={`/${locale}`} className="hover:text-gold-400 transition-colors font-medium">
+                          Jogjagem
+                        </Link>
+                      </li>
+                      {items.map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5">
+                          <ChevronRight className="h-3 w-3 text-white/30 shrink-0" />
+                          {item.href && idx < items.length - 1 ? (
+                            <Link href={item.href} className="hover:text-gold-400 transition-colors font-medium">
+                              {item.label}
+                            </Link>
+                          ) : (
+                            <span className="text-gold-400 font-semibold" aria-current="page">
+                              {item.label}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  </nav>
+                </>
+              );
+            })()}
 
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-10">
               <div>
