@@ -706,7 +706,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
           </div>
 
           {/* Trending Now + Region chips — desktop only, pinned above slide controls */}
-          <div className="hidden lg:block absolute bottom-3 left-0 right-0 z-10">
+          <div className="hidden lg:block absolute bottom-3 left-0 right-0 z-20">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="text-gold-400 text-xs">✦</span>
@@ -730,7 +730,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
               </div>
 
               {/* Region chips — desktop, below Trending Now */}
-              <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2 mt-2 max-w-[calc(100%-380px)]">
+              <nav aria-label="Wisata per Wilayah Jogja" className="flex flex-wrap gap-2 mt-2 max-w-[calc(100%-380px)] relative z-30">
                 {[
                   { slug: 'kota-yogyakarta', label: 'Kota Yogyakarta', title: 'Wisata Kota Yogyakarta' },
                   { slug: 'sleman', label: 'Sleman', title: 'Wisata Sleman & Merapi' },
@@ -743,7 +743,7 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
                     href={`/location/${slug}`}
                     title={title}
                     aria-label={title}
-                    className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5 transition-all duration-200"
+                    className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5 transition-all duration-200 relative z-30 cursor-pointer"
                   >
                     {label}
                   </Link>
@@ -755,8 +755,8 @@ export default function Hero({ destinations, events = [], coords, onSearchSubmit
 
           {/* Slide controls — desktop only */}
           <div className="hidden lg:flex absolute bottom-4 left-0 right-0 z-10 pointer-events-none">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex justify-end pointer-events-auto">
-              <div className="flex flex-col items-end gap-3">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex justify-end pointer-events-none">
+              <div className="flex flex-col items-end gap-3 pointer-events-auto">
                 <div className="flex items-center space-x-2.5 text-white/90">
                   <span className="text-gold-400 text-sm">📍</span>
                   <div className="text-left">
