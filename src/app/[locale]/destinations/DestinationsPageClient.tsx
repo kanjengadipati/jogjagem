@@ -613,34 +613,6 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                       </Link>
                     );
                   })}
-
-                  {[
-                    { slug: 'hidden-gem', label: locale === 'en' ? 'Hidden Gems' : 'Hidden Gem', seoTitle: 'Destinasi Hidden Gem Yogyakarta' },
-                    { slug: 'nature', label: locale === 'en' ? 'Nature' : 'Wisata Alam', seoTitle: 'Wisata Alam Yogyakarta' },
-                    { slug: 'culinary', label: locale === 'en' ? 'Culinary' : 'Kuliner', seoTitle: 'Wisata Kuliner Khas Jogja' },
-                    { slug: 'heritage', label: locale === 'en' ? 'Heritage' : 'Sejarah & Budaya', seoTitle: 'Wisata Sejarah & Candi Jogja' },
-                    { slug: 'adventure', label: locale === 'en' ? 'Adventure' : 'Petualangan', seoTitle: 'Wisata Petualangan Jogja' },
-                    { slug: 'beach', label: locale === 'en' ? 'Beaches' : 'Pantai', seoTitle: 'Wisata Pantai Jogja' },
-                  ].map(({ slug, label, seoTitle }) => {
-                    const href = `/${locale}/destinations/${slug}`;
-                    const isActive = Boolean(selectedCategory && selectedCategory.toLowerCase() === slug.toLowerCase());
-                    return (
-                      <Link
-                        key={slug}
-                        href={href}
-                        title={seoTitle}
-                        aria-label={seoTitle}
-                        aria-current={isActive ? 'page' : undefined}
-                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all duration-200 ${
-                          isActive
-                            ? 'border-gold-400 bg-gold-400/20 text-gold-300 shadow-sm'
-                            : 'border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5'
-                        }`}
-                      >
-                        {label}
-                      </Link>
-                    );
-                  })}
                 </nav>
               </div>
             </div>
