@@ -584,24 +584,31 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                     {locale === 'en' ? 'Updated every week' : 'Diperbarui tiap minggu'}
                   </div>
                 )}
-                {/* Region quick links — only show when no filter active */}
-                {!selectedCategory && !selectedRegion && (
+                {/* Region quick links — show on region/all pages */}
+                {!selectedCategory && (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {[
-                      { slug: 'kota-yogyakarta', label: locale === 'en' ? 'Yogyakarta City' : 'Kota Yogyakarta' },
-                      { slug: 'sleman', label: 'Sleman' },
-                      { slug: 'bantul', label: 'Bantul' },
-                      { slug: 'kulon-progo', label: 'Kulon Progo' },
-                      { slug: 'gunungkidul', label: 'Gunungkidul' },
-                    ].map(({ slug, label }) => (
-                      <button
-                        key={slug}
-                        onClick={() => router.push(`/${locale}/location/${slug}`)}
-                        className="px-3 py-1 rounded-full text-xs font-semibold border border-white/15 text-white/50 hover:border-gold-400/50 hover:text-gold-400 transition-all cursor-pointer"
-                      >
-                        {label}
-                      </button>
-                    ))}
+                      { slug: 'kota-yogyakarta', label: locale === 'en' ? 'Yogyakarta City' : 'Kota Yogyakarta', match: 'yogyakarta' },
+                      { slug: 'sleman', label: 'Sleman', match: 'sleman' },
+                      { slug: 'bantul', label: 'Bantul', match: 'bantul' },
+                      { slug: 'kulon-progo', label: 'Kulon Progo', match: 'kulon' },
+                      { slug: 'gunungkidul', label: 'Gunungkidul', match: 'gunung' },
+                    ].map(({ slug, label, match }) => {
+                      const isActive = Boolean(selectedRegion && selectedRegion.toLowerCase().includes(match));
+                      return (
+                        <button
+                          key={slug}
+                          onClick={() => router.push(`/${locale}/location/${slug}`)}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                            isActive
+                              ? 'border-gold-400 bg-gold-400/20 text-gold-300'
+                              : 'border-white/15 text-white/50 hover:border-gold-400/50 hover:text-gold-400'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
