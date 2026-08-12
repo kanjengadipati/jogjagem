@@ -584,33 +584,64 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                     {locale === 'en' ? 'Updated every week' : 'Diperbarui tiap minggu'}
                   </div>
                 )}
-                {/* Region quick links — show on region/all pages */}
-                {!selectedCategory && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {[
-                      { slug: 'kota-yogyakarta', label: locale === 'en' ? 'Yogyakarta City' : 'Kota Yogyakarta', match: 'yogyakarta' },
-                      { slug: 'sleman', label: 'Sleman', match: 'sleman' },
-                      { slug: 'bantul', label: 'Bantul', match: 'bantul' },
-                      { slug: 'kulon-progo', label: 'Kulon Progo', match: 'kulon' },
-                      { slug: 'gunungkidul', label: 'Gunungkidul', match: 'gunung' },
-                    ].map(({ slug, label, match }) => {
-                      const isActive = Boolean(selectedRegion && selectedRegion.toLowerCase().includes(match));
-                      return (
-                        <button
-                          key={slug}
-                          onClick={() => router.push(`/${locale}/location/${slug}`)}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                            isActive
-                              ? 'border-gold-400 bg-gold-400/20 text-gold-300'
-                              : 'border-white/15 text-white/50 hover:border-gold-400/50 hover:text-gold-400'
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                {/* Powerful SEO Quick Links Chips — Always rendered for maximum crawling & internal link equity */}
+                <nav aria-label="Navigasi Wilayah dan Kategori Wisata" className="mt-4 flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-extrabold tracking-wider uppercase text-gold-400/70 mr-1">Wilayah:</span>
+                  {[
+                    { slug: 'kota-yogyakarta', label: locale === 'en' ? 'Kota Yogyakarta' : 'Kota Yogyakarta', seoTitle: 'Wisata Kota Yogyakarta', match: 'yogyakarta' },
+                    { slug: 'sleman', label: 'Sleman', seoTitle: 'Wisata Sleman & Merapi', match: 'sleman' },
+                    { slug: 'bantul', label: 'Bantul', seoTitle: 'Wisata Pantai & Kerajinan Bantul', match: 'bantul' },
+                    { slug: 'kulon-progo', label: 'Kulon Progo', seoTitle: 'Wisata Alam Kulon Progo', match: 'kulon' },
+                    { slug: 'gunungkidul', label: 'Gunungkidul', seoTitle: 'Wisata Pantai & Gua Gunungkidul', match: 'gunung' },
+                  ].map(({ slug, label, seoTitle, match }) => {
+                    const href = `/${locale}/location/${slug}`;
+                    const isActive = Boolean(selectedRegion && selectedRegion.toLowerCase().includes(match));
+                    return (
+                      <Link
+                        key={slug}
+                        href={href}
+                        title={seoTitle}
+                        aria-label={seoTitle}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                          isActive
+                            ? 'border-gold-400 bg-gold-400/20 text-gold-300 shadow-sm'
+                            : 'border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5'
+                        }`}
+                      >
+                        {label}
+                      </Link>
+                    );
+                  })}
+                  <span className="text-[10px] font-extrabold tracking-wider uppercase text-gold-400/70 ml-2 mr-1">Kategori:</span>
+                  {[
+                    { slug: 'hidden-gem', label: locale === 'en' ? 'Hidden Gems' : 'Hidden Gem', seoTitle: 'Destinasi Hidden Gem Yogyakarta' },
+                    { slug: 'nature', label: locale === 'en' ? 'Nature' : 'Wisata Alam', seoTitle: 'Wisata Alam Yogyakarta' },
+                    { slug: 'culinary', label: locale === 'en' ? 'Culinary' : 'Kuliner', seoTitle: 'Wisata Kuliner Khas Jogja' },
+                    { slug: 'heritage', label: locale === 'en' ? 'Heritage' : 'Sejarah & Budaya', seoTitle: 'Wisata Sejarah & Candi Jogja' },
+                    { slug: 'adventure', label: locale === 'en' ? 'Adventure' : 'Petualangan', seoTitle: 'Wisata Petualangan Jogja' },
+                    { slug: 'beach', label: locale === 'en' ? 'Beaches' : 'Pantai', seoTitle: 'Wisata Pantai Jogja' },
+                  ].map(({ slug, label, seoTitle }) => {
+                    const href = `/${locale}/destinations/${slug}`;
+                    const isActive = Boolean(selectedCategory && selectedCategory.toLowerCase() === slug.toLowerCase());
+                    return (
+                      <Link
+                        key={slug}
+                        href={href}
+                        title={seoTitle}
+                        aria-label={seoTitle}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                          isActive
+                            ? 'border-gold-400 bg-gold-400/20 text-gold-300 shadow-sm'
+                            : 'border-white/15 text-white/60 hover:border-gold-400/50 hover:text-gold-400 hover:bg-white/5'
+                        }`}
+                      >
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </nav>
               </div>
             </div>
 
