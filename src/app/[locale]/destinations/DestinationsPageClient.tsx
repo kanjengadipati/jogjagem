@@ -582,31 +582,65 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
               </div>
             </div>
 
-            {(trendingLoading || trendingItems.length > 0) && (
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-3">
-                  <Flame className="h-4 w-4 text-red-400" />
-                  <span className="text-xs font-semibold uppercase tracking-widest text-white/60">Sedang Trending</span>
-                  <div className="flex-1 h-px bg-white/10" />
-                  {!trendingLoading && (
-                    <>
-                      <button className="h-7 w-7 flex items-center justify-center rounded-full border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition-all">
-                        <ChevronLeft className="h-3.5 w-3.5" />
-                      </button>
-                      <button className="h-7 w-7 flex items-center justify-center rounded-full border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition-all">
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </button>
-                    </>
-                  )}
+            {(trendingLoading || trendingItems.length > 0) && (() => {
+              // Cross-reference trending items against allDestinations to filter by active category/region.
+              // Events are always included (they carry a location string but no category).
+              const destIndex = new Map(allDestinations.map(d => [d.id, d]));
+              const filteredTrending = trendingLoading ? trendingItems : trendingItems.filter(item => {
+                if (item.type === 'event') {
+                  // Filter events by region if a region is active
+                  if (selectedRegion) {
+                    return item.location?.toLowerCase().includes(selectedRegion.toLowerCase());
+                  }
+                  // For category filter, exclude events (they don't have a category)
+                  if (selectedCategory) return false;
+                  return true;
+                }
+                const dest = destIndex.get(item.id);
+                if (selectedCategory && dest) {
+                  if (dest.category?.toLowerCase() !== selectedCategory.toLowerCase()) return false;
+                }
+                if (selectedRegion) {
+                  const loc = (dest?.subRegion || dest?.location || item.location || '').toLowerCase();
+                  if (!loc.includes(selectedRegion.toLowerCase())) return false;
+                }
+                return true;
+              });
+
+              const trendingLabel = selectedCategory
+                ? `Trending · ${t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory}`
+                : selectedRegion
+                ? `Trending · ${selectedRegion}`
+                : locale === 'en' ? 'Trending Now' : 'Sedang Trending';
+
+              if (!trendingLoading && filteredTrending.length < 1) return null;
+
+              return (
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Flame className="h-4 w-4 text-red-400" />
+                    <span className="text-xs font-semibold uppercase tracking-widest text-white/60">{trendingLabel}</span>
+                    <div className="flex-1 h-px bg-white/10" />
+                    {!trendingLoading && (
+                      <>
+                        <button className="h-7 w-7 flex items-center justify-center rounded-full border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition-all">
+                          <ChevronLeft className="h-3.5 w-3.5" />
+                        </button>
+                        <button className="h-7 w-7 flex items-center justify-center rounded-full border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition-all">
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <TrendingCarousel
+                    items={filteredTrending}
+                    destinations={allDestinations}
+                    isLoading={trendingLoading}
+                    onNavigate={handleTrendingNavigate}
+                  />
                 </div>
-                <TrendingCarousel
-                  items={trendingItems}
-                  destinations={allDestinations}
-                  isLoading={trendingLoading}
-                  onNavigate={handleTrendingNavigate}
-                />
-              </div>
-            )}
+              );
+            })()}
 
             <div className="w-full sm:max-w-xl mb-2">
               <SearchBar
