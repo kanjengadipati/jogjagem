@@ -895,6 +895,7 @@
     "all_destinations": "SEMUA DESTINASI",
     "heading": "Jelajahi Setiap Sudut",
     "subtitle_prefix": "Temukan {count} destinasi pilihan di {region}.",
+    "subtitle_prefix_category": "Temukan {count} destinasi {category} pilihan di {region}.",
     "subtitle": "destinasi pilihan di {region}",
     "search_placeholder": "Cari destinasi...",
     "showing_all": "Menampilkan semua {count} destinasi",

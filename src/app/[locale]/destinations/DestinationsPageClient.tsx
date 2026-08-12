@@ -536,10 +536,17 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                   {selectedRegion ? selectedRegion : t('destinations_page.heading')}
                 </h1>
                 <p className="mt-3 text-sm sm:text-base text-white/50 font-light max-w-lg">
-                  {t('destinations_page.subtitle_prefix', {
-                    count: (selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+',
-                    region: selectedRegion || t('destinations_page.all_yogyakarta')
-                  })}
+                  {selectedCategory
+                    ? t('destinations_page.subtitle_prefix_category', {
+                        count: (selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+',
+                        category: t(`category.${selectedCategory.replace(/-/g, '_')}`) || selectedCategory,
+                        region: selectedRegion || t('destinations_page.all_yogyakarta')
+                      })
+                    : t('destinations_page.subtitle_prefix', {
+                        count: (selectedRegion || selectedCategory ? allDestinations.length : (totalCount ?? allDestinations.length)) || '90+',
+                        region: selectedRegion || t('destinations_page.all_yogyakarta')
+                      })
+                  }
                 </p>
                 {/* Weekly curated badge — shown only on the hidden-gem page */}
                 {isWeeklyCurated && (

@@ -895,6 +895,7 @@
     "all_destinations": "ALL DESTINATIONS",
     "heading": "Explore Every Corner",
     "subtitle_prefix": "Discover {count} curated destinations across {region}.",
+    "subtitle_prefix_category": "Find {count} {category} destinations in {region}.",
     "subtitle": "curated destinations across {region}",
     "search_placeholder": "Search destinations...",
     "showing_all": "Showing all {count} destinations",
