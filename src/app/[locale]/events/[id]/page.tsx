@@ -44,7 +44,7 @@ type PageProps = { params: Promise<{ id: string; locale: string }> };
 
 /** Returns an absolute OG image URL, proxying external images through our domain. */
 function resolveOgImage(imageUrl: string | null | undefined): string {
-  const fallback = `${SITE_URL}/og-default.png`;
+  const fallback = `${SITE_URL}/og.png`;
   if (!imageUrl) return fallback;
   // Already on our domain — use as-is
   if (imageUrl.startsWith(SITE_URL) || imageUrl.startsWith('/')) {
@@ -56,61 +56,77 @@ function resolveOgImage(imageUrl: string | null | undefined): string {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id, locale } = await params;
-  const event = await fetchEvent(id, locale);
+  const isEn = locale === 'en';
 
-  if (!event) {
+  try {
+    const event = await fetchEvent(id, locale);
+
+    if (!event) {
+      return {
+        title: isEn ? 'Event Not Found' : 'Event Tidak Ditemukan',
+        description: isEn
+          ? 'The event you are looking for was not found on Jogjagem.'
+          : 'Event yang Anda cari tidak ditemukan di Jogjagem.',
+        robots: { index: false, follow: false },
+      };
+    }
+
+    const title = `${event.title} — Events & Festivals`;
+    const description = event.description
+      ? (event.description.length > 160 ? event.description.slice(0, 157) + '...' : event.description)
+      : `Informasi lengkap event ${event.title} di Yogyakarta.`;
+
+    const ogImage = resolveOgImage(event.image_url);
+    const pageUrl = isEn ? `${SITE_URL}/en/events/${id}` : `${SITE_URL}/events/${id}`;
+
     return {
-      title: 'Event Tidak Ditemukan',
-      description: 'Event yang Anda cari tidak ditemukan di Jogjagem.',
+      title,
+      description,
+      openGraph: {
+        type: 'article',
+        locale: isEn ? 'en_US' : 'id_ID',
+        url: pageUrl,
+        siteName: 'Jogjagem',
+        title,
+        description,
+        images: [
+          {
+            url: ogImage,
+            width: 1200,
+            height: 630,
+            alt: event.title,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [ogImage],
+      },
+      alternates: {
+        canonical: pageUrl,
+        languages: {
+          id: `${SITE_URL}/events/${id}`,
+          'x-default': `${SITE_URL}/events/${id}`,
+          en: `${SITE_URL}/en/events/${id}`,
+        },
+      },
+    };
+  } catch (err) {
+    console.error(`[events/${id}] generateMetadata failed:`, err);
+    return {
+      title: isEn ? 'Event in Yogyakarta' : 'Event di Yogyakarta',
+      description: isEn
+        ? 'Discover events and festivals in Yogyakarta.'
+        : 'Temukan event dan festival terbaru di Yogyakarta.',
     };
   }
-
-  const title = `${event.title} — Events & Festivals`;
-  const description = event.description
-    ? (event.description.length > 160 ? event.description.slice(0, 157) + '...' : event.description)
-    : `Informasi lengkap event ${event.title} di Yogyakarta.`;
-
-  const ogImage = resolveOgImage(event.image_url);
-  const pageUrl = locale === 'en' ? `${SITE_URL}/en/events/${id}` : `${SITE_URL}/events/${id}`;
-
-  return {
-    title,
-    description,
-    openGraph: {
-      type: 'article',
-      locale: locale === 'en' ? 'en_US' : 'id_ID',
-      url: pageUrl,
-      siteName: 'Jogjagem',
-      title,
-      description,
-      images: [
-        {
-          url: ogImage,
-          width: 1200,
-          height: 630,
-          alt: event.title,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [ogImage],
-    },
-    alternates: {
-      canonical: pageUrl,
-      languages: {
-        id: `${SITE_URL}/events/${id}`,
-        'x-default': `${SITE_URL}/events/${id}`,
-        en: `${SITE_URL}/en/events/${id}`,
-      },
-    },
-  };
 }
 
 export default async function EventDetailPage({ params }: PageProps) {
   const { id, locale } = await params;
+  const isEn = locale === 'en';
   const event = await fetchEvent(id, locale);
 
   return (
@@ -121,7 +137,7 @@ export default async function EventDetailPage({ params }: PageProps) {
             name={event.title}
             description={event.description}
             image={event.image_url}
-            url={`${SITE_URL}/events/${id}`}
+            url={isEn ? `${SITE_URL}/en/events/${id}` : `${SITE_URL}/events/${id}`}
             startDate={event.start_date}
             endDate={event.end_date}
             location={event.location}
@@ -135,9 +151,9 @@ export default async function EventDetailPage({ params }: PageProps) {
           />
           <BreadcrumbJsonLd
             items={[
-              { name: 'Beranda', url: SITE_URL },
-              { name: 'Events & Festivals', url: `${SITE_URL}/events` },
-              { name: event.title, url: `${SITE_URL}/events/${id}` },
+              { name: isEn ? 'Home' : 'Beranda', url: isEn ? `${SITE_URL}/en` : SITE_URL },
+              { name: 'Events & Festivals', url: isEn ? `${SITE_URL}/en/events` : `${SITE_URL}/events` },
+              { name: event.title, url: isEn ? `${SITE_URL}/en/events/${id}` : `${SITE_URL}/events/${id}` },
             ]}
           />
         </>

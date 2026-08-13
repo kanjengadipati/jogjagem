@@ -8,6 +8,15 @@ import type { Article } from '@/types';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
+/** Returns an absolute OG image URL, proxying external images through our domain. */
+function resolveOgImage(imageUrl: string | null | undefined): string | undefined {
+  if (!imageUrl) return undefined;
+  if (imageUrl.startsWith(SITE_URL) || imageUrl.startsWith('/')) {
+    return imageUrl.startsWith('/') ? `${SITE_URL}${imageUrl}` : imageUrl;
+  }
+  return `${SITE_URL}/api/og-proxy?url=${encodeURIComponent(imageUrl)}`;
+}
+
 const fetchArticle = cache(async (slug: string, locale: string): Promise<Article | null> => {
   try {
     const res = await fetch(`${API_BASE}/articles/slug/${slug}`, {
@@ -44,7 +53,7 @@ export async function generateMetadata({
   const keywords = locale === 'en'
     ? (article.seo_keywords_en || article.seo_keywords || '')
     : (article.seo_keywords || '');
-  const ogImage = article.og_image || article.cover_image || '';
+  const ogImage = resolveOgImage(article.og_image || article.cover_image || '');
   const canonicalUrl = `${SITE_URL}${locale === 'en' ? '/en' : ''}/blog/${slug}`;
 
   return {
@@ -56,6 +65,7 @@ export async function generateMetadata({
       description,
       type: 'article',
       url: canonicalUrl,
+      siteName: 'Jogjagem',
       publishedTime: article.published_at,
       authors: article.author ? [article.author] : undefined,
       images: ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: title }] : undefined,

@@ -29,6 +29,15 @@ export async function generateMetadata({
       description,
       type: 'website',
       url: pageUrl,
+      siteName: 'Jogjagem',
+      locale: isEn ? 'en_US' : 'id_ID',
+      images: [{ url: `${SITE_URL}/og.png`, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${SITE_URL}/og.png`],
     },
     alternates: {
       canonical: pageUrl,

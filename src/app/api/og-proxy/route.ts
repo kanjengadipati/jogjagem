@@ -9,6 +9,10 @@ const ALLOWED_DOMAINS = [
   'i.imgur.com',
   'cdn.discordapp.com',
   'storage.googleapis.com',
+  // Google's cached-thumbnail CDN — many legacy article og:image values live
+  // here. Prefer first-party/owned images in the data layer; proxying only
+  // makes the meta tag stable on our domain.
+  'encrypted-tbn0.gstatic.com',
 ];
 
 export async function GET(req: NextRequest) {

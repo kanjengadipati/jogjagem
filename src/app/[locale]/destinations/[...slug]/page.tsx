@@ -224,9 +224,9 @@ export default async function DestinationDetailPage({ params }: PageProps) {
           />
           <BreadcrumbJsonLd
             items={[
-              { name: 'Beranda', url: SITE_URL },
-              { name: 'Destinasi', url: `${SITE_URL}/destinations` },
-              { name, url: `${SITE_URL}/destinations/${slugStr}` },
+              { name: locale === 'en' ? 'Home' : 'Beranda', url: locale === 'en' ? `${SITE_URL}/en` : SITE_URL },
+              { name: locale === 'en' ? 'Destinations' : 'Destinasi', url: locale === 'en' ? `${SITE_URL}/en/destinations` : `${SITE_URL}/destinations` },
+              { name, url: locale === 'en' ? `${SITE_URL}/en/destinations/${slugStr}` : `${SITE_URL}/destinations/${slugStr}` },
             ]}
           />
           {Array.isArray(faqs) && faqs.length > 0 && (

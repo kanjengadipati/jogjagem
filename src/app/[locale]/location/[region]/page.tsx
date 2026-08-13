@@ -140,8 +140,8 @@ export default async function LocationPage({ params }: PageProps) {
     <>
       <BreadcrumbJsonLd
         items={[
-          { name: 'Jogjagem', url: `${SITE_URL}/${locale === 'en' ? 'en' : ''}` },
-          { name: isEn ? 'Destinations' : 'Destinasi Wisata', url: `${SITE_URL}/${locale === 'en' ? 'en/' : ''}destinations` },
+          { name: isEn ? 'Home' : 'Beranda', url: isEn ? `${SITE_URL}/en` : SITE_URL },
+          { name: isEn ? 'Destinations' : 'Destinasi Wisata', url: isEn ? `${SITE_URL}/en/destinations` : `${SITE_URL}/destinations` },
           { name: `Wisata ${regionName}`, url: pageUrl },
         ]}
       />
