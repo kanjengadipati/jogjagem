@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
   const title = isEn
     ? "This Week's Hidden Gems in Yogyakarta | Jogjagem"
-    : 'Hidden Gem Jogja Pilihan Minggu Ini | Jogjagem';
+    : 'Hidden Gem Jogja Pilihan Minggu Ini';
 
   const description = isEn
     ? 'A curated selection of up to 15 hidden gems in Yogyakarta, refreshed every week. Secret spots, quiet retreats, and off-the-beaten-path destinations handpicked by our team.'

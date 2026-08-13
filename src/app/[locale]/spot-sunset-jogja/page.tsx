@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Best Sunset Spots & Golden Hour Views in Yogyakarta (2026) | Jogjagem'
-    : 'Tempat Melihat Sunset di Jogja Paling Indah & Romantis (2026) | Jogjagem';
+    ? 'Best Sunset Spots & Golden Hour Views in Yogyakarta (2026)'
+    : 'Tempat Melihat Sunset di Jogja Paling Indah & Romantis (2026)';
 
   const description = isEn
     ? 'Guide to the best sunset spots in Yogyakarta: beaches, hills, heritage sites, and cliffside cafes for an unforgettable golden hour.'

@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Best Family-Friendly Attractions in Yogyakarta (2026) | Jogjagem'
-    : 'Wisata Seru Bareng Keluarga di Jogja (2026) - Ramah Anak | Jogjagem';
+    ? 'Best Family-Friendly Attractions in Yogyakarta (2026)'
+    : 'Wisata Seru Bareng Keluarga di Jogja (2026) - Ramah Anak';
 
   const description = isEn
     ? 'Explore top family-friendly places to visit in Yogyakarta: educational parks, kid-friendly nature, theme parks, and cultural sites.'

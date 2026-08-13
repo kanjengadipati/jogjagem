@@ -16,7 +16,7 @@ export async function generateMetadata({
 
   const title = isEn
     ? "This Week's Hidden Gems in Yogyakarta | Jogjagem"
-    : 'Hidden Gem Jogja Pilihan Minggu Ini | Jogjagem';
+    : 'Hidden Gem Jogja Pilihan Minggu Ini';
 
   const description = isEn
     ? 'A handpicked selection of up to 15 hidden gems in Yogyakarta, refreshed every week. Secret spots, quiet retreats, and off-the-beaten-path destinations you won\'t find in the usual travel guides.'

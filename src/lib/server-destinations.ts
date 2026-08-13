@@ -107,11 +107,25 @@ export async function fetchHiddenGemDestinations(locale: string = 'id'): Promise
 }
 
 /**
- * Helper to match destinations by categories or keyword list
+ * Helper to match destinations by categories or keyword list.
+ *
+ * Two deliberate narrowings vs. a naive substring search:
+ *  1. Word-boundary matching, not raw `.includes()` — otherwise a keyword
+ *     like "warung" matches inside an unrelated name like "Warungboto", and
+ *     "resto" matches inside the English word "restaurants".
+ *  2. Only searched against name + tagline (short, curated strings), not the
+ *     full free-text `description` or `location` — a long description can
+ *     mention food/drink/scenery in passing (e.g. "...menikmati kopi hangat
+ *     kala matahari terbenam...") without the destination actually being a
+ *     culinary/sunset spot. Name and tagline are what the destination is
+ *     actually about; description is prone to incidental keyword hits.
  */
 function isKeywordMatch(d: Destination, keywords: string[]): boolean {
-  const text = `${d.name} ${d.category} ${d.tagline} ${d.description} ${d.location}`.toLowerCase();
-  return keywords.some((kw) => text.includes(kw.toLowerCase()));
+  const text = `${d.name} ${d.tagline}`.toLowerCase();
+  return keywords.some((kw) => {
+    const escaped = kw.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`\\b${escaped}\\b`).test(text);
+  });
 }
 
 export async function fetchCulinaryDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
@@ -131,7 +145,11 @@ export async function fetchNatureDestinations(locale: string = 'id', limit = 20)
 export async function fetchPhotoSpotDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
   const all = await fetchAllDestinations(locale);
   const keywords = ['foto', 'spot', 'view', 'estetik', 'instagramable', 'tebing', 'puncak', 'candi', 'hutan', 'taman', 'swafoto'];
-  const matches = all.filter((d) => d.rating >= 4.5 || isKeywordMatch(d, keywords));
+  // Previously `rating >= 4.5 || isKeywordMatch(...)` — since most of the
+  // catalog is rated 4.5+, that OR made the keyword check almost meaningless
+  // and let plenty of non-photogenic destinations onto the "Spot Foto" page.
+  // Require both a decent rating AND an actual photo-spot signal.
+  const matches = all.filter((d) => d.rating >= 4.5 && isKeywordMatch(d, keywords));
   return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);
 }
 
@@ -167,9 +185,13 @@ export async function fetchItineraryDestinations(locale: string = 'id', limit = 
 export async function fetchMalioboroDestinations(locale: string = 'id', limit = 20): Promise<Destination[]> {
   const all = await fetchAllDestinations(locale);
   const keywords = ['malioboro', 'titik nol', 'kraton', 'keraton', 'vredeburg', 'beringharjo', 'taman sari', 'taman pintar', 'tugu', 'alun-alun', 'kota yogyakarta', 'yogyakarta city', 'mangkubumi'];
-  const matches = all.filter((d) => 
-    d.subRegion?.toLowerCase() === 'yogyakarta' || 
-    d.location?.toLowerCase().includes('yogyakarta') || 
+  // Note: previously also matched on `d.location.includes('yogyakarta')`, which
+  // is true for most of the province-wide catalog (the DIY region itself is
+  // named Yogyakarta) and pulled in destinations far from Malioboro. subRegion
+  // is the structured "is this actually in Yogyakarta city" signal; keyword
+  // matching on name/tagline covers landmarks near Malioboro by name.
+  const matches = all.filter((d) =>
+    d.subRegion?.toLowerCase() === 'yogyakarta' ||
     isKeywordMatch(d, keywords)
   );
   return matches.length > 0 ? matches.slice(0, limit) : all.slice(0, limit);

@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Must-Try Local Culinary & Foods in Yogyakarta (2026) | Jogjagem'
-    : 'Kuliner Lokal Jogja Wajib Dicoba (2026) - Rekomendasi Terenak | Jogjagem';
+    ? 'Must-Try Local Culinary & Foods in Yogyakarta (2026)'
+    : 'Kuliner Lokal Jogja Wajib Dicoba (2026) - Rekomendasi Terenak';
 
   const description = isEn
     ? 'Comprehensive guide to the best local culinary, legendary food stalls, and traditional Yogyakarta dishes you cannot miss.'

@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Best Attractions & Things to Do Around Malioboro Yogyakarta (2026) | Jogjagem'
-    : 'Tempat Wisata Sekitar Malioboro Jogja Terdekat & Paling Hits (2026) | Jogjagem';
+    ? 'Best Attractions & Things to Do Around Malioboro Yogyakarta (2026)'
+    : 'Tempat Wisata Sekitar Malioboro Jogja Terdekat & Paling Hits (2026)';
 
   const description = isEn
     ? 'Discover popular tourist attractions near Malioboro Yogyakarta: Kraton Palace, Taman Sari, Benteng Vredeburg, Beringharjo Market, and Titik Nol.'

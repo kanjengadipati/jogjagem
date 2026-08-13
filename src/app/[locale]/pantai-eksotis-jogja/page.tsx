@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Exotic Beaches & Hidden Coastal Gems in Yogyakarta / Gunungkidul (2026) | Jogjagem'
-    : 'Wisata Pantai Eksotis Jogja & Gunungkidul Hidden Gem (2026) | Jogjagem';
+    ? 'Exotic Beaches & Hidden Coastal Gems in Yogyakarta / Gunungkidul (2026)'
+    : 'Wisata Pantai Eksotis Jogja & Gunungkidul Hidden Gem (2026)';
 
   const description = isEn
     ? 'Comprehensive travel guide to the most exotic beaches, white sand bays, and hidden coastal gems in Gunungkidul, Yogyakarta.'

@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Cultural & Historical Destinations in Yogyakarta (2026) | Jogjagem'
-    : 'Tempat Wisata Budaya & Sejarah di Jogja Terpopuler (2026) | Jogjagem';
+    ? 'Cultural & Historical Destinations in Yogyakarta (2026)'
+    : 'Tempat Wisata Budaya & Sejarah di Jogja Terpopuler (2026)';
 
   const description = isEn
     ? 'Explore Yogyakarta’s top cultural, royal, and historical destinations. Discover ancient temples, Kraton, museums, and historical stories.'

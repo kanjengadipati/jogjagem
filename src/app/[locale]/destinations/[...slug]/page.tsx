@@ -122,7 +122,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const pageUrl = locale === 'en' ? `${SITE_URL}/en/destinations/${slugStr}` : `${SITE_URL}/destinations/${slugStr}`;
 
-  const seoTitle = locale === 'en' ? (dest.seoTitleEn || dest.seoTitle || '') : (dest.seoTitle || '');
+  // Defensive: some rows in the CMS have "| Jogjagem" baked into seoTitle,
+  // which would otherwise get doubled by the root layout's title template
+  // (`%s | Jogjagem`). Strip it here regardless of what the API returns.
+  const stripSiteSuffix = (s: string) => s.replace(/\s*\|\s*Jogjagem\s*$/i, '').trim();
+  const seoTitle = stripSiteSuffix(locale === 'en' ? (dest.seoTitleEn || dest.seoTitle || '') : (dest.seoTitle || ''));
   const seoKeywords = locale === 'en' ? (dest.seoKeywordsEn || dest.seoKeywords || '') : (dest.seoKeywords || '');
   const seoDescription = locale === 'en' ? (dest.seoDescriptionEn || dest.seoDescription || '') : (dest.seoDescription || '');
   const ogImageUrl = dest.ogImageUrl || '';

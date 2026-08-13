@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Top 10 Trending & Hits Tourist Attractions in Yogyakarta (2026) | Jogjagem'
-    : '10 Tempat Wisata Hits Jogja Paling Viral & Trending (2026) | Jogjagem';
+    ? 'Top 10 Trending & Hits Tourist Attractions in Yogyakarta (2026)'
+    : '10 Tempat Wisata Hits Jogja Paling Viral & Trending (2026)';
 
   const description = isEn
     ? 'Discover the top 10 trending destinations in Yogyakarta right now. From viral outdoor spots to aesthetic travel highlights.'

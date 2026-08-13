@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Best Nature Spots & Outdoor Attractions Near Yogyakarta (2026) | Jogjagem'
-    : 'Wisata Alam Dekat Jogja Terpopuler & Paling Asri (2026) | Jogjagem';
+    ? 'Best Nature Spots & Outdoor Attractions Near Yogyakarta (2026)'
+    : 'Wisata Alam Dekat Jogja Terpopuler & Paling Asri (2026)';
 
   const description = isEn
     ? 'Explore top nature destinations around Yogyakarta: lush hills, waterfalls, beaches, and pine forests for refreshing outdoor trips.'

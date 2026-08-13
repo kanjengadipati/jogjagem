@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Most Instagrammable & Unique Photo Spots in Yogyakarta (2026) | Jogjagem'
-    : 'Spot Foto Unik & Instagramable di Jogja Terbaru (2026) | Jogjagem';
+    ? 'Most Instagrammable & Unique Photo Spots in Yogyakarta (2026)'
+    : 'Spot Foto Unik & Instagramable di Jogja Terbaru (2026)';
 
   const description = isEn
     ? 'Discover the most aesthetic, unique, and picture-perfect photo spots in Yogyakarta for your travel content and feed.'

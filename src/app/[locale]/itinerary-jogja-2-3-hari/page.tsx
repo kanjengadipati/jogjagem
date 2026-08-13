@@ -15,8 +15,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Ideal 2–3 Days Yogyakarta Travel Itinerary & Guide (2026) | Jogjagem'
-    : 'Itinerary 2–3 Hari di Jogja: Panduan Rute Liburan Seru (2026) | Jogjagem';
+    ? 'Ideal 2–3 Days Yogyakarta Travel Itinerary & Guide (2026)'
+    : 'Itinerary 2–3 Hari di Jogja: Panduan Rute Liburan Seru (2026)';
 
   const description = isEn
     ? 'The ultimate 2 to 3-day travel itinerary for Yogyakarta. Step-by-step route covering Kraton, Malioboro, Borobudur/Prambanan, nature, and food.'
