@@ -102,8 +102,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!meta) return { title: 'Region Not Found', robots: { index: false, follow: false } };
 
   const title = isEn
-    ? `${meta.en} Destinations ${year} — Best Places to Visit | Jogjagem`
-    : `Wisata ${meta.id} ${year} — Destinasi & Tempat Terbaik | Jogjagem`;
+    ? `${meta.en} Destinations ${year} — Best Places to Visit`
+    : `Wisata ${meta.id} ${year} — Destinasi & Tempat Terbaik`;
   const description = isEn ? meta.descEn : meta.descId;
   const pageUrl = isEn
     ? `${SITE_URL}/en/location/${region}`
@@ -117,6 +117,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/location/${region}`,
+        'x-default': `${SITE_URL}/location/${region}`,
         en: `${SITE_URL}/en/location/${region}`,
       },
     },

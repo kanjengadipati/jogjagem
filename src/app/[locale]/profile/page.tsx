@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 import ProfilePageClient from './ProfilePageClient';
 
 export const metadata: Metadata = {
-  title: 'Profil — Jogjagem',
+  title: 'Profil',
   description: 'Kelola profil, lihat riwayat, simpanan, dan ulasan perjalanan Anda di Yogyakarta.',
   robots: {
     index: false,
     follow: false,
   },
   openGraph: {
-    title: 'Profil — Jogjagem',
+    title: 'Profil',
     description: 'Kelola profil dan lihat aktivitas perjalanan Anda di Yogyakarta.',
     type: 'website',
   },

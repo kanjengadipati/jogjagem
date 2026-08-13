@@ -34,9 +34,10 @@ export async function generateMetadata({
     return { title: 'Article Not Found' };
   }
 
-  const title = locale === 'en'
+  const stripSiteSuffix = (s: string) => (s || '').replace(/\s*(?:[—–]|\|)\s*Jogjagem\s*$/i, '').trim();
+  const title = stripSiteSuffix(locale === 'en'
     ? (article.seo_title_en || article.seo_title || article.title)
-    : (article.seo_title || article.title);
+    : (article.seo_title || article.title));
   const description = locale === 'en'
     ? (article.seo_description_en || article.seo_description || article.excerpt || '')
     : (article.seo_description || article.excerpt || '');
@@ -69,6 +70,7 @@ export async function generateMetadata({
       canonical: canonicalUrl,
       languages: {
         id: `${SITE_URL}/blog/${slug}`,
+        'x-default': `${SITE_URL}/blog/${slug}`,
         en: `${SITE_URL}/en/blog/${slug}`,
       },
     },

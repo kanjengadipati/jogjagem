@@ -58,8 +58,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const localizedSlug = categoryToSlug(categoryId, locale === 'en' ? 'en' : 'id');
     const pageUrl = locale === 'en' ? `${SITE_URL}/en/destinations/${localizedSlug}` : `${SITE_URL}/destinations/${localizedSlug}`;
     const title = locale === 'en'
-      ? `${categoryLabel} — Jogjagem`
-      : `${categoryLabel} Jogja — Jogjagem`;
+      ? categoryLabel
+      : `${categoryLabel} Jogja`;
     const description = locale === 'en'
       ? `Explore curated ${categoryLabel.toLowerCase()} across Yogyakarta.`
       : `Jelajahi pilihan ${categoryLabel.toLowerCase()} terkurasi di Yogyakarta.`;
@@ -78,6 +78,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         canonical: pageUrl,
         languages: {
           id: `${SITE_URL}/destinations/${categoryToSlug(categoryId, 'id')}`,
+          'x-default': `${SITE_URL}/destinations/${categoryToSlug(categoryId, 'id')}`,
           en: `${SITE_URL}/en/destinations/${categoryToSlug(categoryId, 'en')}`,
         },
       },
@@ -102,7 +103,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!dest) {
     // Confirmed 404 — destination does not exist in the database.
     return {
-      title: 'Destinasi Tidak Ditemukan — Jogjagem',
+      title: 'Destinasi Tidak Ditemukan',
       robots: { index: false, follow: false },
     };
   }
@@ -125,7 +126,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Defensive: some rows in the CMS have "| Jogjagem" baked into seoTitle,
   // which would otherwise get doubled by the root layout's title template
   // (`%s | Jogjagem`). Strip it here regardless of what the API returns.
-  const stripSiteSuffix = (s: string) => s.replace(/\s*\|\s*Jogjagem\s*$/i, '').trim();
+  const stripSiteSuffix = (s: string) => s.replace(/\s*(?:[—–]|\|)\s*Jogjagem\s*$/i, '').trim();
   const seoTitle = stripSiteSuffix(locale === 'en' ? (dest.seoTitleEn || dest.seoTitle || '') : (dest.seoTitle || ''));
   const seoKeywords = locale === 'en' ? (dest.seoKeywordsEn || dest.seoKeywords || '') : (dest.seoKeywords || '');
   const seoDescription = locale === 'en' ? (dest.seoDescriptionEn || dest.seoDescription || '') : (dest.seoDescription || '');
@@ -171,6 +172,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/destinations/${slugStr}`,
+        'x-default': `${SITE_URL}/destinations/${slugStr}`,
         en: `${SITE_URL}/en/destinations/${slugStr}`,
       },
     },

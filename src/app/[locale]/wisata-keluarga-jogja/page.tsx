@@ -50,6 +50,7 @@ export async function generateMetadata({
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/wisata-keluarga-jogja`,
+        'x-default': `${SITE_URL}/wisata-keluarga-jogja`,
         en: `${SITE_URL}/en/wisata-keluarga-jogja`,
       },
     },

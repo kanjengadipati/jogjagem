@@ -50,6 +50,7 @@ export async function generateMetadata({
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/spot-foto-jogja`,
+        'x-default': `${SITE_URL}/spot-foto-jogja`,
         en: `${SITE_URL}/en/spot-foto-jogja`,
       },
     },

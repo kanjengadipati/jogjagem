@@ -50,6 +50,7 @@ export async function generateMetadata({
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/pantai-eksotis-jogja`,
+        'x-default': `${SITE_URL}/pantai-eksotis-jogja`,
         en: `${SITE_URL}/en/pantai-eksotis-jogja`,
       },
     },

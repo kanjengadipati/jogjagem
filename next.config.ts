@@ -7,7 +7,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   async redirects() {
     return [
-      { source: '/:locale/partner', destination: '/:locale/business', permanent: true },
+      { source: '/:locale(en|id)/partner', destination: '/:locale/business', permanent: true },
+      { source: '/hidden-gem', destination: '/destinations/hidden-gem', permanent: true },
+      { source: '/:locale(en|id)/hidden-gem', destination: '/:locale/destinations/hidden-gem', permanent: true },
     ];
   },
   async rewrites() {

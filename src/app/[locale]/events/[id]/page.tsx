@@ -60,12 +60,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!event) {
     return {
-      title: 'Event Tidak Ditemukan — Jogjagem',
+      title: 'Event Tidak Ditemukan',
       description: 'Event yang Anda cari tidak ditemukan di Jogjagem.',
     };
   }
 
-  const title = `${event.title} — Events & Festivals Jogjagem`;
+  const title = `${event.title} — Events & Festivals`;
   const description = event.description
     ? (event.description.length > 160 ? event.description.slice(0, 157) + '...' : event.description)
     : `Informasi lengkap event ${event.title} di Yogyakarta.`;
@@ -102,6 +102,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/events/${id}`,
+        'x-default': `${SITE_URL}/events/${id}`,
         en: `${SITE_URL}/en/events/${id}`,
       },
     },

@@ -50,6 +50,7 @@ export async function generateMetadata({
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/itinerary-jogja-2-3-hari`,
+        'x-default': `${SITE_URL}/itinerary-jogja-2-3-hari`,
         en: `${SITE_URL}/en/itinerary-jogja-2-3-hari`,
       },
     },

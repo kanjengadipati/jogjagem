@@ -6,7 +6,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const isEn = locale === 'en';
-  const title = isEn ? 'Events & Festivals — Jogjagem' : 'Events & Festivals — Jogjagem';
+  const title = 'Events & Festivals';
   const description = isEn
     ? 'Find interesting events and festivals in Yogyakarta. Cultural shows, seasonal highlights, and local celebrations.'
     : 'Temukan acara dan festival menarik di Yogyakarta. Cultural shows, seasonal highlights, dan perayaan lokal.';
@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/events`,
+        'x-default': `${SITE_URL}/events`,
         en: `${SITE_URL}/en/events`,
       },
     },

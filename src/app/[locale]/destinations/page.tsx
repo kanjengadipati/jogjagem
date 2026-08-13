@@ -1,13 +1,17 @@
 import type { Metadata } from 'next';
 import DestinationsPageClient from './DestinationsPageClient';
+import { ItemListJsonLd } from '@/components/JsonLd';
 import { fetchAllDestinations } from '@/lib/server-destinations';
+import { toSlug } from '@/lib/slug';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
+
+const ITEMLIST_LIMIT = 30;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const isEn = locale === 'en';
-  const title = isEn ? 'Tourist Destinations — Jogjagem' : 'Destinasi Wisata — Jogjagem';
+  const title = isEn ? 'Tourist Destinations' : 'Destinasi Wisata';
   const description = isEn
     ? 'Explore 100+ curated tourist destinations in Yogyakarta. Discover Prambanan Temple, Malioboro, Parangtritis Beach, hidden gems, and travel recommendations.'
     : 'Jelajahi 100+ destinasi wisata terkurasi di Yogyakarta. Temukan Candi Prambanan, Malioboro, Pantai Parangtritis, hidden gems, dan rekomendasi perjalanan terbaik.';
@@ -27,6 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/destinations`,
+        'x-default': `${SITE_URL}/destinations`,
         en: `${SITE_URL}/en/destinations`,
       },
     },
@@ -35,6 +40,29 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 export default async function DestinationsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
+  const isEn = locale === 'en';
   const initialDestinations = await fetchAllDestinations(locale);
-  return <DestinationsPageClient initialDestinations={initialDestinations} />;
+  const pageUrl = isEn ? `${SITE_URL}/en/destinations` : `${SITE_URL}/destinations`;
+
+  return (
+    <>
+      {initialDestinations.length > 0 && (
+        <ItemListJsonLd
+          pageName={isEn ? 'All Tourist Destinations in Yogyakarta' : 'Semua Destinasi Wisata di Yogyakarta'}
+          pageUrl={pageUrl}
+          description={
+            isEn
+              ? 'A complete collection of tourist destinations in Yogyakarta.'
+              : 'Kumpulan lengkap destinasi wisata di Yogyakarta.'
+          }
+          items={initialDestinations.slice(0, ITEMLIST_LIMIT).map((d, i) => ({
+            position: i + 1,
+            name: d.name,
+            url: `${SITE_URL}${isEn ? '/en' : ''}/destinations/${toSlug(d.name)}`,
+          }))}
+        />
+      )}
+      <DestinationsPageClient initialDestinations={initialDestinations} />
+    </>
+  );
 }

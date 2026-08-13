@@ -50,6 +50,7 @@ export async function generateMetadata({
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/kuliner-jogja`,
+        'x-default': `${SITE_URL}/kuliner-jogja`,
         en: `${SITE_URL}/en/kuliner-jogja`,
       },
     },

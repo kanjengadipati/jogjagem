@@ -15,7 +15,7 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? "This Week's Hidden Gems in Yogyakarta | Jogjagem"
+    ? "This Week's Hidden Gems in Yogyakarta"
     : 'Hidden Gem Jogja Pilihan Minggu Ini';
 
   const description = isEn
@@ -50,6 +50,7 @@ export async function generateMetadata({
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/hidden-gem-jogja`,
+        'x-default': `${SITE_URL}/hidden-gem-jogja`,
         en: `${SITE_URL}/en/hidden-gem-jogja`,
       },
     },

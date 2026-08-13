@@ -13,8 +13,8 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? 'Blog & Travel Guides — Jogjagem'
-    : 'Blog & Panduan Wisata — Jogjagem';
+    ? 'Blog & Travel Guides'
+    : 'Blog & Panduan Wisata';
   const description = isEn
     ? 'Discover travel guides, itineraries, local food recommendations, and hidden gems in Yogyakarta. Practical tips for your next Jogja trip.'
     : 'Temukan panduan wisata, itinerary, rekomendasi kuliner, dan hidden gems di Yogyakarta. Tips praktis untuk perjalananmu ke Jogja berikutnya.';
@@ -34,6 +34,7 @@ export async function generateMetadata({
       canonical: pageUrl,
       languages: {
         id: `${SITE_URL}/blog`,
+        'x-default': `${SITE_URL}/blog`,
         en: `${SITE_URL}/en/blog`,
       },
     },
