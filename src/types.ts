@@ -24,6 +24,7 @@ export interface EcosystemPartner {
   isSponsored?: boolean;
   sponsorTier?: number;
   businessId?: string | number | null;
+  targetUrl?: string;
 }
 
 export interface FAQ {

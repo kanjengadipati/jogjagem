@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Destination, EcosystemPartner, Review } from '@/types';
 import { events as eventsApi, reviews as reviewsApi, ads as adsApi } from '@/lib/api';
-import type { BeEcosystemCard } from '@/lib/api';
+import type { BeEcosystemCard, BeHouseAd } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { inferTravelerIntent, orderCardsByIntent, IntentProfile } from '@/lib/travelerIntent';
 import { fetchLiveWeather, LiveWeather } from '@/lib/weather';
@@ -48,7 +48,7 @@ export default function DestinationDetail({
   onSelectPartnerOnMap
 }: DestinationDetailProps) {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { user, isAuthenticated } = useAuth();
   const userInitials = user?.name ? user.name.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2) : 'YG';
   // States
@@ -80,6 +80,9 @@ export default function DestinationDetail({
   // Sponsored cards are served exclusively from the ads campaign system
   // (ecosystem_* placements) via /ads/ecosystem.
   const [enrichedPartners, setEnrichedPartners] = useState<EcosystemPartner[]>(destination.partners);
+  // House ads per ecosystem tab act as a self-promo fallback card when a tab
+  // has neither organic partners nor a paid campaign (campaign → house ad).
+  const [ecosystemHouseAds, setEcosystemHouseAds] = useState<Record<string, BeHouseAd | null>>({});
   useEffect(() => {
     let cancelled = false;
 
@@ -104,6 +107,18 @@ export default function DestinationDetail({
       const list = Array.from(merged.values());
       setEnrichedPartners(list);
       if (!selectedMapPartner && list.length > 0) setSelectedMapPartner(list[0]);
+
+      // Resolve fallback house ads for every ecosystem rail placement.
+      const houseAds = await Promise.all(
+        ecosystemTabs.map(async (tab) => {
+          const res = await adsApi.getHouseAd(`ecosystem_${tab}`).catch(() => null);
+          return { tab, ad: res?.status === 'success' && res.data ? res.data : null };
+        })
+      );
+      if (cancelled) return;
+      const houseAdMap: Record<string, BeHouseAd | null> = {};
+      houseAds.forEach(({ tab, ad }) => { houseAdMap[tab] = ad; });
+      setEcosystemHouseAds(houseAdMap);
     }
 
     loadPartners().catch(() => {
@@ -689,15 +704,46 @@ export default function DestinationDetail({
     ? communityReviews
     : communityReviews.filter(r => (r as any).travelerType === reviewFilter || (r as any).traveler_type === reviewFilter);
 
-  const activeEcosystemPartners = enrichedPartners.filter(p => {
-    if (activeEcosystemTab === 'stay') return p.category === 'hotel';
-    if (activeEcosystemTab === 'eat') return p.category === 'restaurant' || p.category === 'cafe';
-    if (activeEcosystemTab === 'experience') return p.category === 'rental' || p.category === 'agent';
-    if (activeEcosystemTab === 'shop') return p.category === 'souvenir';
-    if (activeEcosystemTab === 'move') return p.category === 'rental' || p.category === 'transport';
-    if (activeEcosystemTab === 'guide') return p.category === 'guide';
-    return true;
+  // One ecosystem tab maps to one sellable placement + a representative card
+  // category used for both the tab filter and the house-ad fallback card.
+  const TAB_TO_CATEGORY: Record<typeof activeEcosystemTab, EcosystemPartner['category']> = {
+    stay: 'hotel',
+    eat: 'restaurant',
+    experience: 'rental',
+    shop: 'souvenir',
+    move: 'transport',
+    guide: 'guide',
+  };
+
+  const buildHouseAdFallback = (tab: typeof activeEcosystemTab, ad: BeHouseAd): EcosystemPartner => ({
+    id: `house-ad-${ad.placement}`,
+    name: locale === 'en' ? (ad.headline_en || ad.headline) : ad.headline,
+    category: TAB_TO_CATEGORY[tab],
+    image: ad.image_url || '',
+    rating: 0,
+    price: locale === 'en' ? (ad.cta_label_en || ad.cta_label) : ad.cta_label,
+    distance: '',
+    description: locale === 'en' ? (ad.subline_en || ad.subline || '') : (ad.subline || ''),
+    address: '',
+    coordinates: { lat: 0, lng: 0 },
+    isSponsored: false,
+    targetUrl: ad.target_url,
   });
+
+  const activeEcosystemPartners = (() => {
+    const filtered = enrichedPartners.filter(p => {
+      if (activeEcosystemTab === 'stay') return p.category === 'hotel';
+      if (activeEcosystemTab === 'eat') return p.category === 'restaurant' || p.category === 'cafe';
+      if (activeEcosystemTab === 'experience') return p.category === 'rental' || p.category === 'agent';
+      if (activeEcosystemTab === 'shop') return p.category === 'souvenir';
+      if (activeEcosystemTab === 'move') return p.category === 'rental' || p.category === 'transport';
+      if (activeEcosystemTab === 'guide') return p.category === 'guide';
+      return true;
+    });
+    if (filtered.length > 0) return filtered;
+    const fallbackAd = ecosystemHouseAds[activeEcosystemTab];
+    return fallbackAd ? [buildHouseAdFallback(activeEcosystemTab, fallbackAd)] : [];
+  })();
   const trackedSponsoredPartnersRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     activeEcosystemPartners.forEach((partner) => {
@@ -1435,6 +1481,14 @@ export default function DestinationDetail({
             activeEcosystemPartners={activeEcosystemPartners}
             onSelectPartner={(partner) => {
               if (partner.isSponsored) adsApi.trackClick(partner.id);
+              if (partner.targetUrl) {
+                if (/^https?:\/\//i.test(partner.targetUrl)) {
+                  window.open(partner.targetUrl, '_blank', 'noopener,noreferrer');
+                } else {
+                  router.push(partner.targetUrl);
+                }
+                return;
+              }
               setSelectedPartner(partner);
             }}
             travelerIntent={travelerIntent}
