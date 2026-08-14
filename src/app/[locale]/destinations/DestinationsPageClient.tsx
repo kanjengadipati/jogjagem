@@ -516,8 +516,8 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
                 bgSrc = '/kalibiru.png';
                 bgAlt = 'Kalibiru Kulon Progo';
               } else if (r.includes('bantul')) {
-                bgSrc = '/pantai.png';
-                bgAlt = 'Pantai Bantul';
+                bgSrc = '/parangtritis-hero-bg.png';
+                bgAlt = 'Pantai Parangtritis Bantul';
               }
             }
             return (
