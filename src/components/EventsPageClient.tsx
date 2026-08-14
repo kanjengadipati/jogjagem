@@ -39,6 +39,62 @@ type EventCategory = {
   icon: string;
 };
 
+// ── Ordering ──────────────────────────────────────────────────────────────────
+
+// Classify an event against "today": 0=active, 1=upcoming, 2=completed, 3=no date.
+function eventStatusRank(start: string, end: string, today: string): number {
+  const s = (start || '').trim();
+  const e = (end || '').trim();
+  if (!s) return 3;
+  if (!e) {
+    if (s <= today) return 0; // started, no end date → assumed ongoing
+    return 1;
+  }
+  if (s <= today && e >= today) return 0;
+  if (s > today) return 1;
+  return 2;
+}
+
+const BADGE_RANK: Record<string, number> = {
+  trending: 0,
+  populer: 1,
+  terbatas: 2,
+  akan_datang: 3,
+};
+
+function badgeRank(badge?: string): number {
+  return BADGE_RANK[(badge || '').toLowerCase()] ?? 4;
+}
+
+// Sort events as active → upcoming → completed (no-date last), prioritizing
+// events nearest to today within each group. Mirrors the backend ordering.
+function sortEventsByStatus(list: EventItem[]): EventItem[] {
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+  return [...list].sort((a, b) => {
+    const ra = eventStatusRank(a.start_date, a.end_date, today);
+    const rb = eventStatusRank(b.start_date, b.end_date, today);
+    if (ra !== rb) return ra - rb;
+    switch (ra) {
+      case 0: // active: least time left first
+        if (a.end_date !== b.end_date) return a.end_date < b.end_date ? -1 : 1;
+        if (a.start_date !== b.start_date) return a.start_date > b.start_date ? -1 : 1;
+        break;
+      case 1: // upcoming: nearest start first
+        if (a.start_date !== b.start_date) return a.start_date < b.start_date ? -1 : 1;
+        if (a.end_date !== b.end_date) return a.end_date < b.end_date ? -1 : 1;
+        break;
+      case 2: // completed: most recently ended first
+        if (a.end_date !== b.end_date) return a.end_date > b.end_date ? -1 : 1;
+        if (a.start_date !== b.start_date) return a.start_date > b.start_date ? -1 : 1;
+        break;
+    }
+    const ba = badgeRank(a.badge);
+    const bb = badgeRank(b.badge);
+    if (ba !== bb) return ba - bb;
+    return a.id.localeCompare(b.id);
+  });
+}
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const BADGE_STYLES: Record<string, string> = {
@@ -278,8 +334,9 @@ function EventsPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, totalPages, loadingMore]);
 
-  // Filter
-  const filtered = eventList.filter(evt => {
+  // Filter — applied on the status-sorted list so ordering survives filters.
+  const sortedEvents = useMemo(() => sortEventsByStatus(eventList), [eventList]);
+  const filtered = sortedEvents.filter(evt => {
     if (selectedCategory && evt.category?.toLowerCase() !== selectedCategory) return false;
     if (quickFilter === 'Gratis') {
       const isFree = !evt.ticket_price
@@ -343,9 +400,10 @@ function EventsPageContent() {
       <main className="flex-1">
         {/* ── Dark Hero ────────────────────────────────────────────────────── */}
         <section className="relative bg-royal-950 pt-20 pb-0 overflow-hidden">
-          {/* Decorative radial glows */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(214,161,71,0.08)_0%,_transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(168,85,247,0.05)_0%,_transparent_60%)]" />
+          {/* Decorative radial glows (pointer-events-none so they never block
+              the search input / category chips below them) */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(214,161,71,0.08)_0%,_transparent_60%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(168,85,247,0.05)_0%,_transparent_60%)]" />
 
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             {/* Back */}
