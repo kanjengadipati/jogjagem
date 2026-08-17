@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import DestinationDetailClient from '@/components/DestinationDetailClient';
 import DestinationsPageClient from '../DestinationsPageClient';
 import { TouristDestinationJsonLd, BreadcrumbJsonLd, FAQJsonLd } from '@/components/JsonLd';
@@ -189,7 +190,15 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   }
 
   const destResult = await fetchDestinationBySlug(slugStr, locale);
-  // treat fetch_error the same as null for rendering — show not-found UI
+
+  // Genuine 404s (not transient API failures) get a real HTTP 404 status via
+  // notFound(), which helps search engines drop stale URLs faster than the
+  // previous soft-404 (HTTP 200 + noindex). API failures still get indexable
+  // status so Google retries later.
+  if (!destResult) {
+    notFound();
+  }
+
   const dest = destResult === 'fetch_error' ? null : destResult;
 
   const name = dest?.name || '';

@@ -40,17 +40,15 @@ export async function fetchAllDestinations(locale: string = 'id'): Promise<Desti
 }
 
 /**
- * Resolve a single destination by slug (toSlug(name)) or raw id.
+ * Walk the paginated destinations catalog for `locale` and return the first raw
+ * row whose name-slug (== toSlug(name)) or stable `id` equals `slugOrId`.
  *
  * Returns:
- *  - Destination object if found
+ *  - raw record if found
  *  - null if exhausted all pages and genuinely not found
  *  - 'fetch_error' if the API was unreachable or returned an error status
- *
- * Callers should treat 'fetch_error' as a transient failure (keep indexable)
- * and null as a confirmed 404 (can noindex).
  */
-export async function fetchDestinationBySlug(slugOrId: string, locale: string = 'id'): Promise<Destination | null | 'fetch_error'> {
+async function findDestinationInCatalog(slugOrId: string, locale: string): Promise<Record<string, unknown> | null | 'fetch_error'> {
   let page = 1;
 
   try {
@@ -69,7 +67,7 @@ export async function fetchDestinationBySlug(slugOrId: string, locale: string = 
         const id = (d.id || d.ExternalID || '') as string;
         return toSlug(name) === slugOrId || id === slugOrId;
       });
-      if (match) return mapApiToDestination(match);
+      if (match) return match;
 
       const totalPages = body?.meta?.total_pages ?? page;
       if (page >= totalPages) return null;
@@ -79,6 +77,63 @@ export async function fetchDestinationBySlug(slugOrId: string, locale: string = 
     return 'fetch_error';
   }
 
+  return null;
+}
+
+/**
+ * Fetch a single destination by its stable `id` (e.g. "prambanan") in the
+ * requested locale, via GET /destinations/:id.
+ */
+export async function fetchDestinationById(id: string, locale: string = 'id'): Promise<Destination | null | 'fetch_error'> {
+  try {
+    const res = await fetch(`${API_BASE}/destinations/${encodeURIComponent(id)}`, {
+      headers: { 'Accept-Language': locale },
+      next: { revalidate: 3600 },
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) return 'fetch_error';
+    const body = await res.json();
+    const raw = body?.data || body;
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+    return mapApiToDestination(raw);
+  } catch {
+    return 'fetch_error';
+  }
+}
+
+/**
+ * Resolve a single destination by slug (toSlug(name)) or raw id.
+ *
+ * Returns:
+ *  - Destination object if found
+ *  - null if exhausted all pages and genuinely not found
+ *  - 'fetch_error' if the API was unreachable or returned an error status
+ *
+ * Callers should treat 'fetch_error' as a transient failure (keep indexable)
+ * and null as a confirmed 404 (can noindex).
+ */
+export async function fetchDestinationBySlug(slugOrId: string, locale: string = 'id'): Promise<Destination | null | 'fetch_error'> {
+  // Pass 1: match the slug/id directly against the requested locale's catalog.
+  // This works when the URL slug was derived from this locale's name.
+  const direct = await findDestinationInCatalog(slugOrId, locale);
+  if (direct === 'fetch_error') return 'fetch_error';
+  if (direct) return mapApiToDestination(direct);
+
+  // Pass 2 (cross-locale fallback): the URL slug may be derived from the *other*
+  // locale's name (e.g. ID "Candi Ratu Boko" -> `candi-ratu-boko` is linked as
+  // `/en/destinations/candi-ratu-boko`, but the EN name is "Ratu Boko Palace").
+  // For non-id requests pass 1 only searched the requested locale's names, so
+  // resolve the slug against the base (id) catalog to recover the stable `id`,
+  // then re-fetch that id in the requested locale. (When locale already is 'id',
+  // pass 1 was already the id catalog, so a miss is a genuine 404.)
+  if (locale !== 'id') {
+    const viaId = await findDestinationInCatalog(slugOrId, 'id');
+    if (viaId === 'fetch_error') return 'fetch_error';
+    if (viaId) {
+      const stableId = (viaId.id || viaId.ExternalID || '') as string;
+      if (stableId) return fetchDestinationById(stableId, locale);
+    }
+  }
   return null;
 }
 
