@@ -44,6 +44,9 @@ export default function App() {
   const [eventPage, setEventPage] = useState(1);
   const [eventTotalPages, setEventTotalPages] = useState(1);
   const [loadingMoreEvents, setLoadingMoreEvents] = useState(false);
+  // How many events the landing "Upcoming Festivals" showcase renders.
+  // Grows by a page each time "Load more" succeeds (the grid isn't a fixed 10).
+  const [eventShowcaseCount, setEventShowcaseCount] = useState(10);
   const [aiPicks, setAiPicks] = useState<Array<{
     destinationId: string; headline: string; reason: string;
     badge: string; crowd: string; imageUrl: string; rating: number; location: string;
@@ -479,7 +482,7 @@ export default function App() {
 
   // Build event carousel: inject sponsored at positions #3 and #8 (0-indexed 2 and 7)
   const buildEventCarousel = (): EventCarouselItem[] => {
-    const organic: EventCarouselItem[] = allEvents.slice(0, 10).map(e => ({ kind: 'organic', evt: e }));
+    const organic: EventCarouselItem[] = allEvents.slice(0, eventShowcaseCount).map(e => ({ kind: 'organic', evt: e }));
     
     console.log('DEBUG buildEventCarousel nativeCampaign:', !!nativeCampaign, 'organic length:', organic.length);
     
@@ -518,6 +521,9 @@ export default function App() {
         }));
         setAllEvents(prev => [...prev, ...newEvents]);
         setEventPage(nextPage);
+        const meta = (res as any).meta;
+        if (meta) setEventTotalPages(meta.total_pages ?? 1);
+        setEventShowcaseCount(prev => prev + newEvents.length);
       }
     } catch (err) {
       console.error('Failed to load more events:', err);
