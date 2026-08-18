@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     : 'Hidden Gem Jogja Pilihan Minggu Ini';
 
   const description = isEn
-    ? 'A curated selection of up to 15 hidden gems in Yogyakarta, refreshed every week. Secret spots, quiet retreats, and off-the-beaten-path destinations handpicked by our team.'
-    : 'Pilihan hingga 15 hidden gem Jogja yang dikurasi setiap minggu. Destinasi tersembunyi, spot sepi, dan tempat healing yang belum banyak diketahui — dipilih ulang tiap pekan.';
+    ? 'Top 10 hidden gems in Yogyakarta, refreshed every week. Secret spots, quiet retreats, and off-the-beaten-path destinations handpicked by our team.'
+    : 'Top 10 hidden gem Jogja yang dikurasi setiap minggu. Destinasi tersembunyi, spot sepi, dan tempat healing yang belum banyak diketahui — dipilih ulang tiap pekan.';
 
   const keywords = isEn
     ? 'hidden gems yogyakarta, hidden gem jogja, secret spots jogja, off the beaten path yogyakarta, quiet places jogja, healing spots yogyakarta'

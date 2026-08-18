@@ -915,26 +915,93 @@ function DestinationsPageInner({ initialCategory = null, initialRegion = null, i
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                {filteredDestinations.map((dest, index) => (
-                  <Fragment key={dest.id}>
-                    <DestinationCard
-                      destination={dest}
-                      onExplore={handleExplore}
-                      onToggleSave={handleToggleSave}
-                      isSaved={isSaved(dest.id)}
-                      className={index % 7 === 0 ? 'col-span-2' : ''}
-                    />
-                    {index === 3 && (
-                      <AdBanner
-                        placement="listing_native"
-                        category={selectedCategory ?? undefined}
-                        variant="native"
-                      />
+              {/* ── Hidden Gem: Top 10 featured section ── */}
+              {isWeeklyCurated && filteredDestinations.length > 0 && (() => {
+                const top10 = filteredDestinations.slice(0, 10);
+                const rest = filteredDestinations.slice(10);
+                return (
+                  <>
+                    <div className="mb-8">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Sparkles className="h-4 w-4 text-gold-400" />
+                        <span className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+                          {locale === 'en' ? 'Top 10 Picks' : 'Top 10 Pilihan'}
+                        </span>
+                        <div className="flex-1 h-px bg-stone-200" />
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+                        {top10.map((dest, index) => (
+                          <div key={dest.id} className="relative">
+                            <div className="absolute -top-2 -left-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-gold-500 text-royal-950 text-xs font-bold shadow-lg ring-2 ring-white">
+                              {index + 1}
+                            </div>
+                            <DestinationCard
+                              destination={dest}
+                              onExplore={handleExplore}
+                              onToggleSave={handleToggleSave}
+                              isSaved={isSaved(dest.id)}
+                              className="ring-2 ring-gold-400/30"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {rest.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+                            {locale === 'en' ? 'More Hidden Gems' : 'Hidden Gem Lainnya'}
+                          </span>
+                          <div className="flex-1 h-px bg-stone-200" />
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+                          {rest.map((dest, index) => (
+                            <Fragment key={dest.id}>
+                              <DestinationCard
+                                destination={dest}
+                                onExplore={handleExplore}
+                                onToggleSave={handleToggleSave}
+                                isSaved={isSaved(dest.id)}
+                                className={index % 7 === 0 ? 'col-span-2' : ''}
+                              />
+                              {index === 3 && (
+                                <AdBanner
+                                  placement="listing_native"
+                                  category={selectedCategory ?? undefined}
+                                  variant="native"
+                                />
+                              )}
+                            </Fragment>
+                          ))}
+                        </div>
+                      </div>
                     )}
-                  </Fragment>
-                ))}
-              </div>
+                  </>
+                );
+              })()}
+              {/* ── Default grid (non-hidden-gem or non-curated pages) ── */}
+              {(!isWeeklyCurated || selectedCategory !== 'hidden-gem') && (
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+                  {filteredDestinations.map((dest, index) => (
+                    <Fragment key={dest.id}>
+                      <DestinationCard
+                        destination={dest}
+                        onExplore={handleExplore}
+                        onToggleSave={handleToggleSave}
+                        isSaved={isSaved(dest.id)}
+                        className={index % 7 === 0 ? 'col-span-2' : ''}
+                      />
+                      {index === 3 && (
+                        <AdBanner
+                          placement="listing_native"
+                          category={selectedCategory ?? undefined}
+                          variant="native"
+                        />
+                      )}
+                    </Fragment>
+                  ))}
+                </div>
+              )}
               {loadingMore && (
                 <div className="mt-10 flex justify-center">
                   <span className="animate-spin rounded-full h-6 w-6 border-2 border-gold-500 border-t-transparent" />
