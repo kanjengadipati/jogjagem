@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: ['/api/og-proxy'],
         disallow: ['/api/', '/_next/', '/static/'],
       },
     ],
