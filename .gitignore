@@ -25,3 +25,4 @@ playwright-report/
 .auth/
 
 
+next-env.d.ts
