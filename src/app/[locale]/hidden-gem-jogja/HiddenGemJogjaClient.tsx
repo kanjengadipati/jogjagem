@@ -28,7 +28,7 @@ export default function HiddenGemJogjaClient({ destinations, locale }: HiddenGem
           </>
         ) : (
           <>
-            Top 10 Hidden Gem <span className="italic text-gold-600">Destinasi</span>
+            Top 10 Hidden Gem <span className="italic text-gold-600">Jogja</span>
           </>
         )
       }

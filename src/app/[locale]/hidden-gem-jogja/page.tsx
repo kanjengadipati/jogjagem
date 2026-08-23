@@ -16,7 +16,7 @@ export async function generateMetadata({
 
   const title = isEn
     ? 'Top 10 Hidden Gem Destinations in Yogyakarta'
-    : 'Top 10 Destinasi Hidden Gem Jogja';
+    : 'Top 10 Hidden Gem Jogja';
 
   const description = isEn
     ? 'Top 10 hidden gem destinations in Yogyakarta, curated weekly. Secret spots, quiet retreats, and off-the-beaten-path destinations you won\'t find in the usual travel guides.'
@@ -73,7 +73,7 @@ export default async function HiddenGemJogjaPage({
 
   const pageName = isEn
     ? 'Top 10 Hidden Gem Destinations in Yogyakarta'
-    : 'Top 10 Destinasi Hidden Gem Jogja';
+    : 'Top 10 Hidden Gem Jogja';
 
   const description = isEn
     ? 'Top 10 curated hidden gem destinations in Yogyakarta, refreshed every week.'
