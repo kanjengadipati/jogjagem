@@ -31,6 +31,7 @@ export interface SeoListicleLayoutProps {
   customItemBadge?: (d: Destination, index: number) => string | null;
   customSubTitle?: (d: Destination, index: number) => string | null;
   heroBgImage?: string;
+  highlightTop10?: boolean;
 }
 
 const BADGE_LABEL: Record<string, { id: string; en: string }> = {
@@ -59,6 +60,7 @@ export default function SeoListicleLayout({
   customItemBadge,
   customSubTitle,
   heroBgImage = '/bg-hero-per-clue.png',
+  highlightTop10 = false,
 }: SeoListicleLayoutProps) {
   const router = useRouter();
   const isEn = locale === 'en';
@@ -139,13 +141,15 @@ export default function SeoListicleLayout({
               const image = d.images?.[0]?.url;
               const summary = d.description || d.tagline;
 
+              const isTop10 = highlightTop10 && i < 10;
+
               return (
-                <li key={d.id || `dest-${i}`} className="scroll-mt-24 py-10 md:py-14" id={`item-${i + 1}`}>
+                <li key={d.id || `dest-${i}`} className={`scroll-mt-24 py-10 md:py-14 ${isTop10 ? 'border-l-4 border-gold-400 pl-4 md:pl-6 -ml-4 md:-ml-6' : ''}`} id={`item-${i + 1}`}>
                   <div className="grid grid-cols-[64px_1fr] md:grid-cols-[96px_1fr] gap-4 md:gap-8 items-start">
 
                     {/* Ghost ordinal numeral */}
                     <span
-                      className="font-display italic text-gold-200 leading-none select-none pt-1"
+                      className={`font-display italic leading-none select-none pt-1 ${isTop10 ? 'text-gold-500' : 'text-gold-200'}`}
                       style={{ fontSize: 'clamp(48px, 8vw, 80px)' }}
                       aria-hidden="true"
                     >
@@ -169,6 +173,11 @@ export default function SeoListicleLayout({
                             {d.name}
                           </Link>
                         </h2>
+                        {isTop10 && (
+                          <span className="font-mono text-[10px] tracking-[0.15em] uppercase px-2.5 py-1 rounded-full bg-gold-500 text-royal-950 font-semibold whitespace-nowrap">
+                            {isEn ? 'Top Pick' : 'Pilihan Teratas'}
+                          </span>
+                        )}
                         {badgeLabel && (
                           <span className="font-mono text-[10px] tracking-[0.15em] uppercase px-2.5 py-1 rounded-full border border-gold-300 text-gold-700 whitespace-nowrap">
                             {badgeLabel}

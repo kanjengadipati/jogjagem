@@ -15,12 +15,12 @@ export async function generateMetadata({
   const isEn = locale === 'en';
 
   const title = isEn
-    ? "This Week's Hidden Gems in Yogyakarta"
-    : 'Hidden Gem Jogja Pilihan Minggu Ini';
+    ? 'Top 10 Hidden Gem Destinations in Yogyakarta'
+    : 'Top 10 Destinasi Hidden Gem Jogja';
 
   const description = isEn
-    ? 'A handpicked selection of up to 15 hidden gems in Yogyakarta, refreshed every week. Secret spots, quiet retreats, and off-the-beaten-path destinations you won\'t find in the usual travel guides.'
-    : 'Pilihan hingga 15 hidden gem Jogja yang dipilih ulang setiap minggu. Destinasi tersembunyi, spot sepi, dan tempat healing yang belum banyak diketahui — dipilih ulang tiap pekan.';
+    ? 'Top 10 hidden gem destinations in Yogyakarta, curated weekly. Secret spots, quiet retreats, and off-the-beaten-path destinations you won\'t find in the usual travel guides.'
+    : 'Top 10 destinasi hidden gem Jogja yang dikurasi setiap minggu. Destinasi tersembunyi, spot sepi, dan tempat healing yang belum banyak diketahui — dipilih ulang tiap pekan.';
 
   const keywords = isEn
     ? 'hidden gems yogyakarta, hidden gem jogja, secret spots jogja, off the beaten path yogyakarta, quiet places jogja, healing spots yogyakarta'
@@ -72,12 +72,12 @@ export default async function HiddenGemJogjaPage({
     : `${SITE_URL}/hidden-gem-jogja`;
 
   const pageName = isEn
-    ? "This Week's Hidden Gems in Yogyakarta"
-    : 'Hidden Gem Jogja Pilihan Minggu Ini';
+    ? 'Top 10 Hidden Gem Destinations in Yogyakarta'
+    : 'Top 10 Destinasi Hidden Gem Jogja';
 
   const description = isEn
-    ? 'Up to 15 curated hidden gems in Yogyakarta, refreshed every week.'
-    : 'Pilihan hingga 15 hidden gem Jogja yang dikurasi setiap minggu.';
+    ? 'Top 10 curated hidden gem destinations in Yogyakarta, refreshed every week.'
+    : 'Top 10 destinasi hidden gem Jogja yang dikurasi setiap minggu.';
 
   return (
     <>

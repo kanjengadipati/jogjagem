@@ -24,21 +24,22 @@ export default function HiddenGemJogjaClient({ destinations, locale }: HiddenGem
       headlineTitle={
         isEn ? (
           <>
-            Hidden Gems <span className="italic text-gold-600">Pilihan Minggu Ini</span>
+            Top 10 Hidden Gem <span className="italic text-gold-600">Destinations</span>
           </>
         ) : (
           <>
-            Hidden Gem <span className="italic text-gold-600">Pilihan Minggu Ini</span>
+            Top 10 Hidden Gem <span className="italic text-gold-600">Destinasi</span>
           </>
         )
       }
       introText={
         isEn
-          ? "Up to 15 off-the-beaten-path destinations in Yogyakarta, picked fresh every week. High-rated spots that haven't gone mainstream yet — the kind of places most visitors walk right past."
-          : 'Hingga 15 destinasi tersembunyi di Yogyakarta yang dipilih ulang setiap minggu. Tempat-tempat berkualitas tinggi yang belum banyak diketahui — spot yang sering terlewat kebanyakan wisatawan.'
+          ? "The top 10 hidden gem destinations in Yogyakarta, curated fresh every week. High-rated spots that haven't gone mainstream yet — the kind of places most visitors walk right past. Plus more hidden gems below."
+          : 'Top 10 destinasi tersembunyi di Yogyakarta yang dipilih ulang setiap minggu. Tempat-tempat berkualitas tinggi yang belum banyak diketahui — spot yang sering terlewat kebanyakan wisatawan. Plus hidden gem lainnya di bawah.'
       }
       updateBadgeText={isEn ? 'Updated every week' : 'Diperbarui tiap minggu'}
       adPlacement="hidden_gem_listicle"
+      highlightTop10
     />
   );
 }
