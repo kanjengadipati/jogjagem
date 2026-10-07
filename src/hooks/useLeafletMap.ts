@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
+import { mapTiles } from '../lib/mapTiles';
 
 interface UseLeafletMapOptions {
   center?: [number, number];
@@ -66,10 +67,10 @@ export function useLeafletMap(options: UseLeafletMapOptions = {}): UseLeafletMap
         L.control.zoom({ position: zoomControlPosition }).addTo(map);
       }
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CartoDB',
-        subdomains: 'abcd',
-        maxZoom: 20,
+      L.tileLayer(mapTiles.url, {
+        attribution: mapTiles.attribution,
+        maxZoom: mapTiles.maxZoom,
+        ...(mapTiles.subdomains ? { subdomains: mapTiles.subdomains } : {}),
       }).addTo(map);
 
       const markers = L.layerGroup().addTo(map);

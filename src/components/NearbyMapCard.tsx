@@ -5,6 +5,7 @@ import { useRouter } from '@/i18n/navigation';
 import { Map, Navigation } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
 import { useLocale } from '@/contexts/LocaleContext';
+import { mapTiles } from '@/lib/mapTiles';
 
 export default function NearbyMapCard() {
   const router = useRouter();
@@ -32,9 +33,10 @@ export default function NearbyMapCard() {
         touchZoom: false,
       });
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
-        maxZoom: 20,
+      L.tileLayer(mapTiles.url, {
+        attribution: mapTiles.attribution,
+        maxZoom: mapTiles.maxZoom,
+        ...(mapTiles.subdomains ? { subdomains: mapTiles.subdomains } : {}),
       }).addTo(map);
 
       const userIcon = L.divIcon({

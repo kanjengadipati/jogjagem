@@ -95,6 +95,7 @@ Open **http://localhost:3001**.
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | public | Google sign-in (button hidden when unset) |
 | `NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION`, `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` | public | Midtrans Snap checkout |
 | `NEXT_PUBLIC_UMAMI_WEBSITE_ID`, `NEXT_PUBLIC_UMAMI_SCRIPT_URL` | public | Umami analytics |
+| `NEXT_PUBLIC_CARTO_API_KEY` | public | CARTO Basemaps tile key (falls back to keyless OSM tiles when unset) |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | server | Cloudinary signing (`/api/upload`, `/api/cloudinary/sign`) |
 | `E2E_USER_EMAIL`, `E2E_USER_PASSWORD`, `PLAYWRIGHT_BASE_URL` | test | Playwright auth suite |
 
