@@ -26,3 +26,6 @@ playwright-report/
 
 
 next-env.d.ts
+
+# OpenNext (Cloudflare) build output
+.open-next/
