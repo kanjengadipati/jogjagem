@@ -15,6 +15,7 @@
     "test:e2e:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.16",
     "@vercel/analytics": "^2.0.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.546.0",
@@ -36,6 +37,7 @@
     "@types/react-dom": "^19.2.3",
     "pg": "^8.22.0",
     "tailwindcss": "^4.1.14",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "wrangler": "^4.158.0"
   }
 }
