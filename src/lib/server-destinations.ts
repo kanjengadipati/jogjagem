@@ -2,7 +2,7 @@ import type { Destination } from '@/types';
 import { mapApiToDestination } from '@/lib/destination-mapper';
 import { toSlug } from '@/lib/slug';
 
-const API_BASE = process.env.API_BASE || process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+const API_BASE = process.env.API_BASE || process.env.NEXT_PUBLIC_API_BASE || 'https://api.jogjagem.com';
 
 /**
  * Fetch every destination via paginated requests.

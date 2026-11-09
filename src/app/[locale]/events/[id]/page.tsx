@@ -27,7 +27,7 @@ interface EventData {
 
 async function fetchEvent(id: string, locale: string): Promise<EventData | null> {
   try {
-    const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+    const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.jogjagem.com';
     const res = await fetch(`${API_BASE}/events/${id}`, {
       headers: { 'Accept-Language': locale === 'en' ? 'en' : 'id' },
       next: { revalidate: 3600 },
@@ -43,7 +43,7 @@ async function fetchEvent(id: string, locale: string): Promise<EventData | null>
 type PageProps = { params: Promise<{ id: string; locale: string }> };
 
 export async function generateStaticParams() {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.jogjagem.com';
   try {
     const res = await fetch(`${API_BASE}/events?limit=1000&page=1`);
     if (!res.ok) throw new Error('bad');

@@ -43,7 +43,7 @@ export default function CoverImageUpload({
       const token = (await import('@/lib/api')).auth.getAccessToken();
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.jogjagem.com';
       const sigRes = await fetch(`${API_BASE}/cloudinary/sign`, {
         method: 'POST',
         headers,

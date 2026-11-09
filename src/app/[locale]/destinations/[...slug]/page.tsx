@@ -41,9 +41,13 @@ export async function generateStaticParams() {
         params.push({ locale: 'en', slug: [slug] });
       }
     });
+    if (params.length === 0) {
+      params.push({ locale: 'id', slug: ['_'] });
+      params.push({ locale: 'en', slug: ['_'] });
+    }
     return params;
   } catch {
-    return [];
+    return [{ locale: 'id', slug: ['_'] }, { locale: 'en', slug: ['_'] }];
   }
 }
 

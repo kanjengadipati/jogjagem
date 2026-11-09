@@ -8,7 +8,7 @@ interface SignedUploadParams {
 
 import { auth } from './api';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.jogjagem.com';
 
 export async function getSignedParams(folder?: string): Promise<SignedUploadParams> {
   const token = auth.getAccessToken();

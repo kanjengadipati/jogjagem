@@ -9,7 +9,7 @@ import { fetchAllDestinations } from '@/lib/server-destinations';
 import { mapApiToDestination } from '@/lib/destination-mapper';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
-const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'http://localhost:8081';
+const API_BASE  = process.env.NEXT_PUBLIC_API_BASE  || 'https://api.jogjagem.com';
 
 // Maps URL slug → canonical region name stored in destinations.sub_region
 const REGION_META: Record<string, {

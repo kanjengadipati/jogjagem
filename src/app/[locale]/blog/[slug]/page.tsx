@@ -5,7 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import BlogDetailClient from './BlogDetailClient';
 import type { Article } from '@/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.jogjagem.com';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
 export async function generateStaticParams() {
