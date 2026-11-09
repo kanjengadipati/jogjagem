@@ -8,13 +8,36 @@ import type { Article } from '@/types';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(`${API_BASE}/articles?limit=1000&page=1`);
+    if (!res.ok) throw new Error('bad');
+    const body = await res.json();
+    const items = Array.isArray(body?.data) ? body.data : [];
+    const params: { locale: string; slug: string }[] = [];
+    for (const item of items) {
+      const slug = item?.slug;
+      if (slug) {
+        params.push({ locale: 'id', slug: String(slug) });
+        params.push({ locale: 'en', slug: String(slug) });
+      }
+    }
+    if (params.length === 0) {
+      params.push({ locale: 'id', slug: '_' }, { locale: 'en', slug: '_' });
+    }
+    return params;
+  } catch {
+    return [{ locale: 'id', slug: '_' }, { locale: 'en', slug: '_' }];
+  }
+}
+
 /** Returns an absolute OG image URL, proxying external images through our domain. */
 function resolveOgImage(imageUrl: string | null | undefined): string | undefined {
   if (!imageUrl) return undefined;
   if (imageUrl.startsWith(SITE_URL) || imageUrl.startsWith('/')) {
     return imageUrl.startsWith('/') ? `${SITE_URL}${imageUrl}` : imageUrl;
   }
-  return `${SITE_URL}/api/og-proxy?url=${encodeURIComponent(imageUrl)}`;
+  return imageUrl;
 }
 
 const fetchArticle = cache(async (slug: string, locale: string): Promise<Article | null> => {

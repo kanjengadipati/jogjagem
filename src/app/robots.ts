@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 
+export const dynamic = 'force-static';
+
 export default function robots(): MetadataRoute.Robots {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
 
@@ -7,8 +9,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/api/og-proxy'],
-        disallow: ['/api/', '/_next/', '/static/'],
+        disallow: ['/_next/', '/static/'],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

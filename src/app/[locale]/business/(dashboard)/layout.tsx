@@ -1,21 +1,34 @@
-import { redirect } from "next/navigation";
-import { getSession } from "@/lib/session";
-import { SidebarProvider } from "@/contexts/SidebarContext";
-import BusinessSidebar from "@/components/business-portal/BusinessSidebar";
-import { ToastProvider } from "@/components/Toast";
+'use client';
 
-/**
- * Shell layout untuk semua halaman business dashboard (cloned dari
- * jogjagem-admin /business/layout.tsx). Hanya sidebar yang dirender di sini —
- * BusinessHeader dirender per panel/page, mengikuti pola admin.
- */
-export default async function BusinessDashboardLayout({
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { SidebarProvider } from '@/contexts/SidebarContext';
+import BusinessSidebar from '@/components/business-portal/BusinessSidebar';
+import { ToastProvider } from '@/components/Toast';
+
+export default function BusinessDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const token = await getSession();
-  if (!token) redirect("/");
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/');
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center text-xs text-stone-400">
+        Memuat...
+      </div>
+    );
+  }
+  if (!isAuthenticated) return null;
 
   return (
     <ToastProvider>

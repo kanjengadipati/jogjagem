@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+export const dynamic = 'force-static';
 import { toSlug } from '@/lib/slug';
 import { CATEGORY_IDS, categoryToSlug } from '@/lib/category-slugs';
 import { fetchAllDestinations } from '@/lib/server-destinations';

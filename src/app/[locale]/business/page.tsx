@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import BusinessPageClient from './BusinessPageClient';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.jogjagem.com';
@@ -46,5 +47,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 export default function BusinessPage() {
-  return <BusinessPageClient />;
+  return (
+    <Suspense>
+      <BusinessPageClient />
+    </Suspense>
+  );
 }

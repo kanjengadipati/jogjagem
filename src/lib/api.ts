@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '/api/pleco';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
 
 let currentLocale: string = 'id';
 
@@ -130,7 +130,10 @@ function scheduleRefresh(token: string) {
 async function hydrateSession(): Promise<void> {
   if (accessToken) return; // already hydrated
   try {
-    const res = await fetch('/api/auth/session');
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
     if (!res.ok) return;
     const json: APIResponse<AuthResponse> = await res.json();
     if (json.status === 'success' && json.data?.access_token) {
@@ -198,7 +201,7 @@ async function request<T>(
 async function tryRefresh(): Promise<boolean> {
   try {
     // Calls our Route Handler which forwards to the backend and refreshes the cookie
-    const res = await fetch('/api/auth/refresh', {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
     });
@@ -224,9 +227,10 @@ export const auth = {
 
   async login(email: string, password: string) {
     // Calls our Route Handler which proxies to the backend and sets the httpOnly cookie
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
     const fallback: APIResponse<AuthResponse> = { status: 'error', message: 'Network error' };
@@ -330,7 +334,7 @@ export const auth = {
   },
 
   async forgotPassword(email: string) {
-    const res = await fetch('/api/auth/forgot-password', {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
@@ -340,7 +344,7 @@ export const auth = {
   },
 
   async resetPassword(token: string, newPassword: string) {
-    const res = await fetch('/api/auth/reset-password', {
+    const res = await fetch(`${API_BASE}/auth/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, new_password: newPassword }),
@@ -351,16 +355,21 @@ export const auth = {
 
   async logout() {
     // Calls our Route Handler which clears the cookie and notifies the backend
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+    await fetch(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      credentials: 'include',
+    }).catch(() => {});
     setAccessToken(null);
     return { status: 'success' } as APIResponse;
   },
 
   async socialLogin(provider: 'google' | 'facebook', token: string) {
     // Calls our Route Handler which proxies to the backend and sets the httpOnly cookie
-    const res = await fetch('/api/auth/social', {
+    const res = await fetch(`${API_BASE}/auth/social-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ provider, token }),
     });
     const fallback: APIResponse<AuthResponse> = { status: 'error', message: 'Network error' };

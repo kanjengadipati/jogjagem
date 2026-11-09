@@ -42,6 +42,30 @@ async function fetchEvent(id: string, locale: string): Promise<EventData | null>
 
 type PageProps = { params: Promise<{ id: string; locale: string }> };
 
+export async function generateStaticParams() {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+  try {
+    const res = await fetch(`${API_BASE}/events?limit=1000&page=1`);
+    if (!res.ok) throw new Error('bad');
+    const body = await res.json();
+    const items = Array.isArray(body?.data) ? body.data : [];
+    const params: { locale: string; id: string }[] = [];
+    for (const item of items) {
+      const id = item?.id;
+      if (id) {
+        params.push({ locale: 'id', id: String(id) });
+        params.push({ locale: 'en', id: String(id) });
+      }
+    }
+    if (params.length === 0) {
+      params.push({ locale: 'id', id: '_' }, { locale: 'en', id: '_' });
+    }
+    return params;
+  } catch {
+    return [{ locale: 'id', id: '_' }, { locale: 'en', id: '_' }];
+  }
+}
+
 /** Returns an absolute OG image URL, proxying external images through our domain. */
 function resolveOgImage(imageUrl: string | null | undefined): string {
   const fallback = `${SITE_URL}/og.png`;
@@ -50,8 +74,8 @@ function resolveOgImage(imageUrl: string | null | undefined): string {
   if (imageUrl.startsWith(SITE_URL) || imageUrl.startsWith('/')) {
     return imageUrl.startsWith('/') ? `${SITE_URL}${imageUrl}` : imageUrl;
   }
-  // External image — proxy it so Google can crawl it from our domain
-  return `${SITE_URL}/api/og-proxy?url=${encodeURIComponent(imageUrl)}`;
+  // External image — use directly (no server-side proxy in static export)
+  return imageUrl;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

@@ -6,10 +6,18 @@ interface SignedUploadParams {
   folder: string;
 }
 
+import { auth } from './api';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+
 export async function getSignedParams(folder?: string): Promise<SignedUploadParams> {
-  const res = await fetch('/api/cloudinary/sign', {
+  const token = auth.getAccessToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}/cloudinary/sign`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
+    credentials: 'include',
     body: JSON.stringify({ folder }),
   });
   if (!res.ok) throw new Error('Failed to get upload signature');

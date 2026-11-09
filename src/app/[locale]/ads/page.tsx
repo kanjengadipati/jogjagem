@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import AdsLandingClient from './AdsLandingClient';
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdsPage() {
-  return <AdsLandingClient />;
+  return (
+    <Suspense>
+      <AdsLandingClient />
+    </Suspense>
+  );
 }

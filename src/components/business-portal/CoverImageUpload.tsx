@@ -39,10 +39,15 @@ export default function CoverImageUpload({
     setUploading(true);
 
     try {
-      // 1. Get signed params from our API
-      const sigRes = await fetch('/api/upload', {
+      // 1. Get signed params from backend
+      const token = (await import('@/lib/api')).auth.getAccessToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8081';
+      const sigRes = await fetch(`${API_BASE}/cloudinary/sign`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
+        credentials: 'include',
         body: JSON.stringify({ folder }),
       });
       const sig = await sigRes.json() as {
@@ -62,7 +67,8 @@ export default function CoverImageUpload({
       form.append('api_key', sig.api_key);
       form.append('folder', sig.folder);
 
-      const uploadRes = await fetch(sig.upload_url, { method: 'POST', body: form });
+      const uploadUrl = sig.upload_url || `https://api.cloudinary.com/v1_1/${sig.cloud_name}/image/upload`;
+      const uploadRes = await fetch(uploadUrl, { method: 'POST', body: form });
       if (!uploadRes.ok) throw new Error('Upload failed');
 
       const data = await uploadRes.json() as { secure_url: string };

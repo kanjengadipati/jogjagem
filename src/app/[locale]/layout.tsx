@@ -3,6 +3,7 @@ import { Manrope, Inter, JetBrains_Mono, DM_Serif_Display } from 'next/font/goog
 import '../globals.css';
 import { WebsiteJsonLd } from '@/components/JsonLd';
 import I18nProvider from '@/contexts/I18nProvider';
+import FetchPatch from '@/components/FetchPatch';
 import { Analytics } from '@vercel/analytics/next';
 
 const manrope = Manrope({
@@ -64,6 +65,10 @@ async function fetchSiteConfig(): Promise<Record<string, string>> {
   } catch {
     return {};
   }
+}
+
+export function generateStaticParams() {
+  return [{ locale: 'id' }, { locale: 'en' }];
 }
 
 export const viewport: Viewport = {
@@ -172,6 +177,7 @@ export default async function RootLayout({
         )}
       </head>
       <body>
+        <FetchPatch />
         <I18nProvider locale={locale as 'id' | 'en'}>{children}</I18nProvider>
         <Analytics />
       </body>
